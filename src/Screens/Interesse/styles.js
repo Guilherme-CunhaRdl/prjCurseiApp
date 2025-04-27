@@ -4,7 +4,7 @@
 
     const styles = StyleSheet.create({
       container: {
-        flex: 2,
+        flex: 1,
         backgroundColor: '#FFFFFF',
       },
       capa: {
@@ -24,8 +24,8 @@
         marginTop: -40,
       },
       userPhotoCircle: {
-        width: 80,
-        height: 80,
+        width: 40,
+        height: 40,
         borderRadius: 40,
         backgroundColor: '#FFFFFF',
         justifyContent: 'center',

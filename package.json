@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
+    "@gorhom/portal": "^1.0.14",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/material-top-tabs": "^7.2.10",
     "@react-navigation/native": "^7.1.6",

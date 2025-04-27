@@ -14,10 +14,9 @@ import Icon from "react-native-vector-icons/Feather";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import styles from "./styles";
-import { FlatList } from "react-native-web";
-import userIMG from "../../../assets/userIMG.png";
-import itauLogo from "../../../assets/itauLogo.png";
 import etecLogo from "../../../assets/etecLogo.jpg";
+import { FlatList } from "react-native-web";
+import adicionarLogo from "../../../assets/adicionarLogo.png";
 import fabricaLogo from "../../../assets/fabricaLogo.jpeg";
 import Post from "../../Components/Post";
 
@@ -26,13 +25,13 @@ import { useNavigation } from "@react-navigation/native";
 const DATA = [
   {
     id: Math.random().toString(36).substring(2, 27),
-    photoURL: userIMG,
-    nome: "Seu Story",
+    photoURL: adicionarLogo,
+    nome: "Seu Story", 
   },
   {
     id: Math.random().toString(36).substring(2, 27),
-    photoURL: itauLogo,
-    nome: "Itau",
+    photoURL: 'https://th.bing.com/th/id/OIP.YmtJRv73dOTsmE6c2alf9AHaHa?rs=1&pid=ImgDetMain',
+    nome: "Bradesco",
   },
   {
     id: Math.random().toString(36).substring(2, 27),
@@ -46,11 +45,13 @@ const DATA = [
   },
   {
     id: Math.random().toString(36).substring(2, 27),
-    photoURL: userIMG,
+    photoURL: 'https://th.bing.com/th/id/OIP.5YdHzgQhfS1mFfUOpVXeUAHaHa?rs=1&pid=ImgDetMain', 
+    nome: "X",
   },
   {
     id: Math.random().toString(36).substring(2, 27),
-    photoURL: userIMG,
+    photoURL: 'https://akamai.sscdn.co/uploadfile/letras/fotos/c/a/5/2/ca52b9aff9234ab34a4f36fa8acdf91f.jpg',
+    nome: "Plumas",
   },
 ];
 
@@ -94,14 +95,15 @@ export default function Home() {
             <FlatList
               horizontal={true}
               data={DATA}
+              showsHorizontalScrollIndicator={false}
               keyExtractor={(item) => item.id}
               renderItem={(item) => (
                 <View style={styles.storys}>
                   <Pressable style={styles.circuloStorys}>
                     <Image style={styles.imgLogo} source={item.item.photoURL} />
                   </Pressable>
-                  <View style={styles.nomeStorys}>
-                    <Text>{item.item.nome}</Text>
+                  <View >
+                    <Text style={styles.nomeStorys}>{item.item.nome}</Text>
                   </View>
                 </View>
               )}

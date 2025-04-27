@@ -1,10 +1,7 @@
 import React from 'react';
-import { SafeAreaView, View, Text, ScrollView, TextInput, Image, StatusBar, Pressable } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { SafeAreaView, View, Text, ScrollView, TextInput} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
-import { FlatList } from 'react-native-web';
 import TopTabs from '../../Routes/TopTab';
 
 const DATA = [

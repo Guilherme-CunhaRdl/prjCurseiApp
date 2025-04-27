@@ -11,11 +11,10 @@ export default StyleSheet.create({
       },
       feedContainer: {
         flex: 1,
-        paddingHorizontal: 16,
+        paddingHorizontal: 10,
       },
       postContainer: {
         paddingTop: 20,
-        marginBottom: 20,
       },
       postHeader: {
         marginBottom: 8,
@@ -62,15 +61,15 @@ export default StyleSheet.create({
         elevation: 5,
       },
       Header:{
-        flex: 3,
-        width: 360,
-        paddingTop: 10,
-        paddingBottom: 30,
-        borderBottomWidth: 2,
-        borderBottomColor: 'gray',
+        flex: 0.17,
+        paddingBottom:10,
+        width: '100%',
+        borderBottomWidth: 1,
+        borderBottomColor: '#C5C5C5',
+        
       },
       userContainer:{
-
+        paddingVertical: 10,
       },
       infoUser:{
         paddingHorizontal: 16,
@@ -103,32 +102,33 @@ export default StyleSheet.create({
       },
       storysContainer:{
         flexDirection: 'row',
-        paddingTop: 20,
-        gap: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
       },
       storys:{
         alignItems: 'center',
+        justifyContent:'center',
+        marginLeft: 10,
       },
       circuloStorys:{
-        marginLeft: 5,
-        marginRight: 5,
-        borderColor: 'gray',
-        borderRadius: 60,
         height: 80,
         width: 80,
-        borderWidth: 3,
         alignItems: 'center',
+        justifyContent: 'center',
       },
       nomeStorys:{
+        color:"grey",
       },
       imgLogo:{
-        width: 70,
-        height: 70,
-        resizeMode: 'contain',
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
         borderRadius: 40,
+        borderWidth: 2,
+        borderColor: '#9D9D9D',
       },
       containerPost:{
-        width: 130,
+        width: '100%',
         height: 10,
       },
       containerConf:{
