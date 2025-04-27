@@ -34,66 +34,85 @@ const posts = [
 ];
 
 export default function App() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+ 
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/cursei/posts');
+        setPosts([response.data]);
+
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+  console.log(posts)
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centralizar}>
+        <Text>Erro ao carregar posts: {error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
       <FlatList
-        data={posts}
-        showsVerticalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
+        data={posts[0].data}
+        keyExtractor={(item) => item.toString()}
         renderItem={({ item }) => (
+
           <View style={styles.postContainer}>
             <View style={styles.postHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Image
-                  source={{ uri: 'https://cdn-icons-png.flaticon.com/128/3917/3917688.png' }} // Substituir pela imagem do usuário
-                  style={styles.fotoUser}
-                />
-                <View style={{ paddingLeft: 10 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={styles.institutionText}>
-                      {item.usuario.nome_user}
-                    </Text>
-                    <Text style={styles.horaPost}>
-                      ·
-                    </Text>
-                    <Text style={styles.horaPost}>
-                      2h
-                    </Text>
-                  </View>
-                  <Text style={styles.arrobaUser}>
-                    @anaSilva
-                  </Text>
-                </View>
+              <View style={styles.containerPost}>
+                <Text style={styles.institutionText}>
+                  {item.usuario.nome_user}
+                </Text>
               </View>
 
               <Configuracoes />
             </View>
-            <View style={styles.containerConteudo}>
-              <Text style={styles.postText}>
-                {item.descricao_post}
-              </Text>
-              <View style={styles.postContent}>
-                <Image style={{ width: '100%', height: '100%', borderRadius: 8 }} source={{ uri: item.image_url }} />
-              </View>
+            <Text style={styles.postText}>
+              {item.descricao_post}
+            </Text>
+            <View style={styles.postContent}>
+              <Image style={{ width: 100, height: 100 }} source={{ uri: item.image_url }} />
             </View>
+      
             <View style={styles.postActions}>
               <TouchableOpacity style={styles.actionButton}>
                 <Icon name="heart" size={20} color="#666" />
               </TouchableOpacity>
-
+      
               <View style={styles.containerComents}>
                 <Comentario />
               </View>
-
+      
               <TouchableOpacity style={styles.actionButton}>
                 <Icon name="repeat" size={20} color="#666" />
               </TouchableOpacity>
 
+
               <View style={styles.containerShare}>
                 <Compartilhar />
               </View>
-
+      
               <TouchableOpacity style={styles.actionButton}>
                 <Icon name="download" size={20} color="#666" />
               </TouchableOpacity>
