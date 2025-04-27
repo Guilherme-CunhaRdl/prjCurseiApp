@@ -67,7 +67,9 @@ export default function Cadastro() {
      usuario.append('bioUser','cleiton');
      usuario.append('arrobaUser',user);
      usuario.append('emailUser',email);
-     await axios.post('http://localhost:8000/api/cursei/user', usuario);
+await axios.post('http://localhost:8000/api/cursei/user', usuario, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
      navigation.navigate('Interesse')
   }
   return (

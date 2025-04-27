@@ -68,7 +68,7 @@ export default function Perfil() {
                 <View style={styles.header}>
                     <Image
                         style={styles.banner}
-                        source={{ uri: `http://localhost:8000/img/img-instituicao/banners/${banner}`}}
+                        source={{ uri: `http://localhost:8000/img/user/bannerPerfil/${banner}`}}
                     />
                 </View>
                 {/*Container do Perfil */}
@@ -77,7 +77,7 @@ export default function Perfil() {
                         <View style={styles.imgContainer}>
                             <Image
                                 style={styles.userImg}
-                                source={{ uri: `http://localhost:8000/img/img-instituicao/img-perfil/${userImg}` }}
+                                source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` }}
                             />
                         </View>
 
