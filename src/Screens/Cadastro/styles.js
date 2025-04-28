@@ -117,18 +117,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   loginContainer: {
-    flexDirection: 'row',
+  
+    alignContent: 'center',
+    flexDirection: 'column',
     justifyContent: 'center',
     marginTop: 8,
   },
   loginText: {
-    fontSize: 14,
-    color: '#666666',
+    fontSize: 16,
+    color: '#A0A0A0',
+    marginBottom: 5, // Espaço entre o primeiro texto e o botão/link
+    textAlign: 'center',
   },
   loginLink: {
-    fontSize: 14,
-    color: '#4B97FF',
-    fontWeight: '500',
+    fontSize: 16,
+    color: '#007bff', // Azulzinho (ou o que preferir)
+    textAlign: 'center',
   },
   subtitulo: {
     fontSize: 14,
@@ -189,6 +193,18 @@ const styles = StyleSheet.create({
     color: '#4B97FF',
     fontSize: 16,
     marginLeft: 8,
+    fontWeight: 'bold',
+  },
+  openModalButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    marginTop: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  openModalButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });

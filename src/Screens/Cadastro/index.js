@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import Login from '../Login';
+import CadastroInstituicaoModal from '../../Components/cadastrarInstituicao';
 
 export default function Cadastro() {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,8 +26,9 @@ export default function Cadastro() {
   const [user, setUser] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-
+  const [modalVisible, setModalVisible] = useState(false); // <-- novo
   const navigation = useNavigation();
+  const [userId, setUserId] = useState(null);
 
   async function fotoBanner() {
     let result = await ImagePicker.launchCameraAsync({
@@ -46,31 +48,46 @@ export default function Cadastro() {
     });
     if (!result.canceled) {
       setUserImg(result.assets[0].uri);
-      
     }
   }
-  async function CriarUser(){
-     console.log(userImg)
-     var usuario = new FormData();
-     usuario.append('imgUser',{
-       uri:userImg,
-       type:'image/jpeg',
-       name:'imguse.jpg',
-     });
-     usuario.append('bannerUser',{
-       uri:userImg,
-       type:'image/jpeg',
-       name:'imguse.jpg',
-     });
-     usuario.append('nomeUser',nome);
-     usuario.append('senhaUser',senha);
-     usuario.append('bioUser','cleiton');
-     usuario.append('arrobaUser',user);
-     usuario.append('emailUser',email);
-await axios.post('http://localhost:8000/api/cursei/user', usuario, {
-  headers: { 'Content-Type': 'multipart/form-data' },
-});
-     navigation.navigate('Interesse')
+
+
+  async function CriarUser() {
+    console.log(userImg)
+    var usuario = new FormData();
+
+    usuario.append('imgUser',{
+      uri:userImg,
+      type:'image/jpeg',
+      name:'imguse.jpg',
+    });
+
+    usuario.append('bannerUser', {
+      uri: banner,
+      type: 'image/jpg',
+      name: 'bannerUser.jpg',
+    });
+    usuario.append('nomeUser', nome);
+    usuario.append('senhaUser', senha);
+    usuario.append('bioUser', 'cleiton');
+    usuario.append('arrobaUser', user);
+    usuario.append('emailUser', email);
+    
+    //teste para percorrer o FormData e ver os valores (tentei usar para saber se a image estava sendo enviada corretamente)
+    //for (const value of usuario.values()) {
+    //  console.log(value);
+    //}    
+     const response = await axios.post('http://localhost:8000/api/cursei/user', usuario, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'accept': 'application/json',
+      },
+    });
+    
+    console.log('Usuario criado com sucesso', response.data);
+    const newUserId = response.data.Post.id; // Acesse o ID corretamente da resposta
+    setUserId(newUserId);
+    return newUserId; // Retorna o ID para uso imediato
   }
   return (
     <View style={styles.container}>
@@ -78,19 +95,19 @@ await axios.post('http://localhost:8000/api/cursei/user', usuario, {
       <Pressable style={styles.capa} onPress={() => fotoBanner()}>
         <Icon name="camera" size={24} color="#FFFFFF" />
         <Text style={styles.bannerText}>Adicionar Banner</Text>
-        
-      <Image
-        style={styles.banner}
-        source={{uri: banner}}
-      />
+
+        <Image
+          style={styles.banner}
+          source={{ uri: banner }}
+        />
       </Pressable>
-    <Pressable  onPress={() => fotoPerfil()}>
-   
-      <Image
-        style={styles.user}
-        source={{uri: userImg}}
-      />
-</Pressable>
+      <Pressable onPress={() => fotoPerfil()}>
+
+        <Image
+          style={styles.user}
+          source={{ uri: userImg }}
+        />
+      </Pressable>
       <View style={styles.cadastro}>
         <Text style={styles.titulo}>Informações Básicas</Text>
 
@@ -162,19 +179,48 @@ await axios.post('http://localhost:8000/api/cursei/user', usuario, {
         {/* Continuar Button */}
         <Pressable style={styles.continueButton}
           onPress={() => CriarUser()}
-          
-          >
+
+        >
           <Text style={styles.continueButtonText}>Continuar</Text>
         </Pressable>
 
         {/* Login option */}
         <View style={styles.loginContainer}>
-          <Text style={styles.loginText}>Já tem uma conta? </Text>
+          <Text style={styles.loginText}>Já tem uma conta? <Text style={styles.loginLink}>Faça login</Text>
+          </Text>
           <TouchableOpacity
             onPress={() => navigation.navigate('Login')}
           >
-            <Text style={styles.loginLink}>Faça login</Text>
           </TouchableOpacity>
+
+          <Text style={styles.loginText}>Deseja ser uma instituição? <TouchableOpacity
+      onPress={async () => {
+        if (nome.trim() && user.trim() && email.trim() && senha.trim()) {
+          const newUserId = await CriarUser();
+          console.log('ID do usuário criado:', newUserId); // Agora isso mostrará o ID correto
+          if (newUserId) {
+            setModalVisible(true);
+          } else {
+            alert('Erro ao criar usuário. Tente novamente.');
+          }
+        } else {
+          alert('Preencha todas as informações antes de cadastrar uma instituição.');
+        }
+      }}
+          >
+            <Text style={styles.loginLink}>Se cadastre aqui</Text>
+            <CadastroInstituicaoModal
+              userId={userId}
+              visible={modalVisible}
+              onClose={() => setModalVisible(false)}
+              onSubmit={(formData) => {
+                console.log('Instituição cadastrada:', formData);
+                setModalVisible(false);
+                navigation.navigate('Login'); 
+              }}
+            />
+          </TouchableOpacity> </Text>
+
         </View>
       </View>
     </View>
