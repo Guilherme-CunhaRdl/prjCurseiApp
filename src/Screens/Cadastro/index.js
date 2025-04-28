@@ -85,7 +85,7 @@ export default function Cadastro() {
     });
     
     console.log('Usuario criado com sucesso', response.data);
-    const newUserId = response.data.Post.id; // Acesse o ID corretamente da resposta
+    const newUserId = response.data.User.id; // Acesse o ID corretamente da resposta
     setUserId(newUserId);
     return newUserId; // Retorna o ID para uso imediato
   }
