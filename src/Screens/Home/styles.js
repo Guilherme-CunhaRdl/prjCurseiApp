@@ -50,9 +50,9 @@ export default StyleSheet.create({
         color: '#666',
       },
       sendButton: {
-        position: 'absolute',
+        position: 'fixed',
         right: 20,
-        bottom: 20,
+        bottom: 70,
         width: 50,
         height: 50,
         borderRadius: 25,
