@@ -9,17 +9,25 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/pt-br'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-export default function App() {
+export default function Post( {idUser = null}) {
  
   const [posts, setPosts] = useState();
   dayjs.extend(relativeTime);
   dayjs.locale('pt-br')
   useEffect(() => {
     const fetchPosts = async () => {
-      
-        const response = await axios.get('http://localhost:8000/api/posts/0/0/100/0/0');
+
+      const idUserSalvo = await AsyncStorage.getItem('idUser');
+
+      if (idUser) {
+        url = `http://localhost:8000/api/cursei/posts/user/${idUserSalvo}`; 
+      } else {
+        url = `http://localhost:8000/api/posts/0/0/100/0/0`;
+      }
+        const response = await axios.get(url);
         console.log(response.data.data)
         setPosts(response.data.data)
     };

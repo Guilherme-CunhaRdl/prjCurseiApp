@@ -8,7 +8,7 @@ import Post from "../../Components/Post";
 import blackStory from '../../../assets/blackStory.png'
 import React, { useState,useEffect } from 'react';
 import axios from "axios";
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const DATA = [
     {
         id: Math.random().toString(36).substring(2, 27),
@@ -36,8 +36,9 @@ const DATA = [
         nome: ''
     },
 ]
-export default function Perfil() {
 
+
+export default function Perfil() {
     const [banner, setBanner] = useState('');
     const [userImg, setUserImg] = useState('');
     const [nome, setNome] = useState('');
@@ -45,22 +46,51 @@ export default function Perfil() {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
     const [bio, setBio] = useState('');
-    async function selectPerfil() {
-        const resultados = await axios.get('http://localhost:8000/api/cursei/user/1');
-        const data = resultados.data[0];
-        console.log("22222",data)
-        setNome(data.nome_user);
-        setUser(data.arroba_user);
-        setEmail(data.email_user);
-        setSenha(data.senha_user);
-        setBio(data.bio_user);
-        setUserImg(data.img_user);
-        setBanner(data.banner_user);
-    }
-    console.log("aa");
-   useEffect(() => {
-     selectPerfil();
-   }, []);
+    const [idUser, setIdUser] = useState();
+    const [seguidores,setSeguidores]= useState('')
+    const [seguindo,setSeguindo]= useState('')
+
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+        try {
+        const idUserSalvo = await AsyncStorage.getItem('idUser');
+        if (idUserSalvo) {
+            setIdUser(idUserSalvo);
+            const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idUserSalvo}`);
+            var data = resultados.data;
+            console.log(data);
+            setNome(data.User.nome_user);
+            setUser(data.User.arroba_user);
+            setEmail(data.User.email_user);
+            setSenha(data.User.senha_user);
+            setBio(data.User.bio_user);
+            setUserImg(data.User.img_user);
+            setBanner(data.User.banner_user);
+            setSeguidores(data.User.seguidor_count)
+            setSeguindo(data.User.seguindo_count)
+
+        }
+        } catch (error) {
+        console.error('Erro ao buscar perfil:', error);
+        } finally {
+            setTimeout(() =>{
+                setLoading(false); 
+            }, 500)
+        }
+    };
+
+      
+        fetchUserData();
+      }, []);
+      if (loading) {
+        return (
+          <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:'center'}}>
+            <Text>Carregando perfil...</Text>
+          </SafeAreaView>
+        );
+      }
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView style={styles.containerCont}>
@@ -104,12 +134,12 @@ export default function Perfil() {
                 <View style={styles.seguidorContainer}>
 
                     <View style={styles.seguidores}>
-                        <Text style={styles.numSeg}>60</Text>
+                        <Text style={styles.numSeg}>{seguidores}</Text>
                         <Text style={styles.textSeguidores}>Seguidores</Text>
                     </View>
 
                     <View style={styles.seguindo}>
-                        <Text style={styles.numSeg}>43</Text>
+                        <Text style={styles.numSeg}>{seguindo}</Text>
                         <Text style={styles.textSeguindo}>Seguindo</Text>
                     </View>
                 </View>
@@ -133,6 +163,7 @@ export default function Perfil() {
                         horizontal={true}
                         data={DATA}
                         keyExtractor={item => item.id}
+                        showsHorizontalScrollIndicator={false}
                         renderItem={item => (
                             <View style={styles.storys}>
                                 <Pressable style={styles.circuloStorys}>
@@ -170,7 +201,7 @@ export default function Perfil() {
                 </View>
                 {/*Posts*/}
                 <View style={styles.postContainer}>
-                    <Post />
+                    <Post idUser={idUser} />
                 </View>
 
 

@@ -35,7 +35,7 @@ export default function Login() {
 
         setVisibilidadeSucesso(true)
         console.log(dados)
-        await AsyncStorage.setItem('idUsuario', dados.id)
+        await AsyncStorage.setItem('idUser', dados.id)
         setTimeout(() => {
           setVisibilidadeSucesso(false)
         }, 2000 )

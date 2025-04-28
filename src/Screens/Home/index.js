@@ -1,5 +1,5 @@
 // App.js
-import React from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -56,6 +56,7 @@ const DATA = [
 ];
 
 export default function Home() {
+
 
   const navigation = useNavigation();
 
