@@ -5,6 +5,7 @@ export default StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#FFFFFF',
+        overflow: 'scroll'
       },
       ContainerCont:{
         flex: 1,
@@ -61,7 +62,7 @@ export default StyleSheet.create({
         elevation: 5,
       },
       Header:{
-        flex: 0.17,
+        flex: 0.36,
         paddingBottom:10,
         width: '100%',
         borderBottomWidth: 1,

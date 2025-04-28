@@ -5,114 +5,91 @@ import Configuracoes from './Configurações/configuracoes';
 import Comentario from './Comentario';
 import Compartilhar from '../Components/Compartilhar';
 import Icon from "react-native-vector-icons/Feather";
+import axios from 'axios';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/pt-br'; 
 
-const posts = [
-  {
-    id: '1',
-    usuario: {
-      nome_user: 'Ana Silva'
-    },
-    descricao_post: 'Olha só esse pôr do sol incrível que vi hoje!',
-    image_url: 'https://images.unsplash.com/photo-1501973801540-537f08ccae7b',
-  },
-  {
-    id: '2',
-    usuario: {
-      nome_user: 'Carlos Souza'
-    },
-    descricao_post: 'Meu novo livro favorito! Recomendo demais.',
-    image_url: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f',
-  },
-  {
-    id: '3',
-    usuario: {
-      nome_user: 'Fernanda Lima'
-    },
-    descricao_post: 'Alguém mais ama café quanto eu? ☕',
-    image_url: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93',
-  },
-];
 
 export default function App() {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
  
+  const [posts, setPosts] = useState();
+  dayjs.extend(relativeTime);
+  dayjs.locale('pt-br')
   useEffect(() => {
     const fetchPosts = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/api/cursei/posts');
-        setPosts([response.data]);
-
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+      
+        const response = await axios.get('http://localhost:8000/api/posts/0/0/100/0/0');
+        console.log(response.data.data)
+        setPosts(response.data.data)
     };
 
     fetchPosts();
   }, []);
-  console.log(posts)
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centralizar}>
-        <Text>Erro ao carregar posts: {error}</Text>
-      </View>
-    );
-  }
+  const formatarTempoInsercao = (seconds) => {
+    return dayjs().subtract(seconds, 'seconds').fromNow(); // Exibe o tempo como "há 2 horas", "há 1 dia", etc.
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
       <FlatList
-        data={posts[0].data}
-        keyExtractor={(item) => item.toString()}
+        data={posts}
+        showsVerticalScrollIndicator={false}
+        keyExtractor={(item) => item.id_post.toString()}
         renderItem={({ item }) => (
-
           <View style={styles.postContainer}>
             <View style={styles.postHeader}>
-              <View style={styles.containerPost}>
-                <Text style={styles.institutionText}>
-                  {item.usuario.nome_user}
-                </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Image
+                  source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }} 
+                  style={styles.fotoUser}
+                />
+                <View style={{ paddingLeft: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={styles.institutionText}>
+                      {item.nome_user}
+                    </Text>
+                    <Text style={styles.horaPost}>
+                      ·
+                    </Text>
+                    <Text style={styles.horaPost}>
+                      {formatarTempoInsercao(item.tempo_insercao)}
+                    </Text>
+                  </View>
+                  <Text style={styles.arrobaUser}>
+                    @{item.arroba_user}
+                  </Text>
+                </View>
               </View>
 
               <Configuracoes />
             </View>
-            <Text style={styles.postText}>
-              {item.descricao_post}
-            </Text>
-            <View style={styles.postContent}>
-              <Image style={{ width: 100, height: 100 }} source={{ uri: item.image_url }} />
+            <View style={styles.containerConteudo}>
+              <Text style={styles.postText}>
+                {item.descricao_post}
+              </Text>
+              <View style={styles.postContent}>
+                <Image style={{ width: '100%', height: '100%', borderRadius: 8 }} source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }} />
+              </View>
             </View>
-      
             <View style={styles.postActions}>
               <TouchableOpacity style={styles.actionButton}>
                 <Icon name="heart" size={20} color="#666" />
               </TouchableOpacity>
-      
+
               <View style={styles.containerComents}>
                 <Comentario />
               </View>
-      
+
               <TouchableOpacity style={styles.actionButton}>
                 <Icon name="repeat" size={20} color="#666" />
               </TouchableOpacity>
 
-
               <View style={styles.containerShare}>
                 <Compartilhar />
               </View>
-      
+
               <TouchableOpacity style={styles.actionButton}>
                 <Icon name="download" size={20} color="#666" />
               </TouchableOpacity>

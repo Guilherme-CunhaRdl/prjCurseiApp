@@ -62,7 +62,7 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Feed Content */}
-      <ScrollView style={styles.ContainerCont}>
+      <View style={styles.ContainerCont}>
         {/*Header*/}
         <View style={styles.Header}>
           {/*View informações user*/}
@@ -116,7 +116,7 @@ export default function Home() {
             <Post />
           </View>
         </View>
-      </ScrollView>
+      </View>
       {/* Send Button */}
       <TouchableOpacity style={styles.sendButton}>
         <Icon name="send" size={24} color="#FFFFFF" />
