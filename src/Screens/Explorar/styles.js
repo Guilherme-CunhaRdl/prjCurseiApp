@@ -10,11 +10,11 @@ export default StyleSheet.create({
       },
       Header:{
         flex: 2,
-        width: 360,
+        width: '100%',
       },
       explorarContainer:{
-        paddingTop: 20,
-        paddingBottom: 20,
+        paddingTop: 10,
+        paddingBottom: 10,
         paddingHorizontal: 16,
       },
       explorarTitle:{
@@ -28,7 +28,7 @@ export default StyleSheet.create({
         marginBottom: 16,
         paddingHorizontal: 15,
         height: 45,
-        width: 329,
+        width: '100%',
         backgroundColor: '#EFEFEF',
       },
       barraContainer:{
@@ -62,8 +62,8 @@ export default StyleSheet.create({
       },
       trendigContainer:{
         backgroundColor: 'white',
-        width: 310,
-        height: 400,
+        width: '100%',
+        height: '100%',
         borderRadius: 10,
         shadowColor: '#000',
         shadowOffset: {width: 5, height: 10 },

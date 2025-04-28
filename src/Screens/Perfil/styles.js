@@ -158,6 +158,7 @@ export default StyleSheet.create({
       postContainer: {
         paddingTop: 20,
         marginBottom: 20,
+        paddingHorizontal: 10,
       },
       postHeader: {
         marginBottom: 8,

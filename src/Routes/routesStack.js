@@ -23,14 +23,15 @@ export default function StackRoutes() {
           headerShown: false,
         }}
       />
+        <Stack.Screen
+          name="Home"
+          component={TabNav}
+          options={{
+            headerShown: false,
+          }}
+        />
 
-      <Stack.Screen
-        name="Home"
-        component={TabNav}
-        options={{
-          headerShown: false,
-        }}
-      />
+      
 
       <Stack.Screen
         name="Perfil"

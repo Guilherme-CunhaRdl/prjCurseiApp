@@ -1,18 +1,58 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Image, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
 import Home from '../Home';
 import Cadastro from '../Cadastro';
-
+import MensagemSucesso from '../../Components/MensagemSucesso'
 import { useNavigation } from "@react-navigation/native";
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
+  var dados
   const navigation = useNavigation();
+  const [visibilidadeSucesso, setVisibilidadeSucesso] = useState(false)
+
+
+  
+
+  const login = async () => {
+    
+
+    const resposta = await axios.post(`http://localhost:8000/api/cursei/user/logar`, {
+      emailDigitado: email,
+      senhaDigitada: password
+    })
+
+    console.log(resposta)
+
+      if(resposta.data.sucesso === true){
+        dados = resposta.data.usuario
+
+        setVisibilidadeSucesso(true)
+        console.log(dados)
+        await AsyncStorage.setItem('idUser', dados.id)
+        setTimeout(() => {
+          setVisibilidadeSucesso(false)
+        }, 2000 )
+        setInterval(() => {
+          navigation.navigate('Home')
+        }, 2500 )
+        
+      }else{
+        console.log('erro')
+      }
+
+    
+
+
+  }
+
+  
 
   {/*Link Login temporario*/ }
   return (
@@ -33,7 +73,6 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder="Coloque seu Email"
-            value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -45,7 +84,6 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder="Coloque sua Senha"
-            value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
           />
@@ -58,7 +96,7 @@ export default function Login() {
         </View>
 
         <TouchableOpacity style={styles.loginButton}
-          onPress={() => navigation.navigate('Home')}
+          onPress={() => login()}
         >
           <Text style={styles.loginButtonText}>Entrar</Text>
         </TouchableOpacity>
@@ -91,6 +129,9 @@ export default function Login() {
           </TouchableOpacity>
         </View>
       </View>
+
+      <MensagemSucesso visible={visibilidadeSucesso} 
+                        onClose={() => fecharModal()}/>
     </SafeAreaView>
   );
 }
