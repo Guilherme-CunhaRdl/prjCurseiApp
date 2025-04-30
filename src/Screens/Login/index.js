@@ -16,9 +16,19 @@ export default function Login() {
   var dados
   const navigation = useNavigation();
   const [visibilidadeSucesso, setVisibilidadeSucesso] = useState(false)
-
+  var logado = ''
 
   
+// useEffect(() =>{
+//   async function verificarLogin(){
+//   logado = await AsyncStorage.getItem('logado')
+//   console.log(logado)
+//   if(logado === '1'){
+//     navigation.navigate('Home')
+//   }
+// }
+// verificarLogin()
+// }, [])
 
   const login = async () => {
     
@@ -36,15 +46,18 @@ export default function Login() {
         setVisibilidadeSucesso(true)
         console.log(dados)
         await AsyncStorage.setItem('idUser', dados.id)
+        await AsyncStorage.setItem('logado', 1)
         setTimeout(() => {
           setVisibilidadeSucesso(false)
         }, 2000 )
         setInterval(() => {
           navigation.navigate('Home')
+
         }, 2500 )
         
       }else{
         console.log('erro')
+         logado = await AsyncStorage.setItem('logado', 0)
       }
 
     

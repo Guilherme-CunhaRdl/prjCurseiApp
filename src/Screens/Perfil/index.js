@@ -12,27 +12,27 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const DATA = [
     {
         id: Math.random().toString(36).substring(2, 27),
-        photoURL: blackStory,
+        photoURL: '#D9D9D9',
         nome: ''
     },
     {
         id: Math.random().toString(36).substring(2, 27),
-        photoURL: blackStory,
+        photoURL: '#D9D9D9',
         nome: ''
     },
     {
         id: Math.random().toString(36).substring(2, 27),
-        photoURL: blackStory,
+        photoURL: '#D9D9D9',
         nome: ''
     },
     {
         id: Math.random().toString(36).substring(2, 27),
-        photoURL: blackStory,
+        photoURL: '#D9D9D9',
         nome: ''
     },
     {
         id: Math.random().toString(36).substring(2, 27),
-        photoURL: blackStory,
+        photoURL: '#D9D9D9',
         nome: ''
     },
 ]
@@ -167,10 +167,9 @@ export default function Perfil() {
                         renderItem={item => (
                             <View style={styles.storys}>
                                 <Pressable style={styles.circuloStorys}>
-                                    <Image
-                                        style={styles.imgLogo}
-                                        source={item.item.photoURL}
-                                    />
+                                    <View
+                                        style={[styles.imgLogo, {backgroundColor: item.item.photoURL}]}
+                                    ></View>
                                 </Pressable>
 
                                 <View style={styles.nomeStorys}>

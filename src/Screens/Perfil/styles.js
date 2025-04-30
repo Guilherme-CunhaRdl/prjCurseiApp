@@ -209,5 +209,29 @@ export default StyleSheet.create({
         resizeMode: 'contain',
         borderRadius: 40,
       },
+      dropdown: {
+            margin: 16,
+            height: 50,
+            width: 150,
+            backgroundColor: '#EEEEEE',
+            borderRadius: 22,
+            paddingHorizontal: 8,
+          },
+          imageStyle: {
+            width: 24,
+            height: 24,
+            borderRadius: 12,
+          },
+          placeholderStyle: {
+            fontSize: 16,
+          },
+          selectedTextStyle: {
+            fontSize: 16,
+            marginLeft: 8,
+          },
+          iconStyle: {
+            width: 20,
+            height: 20,
+          },
 
 })
