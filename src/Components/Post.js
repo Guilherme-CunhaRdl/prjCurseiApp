@@ -5,15 +5,17 @@ import Configuracoes from './Configurações/configuracoes';
 import Comentario from './Comentario';
 import Compartilhar from '../Components/Compartilhar';
 import Icon from "react-native-vector-icons/Feather";
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import axios from 'axios';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import 'dayjs/locale/pt-br'; 
+import 'dayjs/locale/pt-br';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-export default function Post( {idUser = null}) {
- 
+export default function Post({ idUser = null }) {
+
   const [posts, setPosts] = useState();
   dayjs.extend(relativeTime);
   dayjs.locale('pt-br')
@@ -23,13 +25,13 @@ export default function Post( {idUser = null}) {
       const idUserSalvo = await AsyncStorage.getItem('idUser');
 
       if (idUser) {
-        url = `http://localhost:8000/api/cursei/posts/user/${idUserSalvo}`; 
+        url = `http://localhost:8000/api/cursei/posts/user/${idUserSalvo}`;
       } else {
-        url = `http://localhost:8000/api/posts/0/0/100/0/0`;
+        url = `http://localhost:8000/api/posts/0/10/100/0/0`;
       }
-        const response = await axios.get(url);
-        console.log(response.data.data)
-        setPosts(response.data.data)
+      const response = await axios.get(url);
+      console.log(response.data.data)
+      setPosts(response.data.data)
     };
 
     fetchPosts();
@@ -37,6 +39,36 @@ export default function Post( {idUser = null}) {
   const formatarTempoInsercao = (seconds) => {
     return dayjs().subtract(seconds, 'seconds').fromNow(); // Exibe o tempo como "há 2 horas", "há 1 dia", etc.
   };
+  const [curtidos, setCurtidos] = useState({});
+  async function curtirposts(idPost, curtida_banco) {
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
+    console.log(idPost, idUserSalvo)
+    if (curtidos[idPost] === true || curtida_banco === 1) {
+      url = `http://127.0.0.1:8000/api/posts/interacoes/descurtir`;
+      const curtida = new FormData();
+      curtida.append('idUser', idUserSalvo);
+      curtida.append('idPost', idPost)
+      await axios.post(url, curtida, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      setCurtidos(prev => ({ ...prev, [idPost]: false }));
+      return 1;
+    } else {
+      url = `http://127.0.0.1:8000/api/posts/interacoes/curtir`;
+      const curtida = new FormData();
+      curtida.append('idUser', idUserSalvo);
+      curtida.append('idPost', idPost)
+      await axios.post(url, curtida, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setCurtidos(prev => ({ ...prev, [idPost]: true }));
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -45,65 +77,82 @@ export default function Post( {idUser = null}) {
         data={posts}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id_post.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.postContainer}>
-            <View style={styles.postHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Image
-                  source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }} 
-                  style={styles.fotoUser}
-                />
-                <View style={{ paddingLeft: 10 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={styles.institutionText}>
-                      {item.nome_user}
-                    </Text>
-                    <Text style={styles.horaPost}>
-                      ·
-                    </Text>
-                    <Text style={styles.horaPost}>
-                      {formatarTempoInsercao(item.tempo_insercao)}
+        renderItem={({ item }) => {
+          async function verificarCurtida(idPost) {
+
+
+            const resposta = await curtirposts(idPost, item.curtiu_post);
+            if (resposta === 1) {
+              item.curtiu_post = 0;
+            }
+          }
+
+          const curtido = item.curtiu_post === 1 || curtidos[item.id_post] === true;
+          return (
+            <View style={styles.postContainer}>
+              <View style={styles.postHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Image
+                    source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }}
+                    style={styles.fotoUser}
+                  />
+                  <View style={{ paddingLeft: 10 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={styles.institutionText}>
+                        {item.nome_user}
+                      </Text>
+                      <Text style={styles.horaPost}>
+                        ·
+                      </Text>
+                      <Text style={styles.horaPost}>
+                        {formatarTempoInsercao(item.tempo_insercao)}
+                      </Text>
+                    </View>
+                    <Text style={styles.arrobaUser}>
+                      @{item.arroba_user}
                     </Text>
                   </View>
-                  <Text style={styles.arrobaUser}>
-                    @{item.arroba_user}
-                  </Text>
+                </View>
+
+                <Configuracoes />
+              </View>
+              <View style={styles.containerConteudo}>
+                <Text style={styles.postText}>
+                  {item.descricao_post}
+                </Text>
+                <View style={styles.postContent}>
+                  <Image style={{ width: '100%', height: '100%', borderRadius: 8 }} source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }} />
                 </View>
               </View>
+              <View style={styles.postActions}>
+                <TouchableOpacity style={styles.actionButton} onPress={() => verificarCurtida(item.id_post)}>
+                  <Ionicons
+                    name={curtido ? "heart" : "heart-outline"}
+                    size={20}
+                    color={curtido ? "#ff0000" : "#666"}
+                  />
 
-              <Configuracoes />
-            </View>
-            <View style={styles.containerConteudo}>
-              <Text style={styles.postText}>
-                {item.descricao_post}
-              </Text>
-              <View style={styles.postContent}>
-                <Image style={{ width: '100%', height: '100%', borderRadius: 8 }} source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }} />
+                </TouchableOpacity>
+
+                <View style={styles.containerComents}>
+                    <Comentario idPost={item.id_post}/>
+                </View>
+
+                <TouchableOpacity style={styles.actionButton}>
+                  <Icon name="repeat" size={20} color="#666" />
+                </TouchableOpacity>
+
+                <View style={styles.containerShare}>
+                  <Compartilhar />
+                </View>
+
+                <TouchableOpacity style={styles.actionButton}>
+                  <Icon name="download" size={20} color="#666" />
+                </TouchableOpacity>
               </View>
             </View>
-            <View style={styles.postActions}>
-              <TouchableOpacity style={styles.actionButton}>
-                <Icon name="heart" size={20} color="#666" />
-              </TouchableOpacity>
-
-              <View style={styles.containerComents}>
-                <Comentario />
-              </View>
-
-              <TouchableOpacity style={styles.actionButton}>
-                <Icon name="repeat" size={20} color="#666" />
-              </TouchableOpacity>
-
-              <View style={styles.containerShare}>
-                <Compartilhar />
-              </View>
-
-              <TouchableOpacity style={styles.actionButton}>
-                <Icon name="download" size={20} color="#666" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+          )
+        }}
       />
     </View>
   );
@@ -114,7 +163,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     width: '100%',
-    
+
   },
   postContainer: {
     marginBottom: 30,

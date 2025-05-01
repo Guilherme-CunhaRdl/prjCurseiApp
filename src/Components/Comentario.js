@@ -3,115 +3,47 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-export default function Comentario() {
+export default function Comentario({ idPost }) {
 
 
   const [modalVisivel, setModalVisivel] = useState(false);
   const [comentario, setComentario] = useState('');
   const refConteudoModal = useRef(null);
-  const [comentarios, setComentarios] = useState([
-    {
-      id: '1',
-      usuario: 'EL CHAVO DEL OCHO',
-      tempoCriacao: new Date(Date.now() - 3600000),
-      texto: 'Seria melhor ter ido ver o filme do pelé!',
-      curtidas: 1,
-      foto: 'https://th.bing.com/th/id/R.7dc73e032ee7e2354ebe86e579e44264?rik=fLQ5zfemTUwwvg&riu=http%3a%2f%2frafabarbosa.com%2fwp-content%2fuploads%2f2011%2f07%2fchaves22.jpg&ehk=uFTisNnaZM7DbdjTCdvH685iMGLNp4QpfUJFMP6WaWU%3d&risl=&pid=ImgRaw&r=0' // placeholder de foto
-    },
-    {
-      id: '2',
-      usuario: 'CHAPOLIN COLORADO',
-      tempoCriacao: new Date(Date.now() - 2700000),
-      texto: 'Não contavam com minha astúcia!',
-      curtidas: 3,
-      foto: 'https://th.bing.com/th/id/OIP.uAgPko09GoWKTvzmPcHcgwHaEc?rs=1&pid=ImgDetMain' // placeholder de foto
-    },
-    {
-      id: '3',
-      usuario: 'EL CHAVO DEL OCHO',
-      tempoCriacao: new Date(Date.now() - 5500000),
-      texto: 'Seria melhor ter ido ver o filme do pelé!',
-      curtidas: 1,
-      foto: 'https://th.bing.com/th/id/R.7dc73e032ee7e2354ebe86e579e44264?rik=fLQ5zfemTUwwvg&riu=http%3a%2f%2frafabarbosa.com%2fwp-content%2fuploads%2f2011%2f07%2fchaves22.jpg&ehk=uFTisNnaZM7DbdjTCdvH685iMGLNp4QpfUJFMP6WaWU%3d&risl=&pid=ImgRaw&r=0' // placeholder de foto
-    },
-    {
-      id: '4',
-      usuario: 'CHAPOLIN COLORADO',
-      tempoCriacao: new Date(Date.now() - 1700000),
-      texto: 'Não contavam com minha astúcia!',
-      curtidas: 3,
-      foto: 'https://th.bing.com/th/id/OIP.uAgPko09GoWKTvzmPcHcgwHaEc?rs=1&pid=ImgDetMain' // placeholder de foto
-    },
-    {
-      id: '5',
-      usuario: 'EL CHAVO DEL OCHO',
-      tempoCriacao: new Date(Date.now() - 2700000),
-      texto: 'Seria melhor ter ido ver o filme do pelé!',
-      curtidas: 1,
-      foto: 'https://th.bing.com/th/id/R.7dc73e032ee7e2354ebe86e579e44264?rik=fLQ5zfemTUwwvg&riu=http%3a%2f%2frafabarbosa.com%2fwp-content%2fuploads%2f2011%2f07%2fchaves22.jpg&ehk=uFTisNnaZM7DbdjTCdvH685iMGLNp4QpfUJFMP6WaWU%3d&risl=&pid=ImgRaw&r=0' // placeholder de foto
-    },
-    {
-      id: '6',
-      usuario: 'CHAPOLIN COLORADO',
-      tempoCriacao: new Date(Date.now() - 3700000),
-      texto: 'Não contavam com minha astúcia!',
-      curtidas: 3,
-      foto: 'https://th.bing.com/th/id/OIP.uAgPko09GoWKTvzmPcHcgwHaEc?rs=1&pid=ImgDetMain' // placeholder de foto
-    },
-    {
-      id: '7',
-      usuario: 'EL CHAVO DEL OCHO',
-      tempoCriacao: new Date(Date.now() - 7700000),
-      texto: 'Seria melhor ter ido ver o filme do pelé!',
-      curtidas: 1,
-      foto: 'https://th.bing.com/th/id/R.7dc73e032ee7e2354ebe86e579e44264?rik=fLQ5zfemTUwwvg&riu=http%3a%2f%2frafabarbosa.com%2fwp-content%2fuploads%2f2011%2f07%2fchaves22.jpg&ehk=uFTisNnaZM7DbdjTCdvH685iMGLNp4QpfUJFMP6WaWU%3d&risl=&pid=ImgRaw&r=0' // placeholder de foto
-    },
-    {
-      id: '8',
-      usuario: 'CHAPOLIN COLORADO',
-      tempoCriacao: new Date(Date.now() - 22700000),
-      texto: 'Não contavam com minha astúcia!',
-      curtidas: 3,
-      foto: 'https://th.bing.com/th/id/OIP.uAgPko09GoWKTvzmPcHcgwHaEc?rs=1&pid=ImgDetMain' // placeholder de foto
-    },
-    {
-      id: '9',
-      usuario: 'EL CHAVO DEL OCHO',
-      tempoCriacao: new Date(Date.now() - 1700000),
-      texto: 'Seria melhor ter ido ver o filme do pelé!',
-      curtidas: 1,
-      foto: 'https://th.bing.com/th/id/R.7dc73e032ee7e2354ebe86e579e44264?rik=fLQ5zfemTUwwvg&riu=http%3a%2f%2frafabarbosa.com%2fwp-content%2fuploads%2f2011%2f07%2fchaves22.jpg&ehk=uFTisNnaZM7DbdjTCdvH685iMGLNp4QpfUJFMP6WaWU%3d&risl=&pid=ImgRaw&r=0' // placeholder de foto
-    },
-    {
-      id: '10',
-      usuario: 'CHAPOLIN COLORADO',
-      tempoCriacao: new Date(Date.now() - 5700000),
-      texto: 'Não contavam com minha astúcia!',
-      curtidas: 3,
-      foto: 'https://th.bing.com/th/id/OIP.uAgPko09GoWKTvzmPcHcgwHaEc?rs=1&pid=ImgDetMain' // placeholder de foto
-    },
-    {
-      id: '11',
-      usuario: 'EL CHAVO DEL OCHO',
-      tempoCriacao: new Date(Date.now() - 4700000),
-      texto: 'Seria melhor ter ido ver o filme do pelé!',
-      curtidas: 1,
-      foto: 'https://th.bing.com/th/id/R.7dc73e032ee7e2354ebe86e579e44264?rik=fLQ5zfemTUwwvg&riu=http%3a%2f%2frafabarbosa.com%2fwp-content%2fuploads%2f2011%2f07%2fchaves22.jpg&ehk=uFTisNnaZM7DbdjTCdvH685iMGLNp4QpfUJFMP6WaWU%3d&risl=&pid=ImgRaw&r=0' // placeholder de foto
-    },
-    {
-      id: '12',
-      usuario: 'CHAPOLIN COLORADO',
-      tempoCriacao: new Date(Date.now() - 3700000),
-      texto: 'Não contavam com minha astúcia!',
-      curtidas: 3,
-      foto: 'https://th.bing.com/th/id/OIP.uAgPko09GoWKTvzmPcHcgwHaEc?rs=1&pid=ImgDetMain' // placeholder de foto
-    },
-  ]);
+  async function buscarComentarios(idPost) {
+    url = 'http://127.0.0.1:8000/api/posts/interacoes/comentarios';
+    const post ={
+     idPost: idPost
+    }
+    response = await axios.post(url,post)
+    const resposta = response.data;
+ 
+    return resposta;
+  }
+  const [comentarios, setComentarios] = useState([]);
 
-  const abrirModal = () => {
+  function carregarComentarios(comentariosAPI) {
+    const listaComentarios = comentariosAPI.map(comentario => ({
+      id: comentario.id,
+      usuario: comentario.usuario.arroba_user,
+      tempoCriacao: new Date(Date.now() - 3600000),
+      texto: comentario.comentario || '',
+      curtidas: 0,
+      foto: `http://localhost:8000/img/user/fotoPerfil/${comentario.usuario.img_user}`
+    }));
+  
+    setComentarios(listaComentarios);
+  }
+
+
+
+  const abrirModal = async () => {
     setModalVisivel(true);
+    const comentarios = await buscarComentarios(idPost);
+    carregarComentarios(comentarios);
   };
 
   const fecharModal = () => {
@@ -132,17 +64,24 @@ export default function Comentario() {
     }));
   };
 
-  const adicionarComentario = () => {
+  const adicionarComentario = async () => {
     if (comentario.trim() === '') return;
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
+    const Createcomentario ={
+      idPost: idPost,
+      idUser : idUserSalvo,
+      comentario : comentario
+     }
+    const comentar = await axios.post('http://127.0.0.1:8000/api/posts/interacoes/comentar',Createcomentario)
 
     const novoComentario = {
-      id: Date.now().toString(),
-      usuario: 'USUÁRIO ATUAL',
+      id: comentar.data[0].id,
+      usuario: comentar.data[0].arroba_user,
       tempoCriacao: new Date(),
       texto: comentario,
       curtidas: 0,
       curtido: false,
-      foto: 'https://i.imgur.com/0LKZQYM.png'
+      foto: `http://localhost:8000/img/user/fotoPerfil/${comentar.data[0].img_user}`
     };
 
     setComentarios([novoComentario, ...comentarios]);
@@ -186,7 +125,7 @@ export default function Comentario() {
         <View style={styles.cabecalhoComentario}>
           <Image source={{ uri: foto }} style={styles.fotoUsuario} />
           <View style={styles.infoUsuario}>
-            <Text style={styles.nomeUsuario}>{usuario}</Text>
+            <Text style={styles.nomeUsuario}>@{usuario}</Text>
             <Text style={styles.tempo}> • {tempoFormatado}</Text>
           </View>
         </View>
