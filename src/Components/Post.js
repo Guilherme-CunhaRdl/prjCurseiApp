@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function Post({ idUser = null }) {
+  const [mostrarCoracao, setMostrarCoracao] = useState({});
 
   const [posts, setPosts] = useState();
   dayjs.extend(relativeTime);
@@ -39,6 +40,9 @@ export default function Post({ idUser = null }) {
   const formatarTempoInsercao = (seconds) => {
     return dayjs().subtract(seconds, 'seconds').fromNow(); // Exibe o tempo como "há 2 horas", "há 1 dia", etc.
   };
+  let lastTap = null;
+
+
   const [curtidos, setCurtidos] = useState({});
   async function curtirposts(idPost, curtida_banco) {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -79,12 +83,28 @@ export default function Post({ idUser = null }) {
         keyExtractor={(item) => item.id_post.toString()}
         renderItem={({ item }) => {
           async function verificarCurtida(idPost) {
-
-
             const resposta = await curtirposts(idPost, item.curtiu_post);
             if (resposta === 1) {
               item.curtiu_post = 0;
+            }else{
+              setMostrarCoracao(prev => ({ ...prev, [idPost]: true }));
+
+              // Oculta o coração após 800ms
+              setTimeout(() => {
+                setMostrarCoracao(prev => ({ ...prev, [idPost]: false }));
+              }, 500);
             }
+          }
+          function doiscliques(idPost) {
+            const now = Date.now();
+            const DOUBLE_PRESS_DELAY = 300; // milissegundos
+
+            if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
+              verificarCurtida(idPost); // Executa a função no segundo clique rápido
+             
+            }
+
+            lastTap = now;
           }
 
           const curtido = item.curtiu_post === 1 || curtidos[item.id_post] === true;
@@ -120,9 +140,18 @@ export default function Post({ idUser = null }) {
                 <Text style={styles.postText}>
                   {item.descricao_post}
                 </Text>
-                <View style={styles.postContent}>
+                <TouchableOpacity style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
                   <Image style={{ width: '100%', height: '100%', borderRadius: 8 }} source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }} />
-                </View>
+
+                  {mostrarCoracao[item.id_post] && (
+                    <View style={styles.coracaoOverlay}>
+                      <Image
+                        source={require('../../assets/coracaoGif.gif')}
+                        style={{ width: 200, height: 200,}}
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
               <View style={styles.postActions}>
                 <TouchableOpacity style={styles.actionButton} onPress={() => verificarCurtida(item.id_post)}>
@@ -135,7 +164,7 @@ export default function Post({ idUser = null }) {
                 </TouchableOpacity>
 
                 <View style={styles.containerComents}>
-                    <Comentario idPost={item.id_post}/>
+                  <Comentario idPost={item.id_post} />
                 </View>
 
                 <TouchableOpacity style={styles.actionButton}>
@@ -195,6 +224,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F0F0',
     borderRadius: 8,
     marginBottom: 8,
+    position: 'relative',
+    justifyContent:'center',
+    alignItems:'center'
   },
   containerConf: {
     alignSelf: 'center',
@@ -218,5 +250,15 @@ const styles = StyleSheet.create({
   containerConteudo: {
     paddingTop: 5,
   },
-
+  coracaoOverlay: {
+    position: 'absolute',
+    top: '0%',
+    left: '0%',
+    zIndex: 1,
+    opacity: 1,
+    alignItems:'center',
+    justifyContent:'center',
+    width:'100%',
+    height:'100%'
+  },
 });
