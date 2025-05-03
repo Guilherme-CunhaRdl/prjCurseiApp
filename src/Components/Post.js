@@ -6,16 +6,27 @@ import Comentario from './Comentario';
 import Compartilhar from '../Components/Compartilhar';
 import Icon from "react-native-vector-icons/Feather";
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import { useNavigation } from "@react-navigation/native";
 import axios from 'axios';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/pt-br';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 export default function Post({ idUser = null }) {
-  const [mostrarCoracao, setMostrarCoracao] = useState({});
+  const navigation = useNavigation();
+
+    async function verificarLogin() {
+      const idUserSalvo = await AsyncStorage.getItem('idUser');
+      if (idUserSalvo){
+        let id = idUserSalvo
+        return id
+      }else{
+        navigation.navigate('Login')
+      }
+    }
+    
+    const [mostrarCoracao, setMostrarCoracao] = useState({});
 
   const [posts, setPosts] = useState();
   dayjs.extend(relativeTime);
@@ -23,12 +34,21 @@ export default function Post({ idUser = null }) {
   useEffect(() => {
     const fetchPosts = async () => {
 
-      const idUserSalvo = await AsyncStorage.getItem('idUser');
+       
 
       if (idUser) {
-        url = `http://localhost:8000/api/cursei/posts/user/${idUserSalvo}`;
+        const id = idUser;
+        url = `http://localhost:8000/api/posts/2/${id}/100/0/0`;
       } else {
-        url = `http://localhost:8000/api/posts/0/10/100/0/0`;
+        const idUserSalvo = await AsyncStorage.getItem('idUser');
+        if(idUserSalvo){
+          id = idUserSalvo;
+          url = `http://localhost:8000/api/posts/1/${id}/100/0/0`;
+
+        }else[
+          id = 0,
+          url = `http://localhost:8000/api/posts/0/${id}/100/0/0`
+        ]
       }
       const response = await axios.get(url);
       console.log(response.data.data)
@@ -38,17 +58,17 @@ export default function Post({ idUser = null }) {
     fetchPosts();
   }, []);
   const formatarTempoInsercao = (seconds) => {
-    return dayjs().subtract(seconds, 'seconds').fromNow(); // Exibe o tempo como "há 2 horas", "há 1 dia", etc.
+    return dayjs().subtract(seconds, 'seconds').fromNow(); 
   };
   let lastTap = null;
 
 
   const [curtidos, setCurtidos] = useState({});
   async function curtirposts(idPost, curtida_banco) {
-    const idUserSalvo = await AsyncStorage.getItem('idUser');
+    const idUserSalvo = await verificarLogin()
     console.log(idPost, idUserSalvo)
     if (curtidos[idPost] === true || curtida_banco === 1) {
-      url = `http://127.0.0.1:8000/api/posts/interacoes/descurtir`;
+      url = `http://localhost:8000/api/posts/interacoes/descurtir`;
       const curtida = new FormData();
       curtida.append('idUser', idUserSalvo);
       curtida.append('idPost', idPost)
@@ -61,7 +81,7 @@ export default function Post({ idUser = null }) {
       setCurtidos(prev => ({ ...prev, [idPost]: false }));
       return 1;
     } else {
-      url = `http://127.0.0.1:8000/api/posts/interacoes/curtir`;
+      url = `http://localhost:8000/api/posts/interacoes/curtir`;
       const curtida = new FormData();
       curtida.append('idUser', idUserSalvo);
       curtida.append('idPost', idPost)
@@ -86,7 +106,7 @@ export default function Post({ idUser = null }) {
             const resposta = await curtirposts(idPost, item.curtiu_post);
             if (resposta === 1) {
               item.curtiu_post = 0;
-            }else{
+            } else {
               setMostrarCoracao(prev => ({ ...prev, [idPost]: true }));
 
               // Oculta o coração após 800ms
@@ -101,7 +121,7 @@ export default function Post({ idUser = null }) {
 
             if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
               verificarCurtida(idPost); // Executa a função no segundo clique rápido
-             
+
             }
 
             lastTap = now;
@@ -133,8 +153,7 @@ export default function Post({ idUser = null }) {
                     </Text>
                   </View>
                 </View>
-
-                <Configuracoes />
+                <Configuracoes arroba={item.arroba_user} idPost={item.id_post} userPost={item.id_user} segueUsuario={item.segue_usuario}/>
               </View>
               <View style={styles.containerConteudo}>
                 <Text style={styles.postText}>
@@ -147,7 +166,7 @@ export default function Post({ idUser = null }) {
                     <View style={styles.coracaoOverlay}>
                       <Image
                         source={require('../../assets/coracaoGif.gif')}
-                        style={{ width: 200, height: 200,}}
+                        style={{ width: 200, height: 200, }}
                       />
                     </View>
                   )}
@@ -172,7 +191,7 @@ export default function Post({ idUser = null }) {
                 </TouchableOpacity>
 
                 <View style={styles.containerShare}>
-                  <Compartilhar />
+                  <Compartilhar/>
                 </View>
 
                 <TouchableOpacity style={styles.actionButton}>
@@ -225,8 +244,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
     position: 'relative',
-    justifyContent:'center',
-    alignItems:'center'
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   containerConf: {
     alignSelf: 'center',
@@ -256,9 +275,9 @@ const styles = StyleSheet.create({
     left: '0%',
     zIndex: 1,
     opacity: 1,
-    alignItems:'center',
-    justifyContent:'center',
-    width:'100%',
-    height:'100%'
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%'
   },
 });

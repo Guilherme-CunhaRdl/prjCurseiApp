@@ -91,7 +91,7 @@ export default StyleSheet.create({
       },
       textUser:{
         fontWeight: '600',
-        fontSize: '17px'
+        fontSize: 17,
       },
       msgUser:{
 

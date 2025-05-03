@@ -54,19 +54,69 @@ export default function Cadastro() {
 
   async function CriarUser() {
     console.log(userImg)
-    var usuario = new FormData();
+    const usuario = new FormData();
 
-    usuario.append('imgUser',{
-      uri:userImg,
-      type:'image/jpeg',
-      name:'imguse.jpg',
-    });
+    if (userImg.startsWith("data:image")) {
+      // Converter Base64 para Blob
+      const response = await fetch(userImg);
+      const blob = await response.blob();
+      // Gerar um nome único para o arquivo
+      const filename = `image_${Date.now()}.jpg`;
+      // Criar um arquivo a partir do Blob
+      const file = new File([blob], filename, { type: blob.type });
+      // Adicionar o arquivo ao FormData
+      usuario.append("imgUser", file);
+    
 
-    usuario.append('bannerUser', {
-      uri: banner,
-      type: 'image/jpg',
-      name: 'bannerUser.jpg',
-    });
+    } else {
+      // Se não for Base64, assumir que é uma URI local
+      const localUri = userImg;
+      const filename = localUri.split("/").pop(); // Extrair o nome do arquivo da URI
+      const match = /\.(\w+)$/.exec(filename); // Extrair o tipo da imagem
+      const type = match ? `image/${match[1]}` : "image/jpeg"; // Definir o tipo, fallback para "image/jpeg"
+    
+      // Criar o objeto de arquivo com a URI local
+      const file = {
+        uri: localUri,
+        type: type,
+        name: filename,
+      };
+    
+      // Adicionar o arquivo ao FormData
+      usuario.append("imgUser", file);
+      
+    }
+    if (banner.startsWith("data:image")) {
+      // Converter Base64 para Blob
+      const response = await fetch(banner);
+      const blob = await response.blob();
+      // Gerar um nome único para o arquivo
+      const filename = `image_${Date.now()}.jpg`;
+      // Criar um arquivo a partir do Blob
+      const file = new File([blob], filename, { type: blob.type });
+      // Adicionar o arquivo ao FormData
+      usuario.append("bannerUser", file);
+    
+
+    } else {
+      // Se não for Base64, assumir que é uma URI local
+      const localUri = banner;
+      const filename = localUri.split("/").pop(); // Extrair o nome do arquivo da URI
+      const match = /\.(\w+)$/.exec(filename); // Extrair o tipo da imagem
+      const type = match ? `image/${match[1]}` : "image/jpeg"; // Definir o tipo, fallback para "image/jpeg"
+    
+      // Criar o objeto de arquivo com a URI local
+      const file = {
+        uri: localUri,
+        type: type,
+        name: filename,
+      };
+    
+      // Adicionar o arquivo ao FormData
+      usuario.append("bannerUser", file);
+      
+    }
+    
     usuario.append('nomeUser', nome);
     usuario.append('senhaUser', senha);
     usuario.append('bioUser', 'cleiton');
@@ -77,17 +127,19 @@ export default function Cadastro() {
     //for (const value of usuario.values()) {
     //  console.log(value);
     //}    
-     const response = await axios.post('http://localhost:8000/api/cursei/user', usuario, {
-      headers: {
+    console.log('userImg:', userImg);
+console.log('banner:', banner);
+    const url = 'http://localhost:8000/api/cursei/user';
+    const response =axios.post(url,usuario, {
+      headers: { 
         'Content-Type': 'multipart/form-data',
-        'accept': 'application/json',
       },
-    });
+    })
+     
     
-    console.log('Usuario criado com sucesso', response.data);
-    const newUserId = response.data.User.id; // Acesse o ID corretamente da resposta
-    setUserId(newUserId);
-    return newUserId; // Retorna o ID para uso imediato
+    
+    console.log( response);
+   
   }
   return (
     <View style={styles.container}>

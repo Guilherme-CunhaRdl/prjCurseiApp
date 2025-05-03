@@ -6,14 +6,18 @@ import Seguindo from './modalSeguindo';
 import ModalBloquear from './modalBloquear';
 import ModalReportar from './modalReportar';
 
-const data = [
-  { label: 'Não interessado nesse post', value: 'naoInteressado', icon: 'meh' },
-  { label: 'Siga @nome', value: 'Siga', icon: 'smileo' },
-  { label: 'Bloquear @nome', value: 'Bloquear', icon: 'frowno' },
-  { label: 'Reportar @nome', value: 'Reportar', icon: 'exclamationcircleo' },
-];
 
-const Configuracoes = () => {
+const Configuracoes = ({arroba,idPost,userPost,segueUsuario}) => {
+
+const [isSeguindo, setIsSeguindo] = useState(segueUsuario === 1);
+
+  const data = [
+    { label: 'Não interessado nesse post', value: 'naoInteressado', icon: 'meh' },
+    { label: isSeguindo ? `Deixe de seguir @${arroba}` : `Siga @${arroba}`, value: 'Siga', icon: 'smileo' },
+    { label: `Bloquear  @${arroba}`, value: 'Bloquear', icon: 'frowno' },
+    { label: `Reportar  @${arroba}`, value: 'Reportar', icon: 'exclamationcircleo' },
+  ];
+  
   const [menuVisible, setMenuVisible] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
 
@@ -42,6 +46,7 @@ const Configuracoes = () => {
         break;
       case 'Siga':
         setModalSeguindoVisible(true);
+        setIsSeguindo(prev => !prev); 
         break;
       case 'Bloquear':
         setModalBloquearVisible(true);
@@ -100,6 +105,8 @@ const Configuracoes = () => {
       <Seguindo
         visible={modalSeguindoVisible}
         onClose={() => setModalSeguindoVisible(false)}
+        arroba={arroba}
+        userPost={userPost}
       />
       <ModalBloquear
         visible={modalBloquearVisible}
@@ -108,6 +115,10 @@ const Configuracoes = () => {
       <ModalReportar
         visible={modalReportarVisible}
         onClose={() => setModalReportarVisible(false)}
+        arroba={arroba}
+        idPost={idPost}
+        userPost={userPost}
+        
       />
     </View>
   );

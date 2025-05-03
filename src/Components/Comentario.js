@@ -5,35 +5,41 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from "@react-navigation/native";
 
 
 export default function Comentario({ idPost }) {
 
-
+  const navigation = useNavigation();
   const [modalVisivel, setModalVisivel] = useState(false);
   const [comentario, setComentario] = useState('');
   const refConteudoModal = useRef(null);
   async function buscarComentarios(idPost) {
-    url = 'http://127.0.0.1:8000/api/posts/interacoes/comentarios';
+    url = 'http://localhost:8000/api/posts/interacoes/comentarios';
     const post ={
      idPost: idPost
     }
     response = await axios.post(url,post)
     const resposta = response.data;
- 
+    
     return resposta;
   }
   const [comentarios, setComentarios] = useState([]);
-
   function carregarComentarios(comentariosAPI) {
-    const listaComentarios = comentariosAPI.map(comentario => ({
-      id: comentario.id,
-      usuario: comentario.usuario.arroba_user,
-      tempoCriacao: new Date(Date.now() - 3600000),
-      texto: comentario.comentario || '',
-      curtidas: 0,
-      foto: `http://localhost:8000/img/user/fotoPerfil/${comentario.usuario.img_user}`
-    }));
+    const listaComentarios = comentariosAPI.map(comentario => {
+      const usuario = comentario.usuario || {};
+      return {
+        id: comentario.id,
+        usuario: usuario.arroba_user || 'Usuário desconhecido',
+        tempoCriacao: new Date(Date.now() - 3600000),
+        texto: comentario.comentario || '',
+        curtidas: 0,
+        curtido: false,
+        foto: usuario.img_user
+          ? `http://localhost:8000/img/user/fotoPerfil/${usuario.img_user}`
+          : 'https://via.placeholder.com/150', // imagem padrão
+      };
+    });
   
     setComentarios(listaComentarios);
   }
@@ -67,6 +73,10 @@ export default function Comentario({ idPost }) {
   const adicionarComentario = async () => {
     if (comentario.trim() === '') return;
     const idUserSalvo = await AsyncStorage.getItem('idUser');
+    if (!idUserSalvo){
+      fecharModal();
+      navigation.navigate('Login')
+    }else{
     const Createcomentario ={
       idPost: idPost,
       idUser : idUserSalvo,
@@ -86,6 +96,7 @@ export default function Comentario({ idPost }) {
 
     setComentarios([novoComentario, ...comentarios]);
     setComentario('');
+  }
   };
 
 

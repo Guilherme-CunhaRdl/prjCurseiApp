@@ -1,12 +1,33 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Modal from 'react-native-modal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { useNavigation } from "@react-navigation/native";
 
-const DenunciaConcluida = ({ visible, onClose }) => {
+const DenunciaConcluida = ({ visible, onClose,idPost,motivo,userPost }) => {
+  const navigation = useNavigation();
+
+  async function novaDenuncia(idPost) {
+   
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
+    if (!idUserSalvo) {
+      navigation.navigate('Login')
+    }
+  
+    const url = 'http://localhost:8000/api/posts/interacoes/denunciar';
+    denuncia = new  FormData();
+    denuncia.append('idPost',idPost)
+    denuncia.append('idUser',idUserSalvo)
+    denuncia.append('motivo',motivo)
+    denuncia.append('denunciado',userPost)
+    axios.post(url,denuncia)
+    onClose()
+  }
   return (
     <Modal
       isVisible={visible}
-      onBackdropPress={onClose}
+      onBackdropPress={() => novaDenuncia(idPost)}
       onBackButtonPress={onClose}
       backdropOpacity={0}
       animationIn="slideInUp"

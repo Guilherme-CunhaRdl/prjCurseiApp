@@ -15,7 +15,7 @@ import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import styles from "./styles";
 import etecLogo from "../../../assets/etecLogo.jpg";
-import { FlatList } from "react-native-web";
+import { FlatList } from "react-native";
 import adicionarLogo from "../../../assets/adicionarLogo.png";
 import fabricaLogo from "../../../assets/fabricaLogo.jpeg";
 import Post from "../../Components/Post";
@@ -72,8 +72,7 @@ export default function Home() {
               <Text style={styles.textUser}>Olá, Usuário(a)!</Text>
               <View style={styles.notifyContainer}>
                 <Pressable style={styles.notifyUser}
-                  onPress={() => navigation.navigate('Notificacoes')}
-                >
+                  onPress={() => navigation.navigate('Notificacoes')}>
                   <Ionicons
                     style={styles.notifyIcon}
                     name="notifications-outline"
@@ -103,7 +102,7 @@ export default function Home() {
                   <Pressable style={styles.circuloStorys}>
                     <Image style={styles.imgLogo} source={item.item.photoURL} />
                   </Pressable>
-                  <View >
+                  <View>
                     <Text style={styles.nomeStorys}>{item.item.nome}</Text>
                   </View>
                 </View>
@@ -114,7 +113,7 @@ export default function Home() {
         <View style={styles.feedContainer}>
           {/*Posts*/}
           <View style={styles.postContainer}>
-            <Post />
+            <Post/>
           </View>
         </View>
       </View>

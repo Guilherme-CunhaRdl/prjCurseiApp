@@ -13,7 +13,7 @@ const motivosDenuncia = [
   { value: '5', label: 'Violação de direitos autorais', icon: 'copyright' },
 ];
 
-const ModalReportar = ({ visible, onClose }) => {
+const ModalReportar = ({ visible, onClose ,idPost,arroba,userPost}) => {
   const [motivo, setMotivo] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -41,7 +41,7 @@ const ModalReportar = ({ visible, onClose }) => {
           <View style={styles.modalTexto}>
             <Text style={styles.texto}>Qual o motivo da denúncia?</Text>
             <Text style={styles.descItem}>
-              Após denunciar, @nome não verá mais suas publicações.
+              Após denunciar, @{arroba} não verá mais suas publicações.
             </Text>
           </View>
 
@@ -90,7 +90,7 @@ const ModalReportar = ({ visible, onClose }) => {
       </Modal>
 
       {/* Modal de Denúncia Concluída */}
-      <DenunciaConcluida visible={showConfirmModal} onClose={() => setShowConfirmModal(false)} />
+      <DenunciaConcluida visible={showConfirmModal} onClose={() => setShowConfirmModal(false)}  idPost={idPost} motivo={ selectedItem?.label} userPost={userPost}/>
     </>
   );
 };

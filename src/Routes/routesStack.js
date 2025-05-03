@@ -17,15 +17,15 @@ export default function StackRoutes() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="Home"
-        component={TabNav}
+        name="Login"
+        component={Login}
         options={{
           headerShown: false,
         }}
       />
       <Stack.Screen
-        name="Login"
-        component={Login}
+        name="Home"
+        component={TabNav}
         options={{
           headerShown: false,
         }}
