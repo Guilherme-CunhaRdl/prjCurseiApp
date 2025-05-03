@@ -6,27 +6,23 @@ export default StyleSheet.create({
         backgroundColor: '#ffffff',
       },
       logoContainer: {
-        alignItems: 'center',
-        marginTop: 60,
-        marginBottom: 40,
-      },
-      logo: {
-        width: 80,
-        height: 80,
+        display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+        marginTop: 50,
+        marginBottom: 40,
+
       },
-      logoShape: {
-        width: 60,
-        height: 60,
-        backgroundColor: 'black',
-        transform: [{ rotate: '45deg' }],
-        borderRadius: 5,
+      logo: {
+        width: 85,
+        height: 80,
+ 
       },
       welcomeText: {
         fontSize: 24,
         fontWeight: 'bold',
         marginTop: 20,
+
         color: '#000',
       },
       formContainer: {
@@ -39,9 +35,10 @@ export default StyleSheet.create({
         borderColor: '#e1e1e1',
         borderRadius: 8,
         marginBottom: 16,
-        paddingHorizontal: 12,
+        paddingLeft: 12,
         height: 50,
         backgroundColor: '#f8f8f8',
+
       },
       inputIcon: {
         marginRight: 10,
@@ -49,10 +46,11 @@ export default StyleSheet.create({
         color: 'gray',
       },
       input: {
-        flex: 1,
+        width: '100%',
         height: 50,
         color: '#333',
         fontSize: 16,
+         outlineStyle: "none",        // Remove borda azul no focus
       },
       visibilityIcon: {
         padding: 5,
@@ -95,10 +93,10 @@ export default StyleSheet.create({
         fontSize: 14,
       },
       socialButtonsContainer: {
-        paddingTop: 5,
         flexDirection: 'row',
         justifyContent: 'center',
         marginBottom: 30,
+        gap: 20,
       },
       socialButton: {
         width: 50,
@@ -108,7 +106,6 @@ export default StyleSheet.create({
         borderColor: '#e1e1e1',
         alignItems: 'center',
         justifyContent: 'center',
-        marginHorizontal: 10,
       },
       socialIconG: {
         fontSize: 35,
@@ -134,4 +131,12 @@ export default StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
       },
-})
+      erro: {
+        color: '#ff4444',
+        fontSize: 12,
+        marginTop: -8,
+        marginBottom: 8,
+        marginLeft: 15
+      }
+
+});
