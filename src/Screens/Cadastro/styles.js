@@ -39,25 +39,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  
   },
   user: {
-      width: 120,           
-      height: 120,          
-      paddingLeft: 10,
-      borderRadius: 70,
-      borderWidth: 4,
-      borderColor:'white',
-      bottom: 55, 
-      left: '13%',
-      transform: [{ translateX: -40 }], 
+    width: 120,           
+    height: 120,          
+    paddingLeft: 10,
+    borderRadius: 70,
+    borderWidth: 4,
+    borderColor:'white',
+    bottom: 55, 
+    left: '13%',
+    transform: [{ translateX: -40 }], 
   },
   cadastro: {
     flex:2,
     paddingHorizontal: 24,
     paddingTop: 24,
     bottom:55,
-
   },
   titulo: {
     fontSize: 24,
@@ -65,7 +63,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     color: '#222222',
     bottom:13,
-
   },
   inputGroup: {
     marginBottom: 16,
@@ -117,7 +114,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   loginContainer: {
-  
     alignContent: 'center',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -126,12 +122,12 @@ const styles = StyleSheet.create({
   loginText: {
     fontSize: 16,
     color: '#A0A0A0',
-    marginBottom: 5, // Espaço entre o primeiro texto e o botão/link
+    marginBottom: 5,
     textAlign: 'center',
   },
   loginLink: {
     fontSize: 16,
-    color: '#007bff', // Azulzinho (ou o que preferir)
+    color: '#007bff',
     textAlign: 'center',
   },
   subtitulo: {
@@ -207,6 +203,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+
+
+  textoErro: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 8,
+  },
+  inputErro: {
+    borderColor: 'red',
+    borderWidth: 1,
+  }
 });
 
 export default styles;
