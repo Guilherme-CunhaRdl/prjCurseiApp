@@ -4,14 +4,40 @@ import { Appbar, IconButton, Provider as PaperProvider, SegmentedButtons } from 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import {useNavigation} from '@react-navigation/native'
-
+import axios from 'axios'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Mensagens() {
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const onChangeSearch = query => setSearchQuery(query);
   const [selectedTab, setSelectedTab] = useState('todas');
+  const [chats, setChats] = useState([]);
+  const [idUser, setIdUser] = useState(null);
   
+  const listarChats = async () =>{
+    const id = await AsyncStorage.getItem('idUser')
+    try {
+      const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/recebidor/${id}`);
+      setChats(resposta.data.chats); 
+      console.log(resposta.data.chats);
+    } catch (error) {
+      console.error("Erro ao buscar mensagens:", error);
+    }
+  }
+
+ 
+
+  useEffect(() => {
+    listarChats();
+
+  }, []);
+ 
+  //fiz essa linha pra manter "chats" como uma constante e não utilizar let.
+  useEffect(() =>{
+    console.log("atualizando estado das constantes", chats, idUser)
+  }, [chats, idUser])
+
   const mensagens = [
     {
       id: 1,
@@ -59,24 +85,24 @@ export default function Mensagens() {
 
                 />
               )}
-              onPress={() => {}}
+              onPress={() => {navigation.navigate('AddConversa')}}
             />
           </Appbar.Header>
 
           <View style={styles.customSearchbar}>
-  <Image
-    source={require('../../img/search.png')} 
-    style={styles.searchIcon}
-  />
-  {/*Barra de pesquisa que troquei pq o do Paper é chei de viadage pra personalizar*/}
-  <TextInput
-    placeholder="Buscar Conversas..."
-    placeholderTextColor="#A7A7A7"
-    value={searchQuery}
-    onChangeText={onChangeSearch}
-    style={styles.customSearchInput}
-  />
-</View> 
+            <Image
+              source={require('../../img/search.png')} 
+              style={styles.searchIcon}
+            />
+            {/*Barra de pesquisa que troquei pq o do Paper é chei de viadage pra personalizar*/}
+            <TextInput
+              placeholder="Buscar Conversas..."
+              placeholderTextColor="#A7A7A7"
+              value={searchQuery}
+              onChangeText={onChangeSearch}
+              style={styles.customSearchInput}
+            />
+          </View> 
 
   
 
@@ -122,19 +148,20 @@ export default function Mensagens() {
 
 
           <FlatList
-            data={mensagensFiltradas}
+            data={chats}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={ () => navigation.navigate('Conversa')} rippleColor="rgba(0, 0, 0, .05)">
+              <TouchableOpacity onPress={ () => navigation.navigate('Conversa', {idEnviador: item.id_user_enviador, imgEnviador: item.img_user, nomeEnviador: item.nome_user, arrobaEnviador: item.arroba_user})} rippleColor="rgba(0, 0, 0, .05)">
                 <View style={styles.mensagemItem}>
+                  {console.log(item.img_user)}
                   <Image
-                    source={item.avatar}
+                    source={ item.img_user === null ? require('../../img/metalbat.jpg') : {uri : `http://localhost:8000/img/user/fotoPerfil/${item.img_user}`} }
                     style={styles.avatar}
-                    defaultSource={require('../../img/metalbat.jpg')}
+                    
                   />
                   <View style={styles.mensagemTexto}>
-                    <Text style={styles.nome} numberOfLines={1}>{item.nome}</Text>
-                    <Text style={styles.ultimaMensagem} numberOfLines={1}>{item.ultimaMensagem}</Text>
+                    <Text style={styles.nome} numberOfLines={1}>{item.nome_user}</Text>
+                    <Text style={styles.ultimaMensagem} numberOfLines={1}>{item.conteudo_mensagem}</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -201,7 +228,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   listaMensagens: {
-    paddingBottom: 100,
     paddingTop: 8,
   },
   customSearchbar: {

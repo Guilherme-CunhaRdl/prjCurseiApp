@@ -25,15 +25,15 @@ export default function Login() {
   const [erroGeral, setErroGeral] = useState('');
   const navigation = useNavigation();
 
-  // useEffect(() => {
-  //   async function verificarLogin() {
-  //     const logado = await AsyncStorage.getItem('logado');
-  //     if(logado === '1') {
-  //       navigation.navigate('Home');
-  //     }
-  //   }
-  //   verificarLogin();
-  // }, []);
+  useEffect(() => {
+    async function verificarLogin() {
+      const logado = await AsyncStorage.getItem('logado');
+      if(logado === '1') {
+        navigation.navigate('Home');
+      }
+    }
+    verificarLogin();
+  }, []);
 
   const validarEmail = (email) => {
     const formatoValidoEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

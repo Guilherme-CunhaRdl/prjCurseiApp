@@ -8,6 +8,7 @@ import Login from '../Screens/Login';
 import Cadastro from '../Screens/Cadastro';
 import Interesse from '../Screens/Interesse';
 import Conversa from '../Components/Chat/src/screens/Conversa';
+import AddConversa from '../Components/Chat/src/screens/AdicionarConversa';
 import Notificacoes from '../Components/Chat/src/screens/Notificacoes';
 
 
@@ -19,6 +20,13 @@ export default function StackRoutes() {
       <Stack.Screen
         name="Login"
         component={Login}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="AddConversa"
+        component={AddConversa}
         options={{
           headerShown: false,
         }}

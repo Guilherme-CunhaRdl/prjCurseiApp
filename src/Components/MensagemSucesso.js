@@ -30,7 +30,7 @@ const ModalReportar = ({ visible, onClose }) => {
         onBackdropPress={onClose}
         onBackButtonPress={onClose}
         animationIn="slideInLeft"
-        animationOut="slideOutLeft"
+        animationOut="slidaeOutLeft"
         backdropTransitionInTiming={500}
         backdropTransitionOutTiming={500}
         animationInTiming={800}

@@ -72,7 +72,7 @@ export default function Notificacoes() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={{ backgroundColor: '#fff', elevation: 0 }}>
-        <Appbar.BackAction onPress={ () => navigation.navigate('Home')}/>
+        <Appbar.BackAction onPress={ () => navigation.goBack()}/>
         <Appbar.Content title="Notificações" titleStyle={{ textAlign: 'center', fontWeight: 600 }} />
         <View style={{ width: 48 }} />
       </Appbar.Header>

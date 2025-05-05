@@ -14,7 +14,37 @@ import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 
-export default function Conversa() {
+export default function Conversa({route}) {
+
+  const {idEnviador, imgEnviador, nomeEnviador, arrobaEnviador} = route.params;
+
+  // const id = idEnviador
+  // const img = imgEnviador
+  // const nome = nomeEnviador
+  // const arroba= arrobaEnviador
+  console.log(idEnviador, imgEnviador, nomeEnviador, arrobaEnviador) 
+
+  const listarConversa = async () =>{
+    const id = await AsyncStorage.getItem('idUser')
+    try {
+      const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/recebidor/${id}/enviador/${idEnviador}`);
+      setChats(resposta.data.chats); 
+      console.log(resposta.data.chats);
+    } catch (error) {
+      console.error("Erro ao buscar mensagens:", error);
+    }
+  }
+
+  // useEffect(() => {
+  //   listarConversa();
+
+  // }, []);
+ 
+  // //fiz essa linha pra manter "chats" como uma constante e não utilizar let.
+  // useEffect(() =>{
+  //   console.log("atualizando estado das constantes")
+  // }, [])
+
   const [mensagem, setMensagem] = useState('');
   const navigation = useNavigation();
  //Bliblioteca que puxa o gerenciador de arquivos padrão do android
@@ -89,10 +119,12 @@ export default function Conversa() {
           </TouchableOpacity>
 
           <View style={styles.headerInfo}>
-            <Image source={require('../../img/dj.jpg')} style={styles.avatar} />
+            <Image                     
+            source={ imgEnviador === null ? require('../../img/metalbat.jpg') : {uri : `http://localhost:8000/img/user/fotoPerfil/${imgEnviador}`} }
+            style={styles.avatar} />
             <View>
-              <Text style={styles.nome}>Klber Cunha</Text>
-              <Text style={styles.usuario}>@kleber_cunha</Text>
+              <Text style={styles.nome}>{nomeEnviador}</Text>
+              <Text style={styles.usuario}>@{arrobaEnviador}</Text>
             </View>
           </View>
 
@@ -173,7 +205,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
      color: '#666'
    },
-  iconSmall: { width: 22, 
+  iconSmall: { 
+    width: 22, 
     height: 22, 
     marginHorizontal: 6 
   },
