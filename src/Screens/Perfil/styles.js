@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-
+import colors from '../../colors'
 export default StyleSheet.create({
 
     container: {
@@ -21,6 +21,7 @@ export default StyleSheet.create({
     },
     perfilContainer:{
         paddingHorizontal: 27,
+        height: 75
     },
     itensContainer:{
         flexDirection: 'row',
@@ -49,6 +50,9 @@ export default StyleSheet.create({
         justifyContent: 'flex-start',
         alignItems: 'center',
     },
+    boxNomeUser:{
+     
+    },
     nomeUser:{
         fontWeight: 'bold',
         fontSize: 20,
@@ -59,15 +63,30 @@ export default StyleSheet.create({
         fontWeight: '500'
     },
     bioUser:{
-        paddingTop: 5,
-        fontSize: 14,
-        fontWeight: '400'
+        textAlign: 'left',
+        width: '70%',
+        height: 'auto'
     },
-    seguidorContainer:{
-        flexDirection: 'row',
-        alignSelf: 'center',
-        gap: 30,
+    textBioUser:{
+      paddingTop: 5,
+      fontSize: 14,
+      fontWeight: '400',
+      textAlign: 'left',
+      
+  },
+    containerBioSeguidores:{
+        flexDirection: 'column',
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
+    boxSeguidores:{
+      flexDirection: 'row',
+      alignSelf: 'center',
+      gap: 30,
+      width: '70%',
+      marginTop: 20
+  },
     numSeg:{
         fontWeight: 'bold',
     },
@@ -80,8 +99,8 @@ export default StyleSheet.create({
         gap: 10,
     },
     editarContainer:{
-        paddingTop: 30,
-        paddingBottom: 30,
+        paddingTop: 10,
+        paddingBottom: 15,
         gap: 20,
         alignItems: 'center',
         justifyContent: 'center',
@@ -92,9 +111,12 @@ export default StyleSheet.create({
         height: 30,
         borderWidth: 1,
         borderRadius: 5,
-        borderBottomColor: 'gray',
+        borderColor: '#E3E3E3',
         alignItems: 'center',
         justifyContent: 'center'
+    },
+    textEditarPerf:{
+      fontWeight: 500
     },
     textSeguidores:{
         gap: 10,
@@ -108,12 +130,11 @@ export default StyleSheet.create({
         color: 'gray',
     },
     settingIcon:{
-        fontSize: 20,
-        fontWeight: 'bold',
+        fontSize: 25,
+        fontWeight: 700,
     },
     storysContainer:{
         flexDirection: 'row',
-        paddingTop: 20,
         gap: 10,
         paddingHorizontal: 16,
       },
@@ -123,33 +144,61 @@ export default StyleSheet.create({
       circuloStorys:{
         alignItems: 'center',
         justifyContent: 'center',
-        borderColor: 'gray',
+        borderColor: '#E3E3E3',
         borderRadius: 60,
-        height: 57,
-        width: 57,
+        height: 60,
+        width: 60,
         marginLeft: 5,
         marginRight: 5,
-        borderWidth: 3,
+        borderWidth: 2,
       },
       nomeStorys:{
       },
       barraContainer:{
-        paddingTop: 30,
         alignSelf: 'center',
         flexDirection: 'row',
-        width: 323,
-        justifyContent: 'space-arround',
-        gap: 40,
-        paddingTop: 10,
-        paddingBottom: 5,
+        width: '97%',
+        justifyContent: 'space-around',
+        
+        // gap: 40,
+        paddingTop: 20,
         borderBottomWidth: 2,
-        borderBottomColor: 'gray',
+        borderBottomColor: '#F5F5F5',
+        // backgroundColor:'red'
       },
       opcao:{
         paddingHorizontal: 9,
+        height: '110%',
+        width: '15%',
+        justifyContent: 'center',
+        alignItems: 'center'
       },
       opcaoIcon:{
-        fontSize: 34,
+        fontSize: 25,
+        color: colors.cinza,
+      },
+      opcaoAtiva:{
+        fontSize: 25,
+        color: colors.preto,
+        borderBottomWidth: 2,
+        borderColor: colors.azul,
+        height: '107%',
+
+      },
+      IconeAtivo:{
+        fontSize: 25,
+        color: colors.preto,
+        borderBottomWidth: 0,
+
+      },
+      opcaoInativo:{
+        fontSize: 25,
+        color: colors.cinza,
+        borderBottomWidth: 0,
+      },
+      iconeInativo:{
+        fontSize: 25,
+        color: colors.cinza,
       },
       feedContainer: {
         flex: 1,
@@ -204,8 +253,8 @@ export default StyleSheet.create({
         elevation: 5,
       },
       imgLogo:{
-        width: 50,
-        height: 50,
+        width: '90%',
+        height: '90%',
         resizeMode: 'contain',
         borderRadius: 40,
       },

@@ -12,29 +12,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const DATA = [
     {
         id: Math.random().toString(36).substring(2, 27),
-        photoURL: '#D9D9D9',
-        nome: ''
+        photoURL: require('./python.jpg'),
+        nome: 'Python'
     },
     {
         id: Math.random().toString(36).substring(2, 27),
-        photoURL: '#D9D9D9',
-        nome: ''
+        photoURL: require('./viajem.png'),
+        nome: 'Viajem'
     },
     {
         id: Math.random().toString(36).substring(2, 27),
-        photoURL: '#D9D9D9',
-        nome: ''
+        photoURL: require('./html8.jpg'),
+        nome: 'HTML'
     },
     {
         id: Math.random().toString(36).substring(2, 27),
-        photoURL: '#D9D9D9',
-        nome: ''
+        photoURL: require('./helloKitty.png'),
+        nome: 'Hello Kitty'
     },
-    {
-        id: Math.random().toString(36).substring(2, 27),
-        photoURL: '#D9D9D9',
-        nome: ''
-    },
+    
 ]
 
 
@@ -51,6 +47,11 @@ export default function Perfil() {
     const [seguindo,setSeguindo]= useState('')
 
     const [loading, setLoading] = useState(true);
+    const [focoIcone, setFocoIcone] = useState('posts')
+
+    const alterarFoco =  (icone) => {
+        setFocoIcone(icone)
+    }
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -114,7 +115,7 @@ export default function Perfil() {
                         {/*Container do Informações do Usúario */}
                         <View style={styles.infoContainer}>
                             <View style={styles.infoUser}>
-                                <View style={styles.userContainer}>
+                                <View style={styles.boxNomeUser}>
                                     <Text style={styles.nomeUser}>{nome}</Text>
                                 </View>
 
@@ -122,17 +123,20 @@ export default function Perfil() {
                                     <Text style={styles.arrobaUser}>@{user}</Text>
                                 </View>
 
-                                <View>
-                                    <Text style={styles.bioUser}>{bio}</Text>
-                                </View>
+                                
                             </View>
+                           
                         </View>
+                        
                     </View>
                 </View>
 
                 {/*Container Seguidores */}
-                <View style={styles.seguidorContainer}>
-
+                <View style={styles.containerBioSeguidores}>
+                    <View style={styles.bioUser}>
+                        <Text style={styles.textBioUser}>{bio}</Text>
+                    </View>
+                    <View style={styles.boxSeguidores}>
                     <View style={styles.seguidores}>
                         <Text style={styles.numSeg}>{seguidores}</Text>
                         <Text style={styles.textSeguidores}>Seguidores</Text>
@@ -142,13 +146,14 @@ export default function Perfil() {
                         <Text style={styles.numSeg}>{seguindo}</Text>
                         <Text style={styles.textSeguindo}>Seguindo</Text>
                     </View>
+                    </View>
                 </View>
 
 
                 <View style={styles.editarContainer}>
                     <View style={styles.buttonContainer}>
                         <Pressable style={styles.editarButton}>
-                            <Text style={styles.editButton}>Editar Perfil</Text>
+                            <Text style={styles.textEditarPerf}>Editar Perfil</Text>
                         </Pressable>
                     </View>
 
@@ -162,18 +167,20 @@ export default function Perfil() {
                     <FlatList
                         horizontal={true}
                         data={DATA}
-                        keyExtractor={item => item.id}
+                        keyExtractor={(item) => item.id}
                         showsHorizontalScrollIndicator={false}
-                        renderItem={item => (
+                        renderItem={({item}) => (
                             <View style={styles.storys}>
                                 <Pressable style={styles.circuloStorys}>
                                     <View
-                                        style={[styles.imgLogo, {backgroundColor: item.item.photoURL}]}
-                                    ></View>
+                                        style={[styles.imgLogo]}
+                                    >
+                                        <Image style={{width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%'}} source={item.photoURL} />
+                                    </View>
                                 </Pressable>
 
                                 <View style={styles.nomeStorys}>
-                                    <Text style={styles.textStorys}>{item.item.nome}</Text>
+                                    <Text style={styles.textStorys}>{item.nome}</Text>
                                 </View>
                             </View>
                         )}
@@ -181,23 +188,23 @@ export default function Perfil() {
                 </View>
 
                 {/*Barra de Navegação*/}
-                <View style={styles.barraContainer}>
-                    <View style={styles.opcao}>
-                        <Ionicons style={styles.opcaoIcon} name="grid-outline"></Ionicons>
-                    </View>
+                <View style={styles.barraContainer }>
+                    <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao , focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                        <Ionicons style={[styles.opcaoIcon , focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline"></Ionicons>
+                    </Pressable>
 
-                    <View style={styles.opcao}>
-                        <Ionicons style={styles.opcaoIcon} name="image-outline"></Ionicons>
-                    </View>
+                    <Pressable onPress={() => alterarFoco('imagem')} style={[styles.opcao , focoIcone === 'imagem' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="image-outline"></Ionicons>
+                        </Pressable>
 
-                    <View style={styles.opcao}>
-                        <Ionicons style={styles.opcaoIcon} name="repeat-outline"></Ionicons>
-                    </View>
+                    <Pressable onPress={() => alterarFoco('reposts')} style={[styles.opcao , focoIcone === 'reposts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'reposts' ? styles.IconeAtivo : styles.iconeInativo]} name="repeat-outline"></Ionicons>
+                        </Pressable>
 
-                    <View style={styles.opcao}>
-                        <Ionicons style={styles.opcaoIcon} name="id-card-outline"></Ionicons>
-                    </View>
-                </View>
+                    <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao , focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline"></Ionicons>
+                        </Pressable>
+                        </View>
                 {/*Posts*/}
                 <View style={styles.postContainer}>
                     <Post idUser={idUser} />
