@@ -244,7 +244,7 @@ export default function Cadastro() {
       });
 
       //  Verificação adicional da resposta
-      if (!response.data?.id) {
+      if (!response.data.sucesso) {
         throw new Error('Resposta do servidor incompleta');
       }
 
@@ -257,7 +257,7 @@ export default function Cadastro() {
           onPress: () => navigation.navigate('Login') 
         }
       ]);
-
+      navigation.navigate('Login')
       return response.data.id;
 
     } catch (error) {

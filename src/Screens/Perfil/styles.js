@@ -12,7 +12,7 @@ export default StyleSheet.create({
     header:{
         width: "100%",
         height: 200,
-        backgroundColor: 'blue',
+        backgroundColor: '#E3E3E3',
     },
     banner:{
       width:'100%',

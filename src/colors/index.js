@@ -5,7 +5,7 @@ const colors ={
     branco: '#FFFFFF',
     cinza: '#666',
     verde: '',
-    vermelho: ''
+    vermelho: '#E41313'
 
 }
 
