@@ -83,7 +83,8 @@ export default function Login() {
         
         await AsyncStorage.setItem('idUser', usuario.id);
         await AsyncStorage.setItem('logado', '1');
-        
+        await AsyncStorage.setItem('imgUser', usuario.img_user);
+        await AsyncStorage.setItem('arrobaUser', usuario.arroba_user);
         navigation.navigate('Home');
       } else {
         setErroEmail('Informações inválidas');

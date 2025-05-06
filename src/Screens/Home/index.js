@@ -19,6 +19,7 @@ import { FlatList } from "react-native";
 import adicionarLogo from "../../../assets/adicionarLogo.png";
 import fabricaLogo from "../../../assets/fabricaLogo.jpeg";
 import Post from "../../Components/Post";
+import ModalPostagem from "../../Components/ModalPostagem";
 
 import { useNavigation } from "@react-navigation/native";
 
@@ -118,9 +119,7 @@ export default function Home() {
         </View>
       </View>
       {/* Send Button */}
-      <TouchableOpacity style={styles.sendButton}>
-        <Icon name="send" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
+    <ModalPostagem/>
     </SafeAreaView>
   );
 }
