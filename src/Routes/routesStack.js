@@ -10,7 +10,7 @@ import Interesse from '../Screens/Interesse';
 import Conversa from '../Components/Chat/src/screens/Conversa';
 import AddConversa from '../Components/Chat/src/screens/AdicionarConversa';
 import Notificacoes from '../Components/Chat/src/screens/Notificacoes';
-
+import ConfigsUser from '../Screens/ConfigsUser';
 
 const Stack = createNativeStackNavigator();
 
@@ -83,6 +83,12 @@ export default function StackRoutes() {
           headerShown: false,
         }}
       />
+
+      <Stack.Screen
+        name="Configurações"
+        component={ConfigsUser}
+/>
+
     </Stack.Navigator>
 
   );

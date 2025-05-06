@@ -9,6 +9,7 @@ import blackStory from '../../../assets/blackStory.png'
 import React, { useState,useEffect } from 'react';
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 const DATA = [
     {
         id: Math.random().toString(36).substring(2, 27),
@@ -35,6 +36,7 @@ const DATA = [
 
 
 export default function Perfil() {
+    const navigation = useNavigation();
     const [banner, setBanner] = useState('');
     const [userImg, setUserImg] = useState('');
     const [nome, setNome] = useState('');
@@ -158,7 +160,9 @@ export default function Perfil() {
                     </View>
 
                     <View style={styles.seguindo}>
+                        <Pressable onPress={() => navigation.navigate('Configurações')} >
                         <Ionicons style={styles.settingIcon} name="settings-outline"></Ionicons>
+                        </Pressable>
                     </View>
                 </View>
 
