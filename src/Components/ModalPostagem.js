@@ -65,32 +65,35 @@ export default function ModalPostagem() {
 
    async function postar() {
     const novoPost = new FormData();
-    if (imagem.startsWith("data:image")) {
-      // Converter Base64 para Blob
-      const response = await fetch(imagem);
-      const blob = await response.blob();
-      // Gerar um nome único para o arquivo
-      const filename = `image_${Date.now()}.jpg`;
-      // Criar um arquivo a partir do Blob
-      const file = new File([blob], filename, { type: blob.type });
-      // Adicionar o arquivo ao FormData
-      novoPost.append("img", file);
-    } else {
-      // Se não for Base64, assumir que é uma URI local
-      const localUri = imagem;
-      const filename = localUri.split("/").pop(); // Extrair o nome do arquivo da URI
-      const match = /\.(\w+)$/.exec(filename); // Extrair o tipo da imagem
-      const type = match ? `image/${match[1]}` : "image/jpeg"; // Definir o tipo, fallback para "image/jpeg"
-    
-      // Criar o objeto de arquivo com a URI local
-      const file = {
-        uri: localUri,
-        type: type,
-        name: filename,
-      };
-    
-      // Adicionar o arquivo ao FormData
-      novoPost.append("img", file);
+    if(imagem !==null){
+      if (imagem.startsWith("data:image")) {
+        // Converter Base64 para Blob
+        const response = await fetch(imagem);
+        const blob = await response.blob();
+        // Gerar um nome único para o arquivo
+        const filename = `image_${Date.now()}.jpg`;
+        // Criar um arquivo a partir do Blob
+        const file = new File([blob], filename, { type: blob.type });
+        // Adicionar o arquivo ao FormData
+        novoPost.append("img", file);
+      } else {
+        // Se não for Base64, assumir que é uma URI local
+        const localUri = imagem;
+        const filename = localUri.split("/").pop(); // Extrair o nome do arquivo da URI
+        const match = /\.(\w+)$/.exec(filename); // Extrair o tipo da imagem
+        const type = match ? `image/${match[1]}` : "image/jpeg"; // Definir o tipo, fallback para "image/jpeg"
+      
+        // Criar o objeto de arquivo com a URI local
+        const file = {
+          uri: localUri,
+          type: type,
+          name: filename,
+        };
+      
+        // Adicionar o arquivo ao FormData
+        novoPost.append("img", file);
+      }
+
     }
 
     novoPost.append("descricaoPost",descPost)

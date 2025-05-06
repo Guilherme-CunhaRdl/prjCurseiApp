@@ -111,6 +111,8 @@ const [isSeguindo, setIsSeguindo] = useState(segueUsuario === 1);
       <ModalBloquear
         visible={modalBloquearVisible}
         onClose={() => setModalBloquearVisible(false)}
+        arroba={arroba}
+        userPost={userPost}
       />
       <ModalReportar
         visible={modalReportarVisible}
