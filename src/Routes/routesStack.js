@@ -11,6 +11,7 @@ import Conversa from '../Components/Chat/src/screens/Conversa';
 import AddConversa from '../Components/Chat/src/screens/AdicionarConversa';
 import Notificacoes from '../Components/Chat/src/screens/Notificacoes';
 import ConfigsUser from '../Screens/ConfigsUser';
+import VirarInstituicao from '../Screens/VirarInstituicao';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,7 +40,7 @@ export default function StackRoutes() {
         }}
       />
 
-      
+
 
       <Stack.Screen
         name="Perfil"
@@ -87,7 +88,12 @@ export default function StackRoutes() {
       <Stack.Screen
         name="Configurações"
         component={ConfigsUser}
-/>
+      />
+
+      <Stack.Screen
+        name="Conta Institucional"
+        component={VirarInstituicao}
+      />
 
     </Stack.Navigator>
 
