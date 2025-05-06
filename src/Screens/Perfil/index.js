@@ -54,7 +54,7 @@ export default function Perfil() {
     const alterarFoco =  (icone) => {
         setFocoIcone(icone)
     }
-
+    
     useEffect(() => {
         const fetchUserData = async () => {
         try {
@@ -73,7 +73,11 @@ export default function Perfil() {
             setBanner(data.User.banner_user);
             setSeguidores(data.User.seguidor_count)
             setSeguindo(data.User.seguindo_count)
+            useEffect(() => {
+                setSeguidores(data.User.seguidor_count)
+                setSeguindo(data.User.seguindo_count)
 
+            }, [seguidores, seguindo])
         }
         } catch (error) {
         console.error('Erro ao buscar perfil:', error);
@@ -83,7 +87,7 @@ export default function Perfil() {
             }, 500)
         }
     };
-
+    
       
         fetchUserData();
       }, []);
@@ -101,7 +105,7 @@ export default function Perfil() {
                 <View style={styles.header}>
                     <Image
                         style={styles.banner}
-                        source={{ uri: `http://localhost:8000/img/user/bannerPerfil/${banner}`}}
+                        source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}`} : require('../../../assets/itauLogo.png')}
                     />
                 </View>
                 {/*Container do Perfil */}
@@ -110,7 +114,7 @@ export default function Perfil() {
                         <View style={styles.imgContainer}>
                             <Image
                                 style={styles.userImg}
-                                source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` }}
+                                source={ userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/jovem.jpeg')}
                             />
                         </View>
 

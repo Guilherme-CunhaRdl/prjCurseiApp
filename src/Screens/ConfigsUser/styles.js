@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import colors from "../../colors";
 
 export default StyleSheet.create({
   
@@ -31,5 +32,10 @@ export default StyleSheet.create({
         fontSize:20,
         fontFamily:'Arial',
         color: '#F29500',
+      },
+      textoTituloLogoff:{
+        fontSize:20,
+        fontFamily:'Arial',
+        color: colors.vermelho,
       },
 });
