@@ -38,4 +38,38 @@ export default StyleSheet.create({
         fontFamily:'Arial',
         color: colors.vermelho,
       },
+
+      modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    modalMessage: {
+        fontSize: 16,
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    modalButton: {
+        backgroundColor: '#F29500',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+    modalButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
 });
