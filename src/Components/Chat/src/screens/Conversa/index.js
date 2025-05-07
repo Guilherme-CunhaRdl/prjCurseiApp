@@ -13,40 +13,35 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 export default function Conversa({route}) {
 
-  const {idEnviador, imgEnviador, nomeEnviador, arrobaEnviador} = route.params;
+  const {idUserLogado, idEnviador, imgEnviador, nomeEnviador, arrobaEnviador, idChat} = route.params;
+  const [mensagem, setMensagem] = useState('');
+  const navigation = useNavigation();
+  const [mensagens, setMensagens] = useState(null)
 
-  // const id = idEnviador
-  // const img = imgEnviador
-  // const nome = nomeEnviador
-  // const arroba= arrobaEnviador
-  console.log(idEnviador, imgEnviador, nomeEnviador, arrobaEnviador) 
-
+  // trazendo convesas do banco
   const listarConversa = async () =>{
     const id = await AsyncStorage.getItem('idUser')
     try {
-      const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/recebidor/${id}/enviador/${idEnviador}`);
-      setChats(resposta.data.chats); 
+      const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/${idChat}`);
+      setMensagens(resposta.data.chats); 
       console.log(resposta.data.chats);
+      console.log(mensagens)
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
     }
   }
+//executando a query quando abrir a tela
+  useEffect(() => {
+    listarConversa();
 
-  // useEffect(() => {
-  //   listarConversa();
+  }, []);
 
-  // }, []);
- 
-  // //fiz essa linha pra manter "chats" como uma constante e não utilizar let.
-  // useEffect(() =>{
-  //   console.log("atualizando estado das constantes")
-  // }, [])
 
-  const [mensagem, setMensagem] = useState('');
-  const navigation = useNavigation();
+  
  //Bliblioteca que puxa o gerenciador de arquivos padrão do android
   const abrirDocumentos = async () => {
     try {
@@ -88,24 +83,6 @@ export default function Conversa({route}) {
       setImage(result.assets[0].uri);
     }
   }
-  
-  const mensagens = [
-    {
-      id: '1',
-      texto: 'Oi',
-      enviado: false,
-    },
-    {
-      id: '2',
-      texto: 'Fiz esse curso, é muito bom',
-      enviado: true
-    },
-    {
-      id: '3',
-      texto: 'Se fosse você tentaria também...',
-      enviado: true
-    }
-  ];
 
   return (
     <SafeAreaProvider>
@@ -142,8 +119,8 @@ export default function Conversa({route}) {
           data={mensagens}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={[styles.mensagem, !item.enviado && styles.recebida]}>
-              <Text style={styles.textoMensagem}>{item.texto}</Text>
+            <View style={[ item.id_enviador === idEnviador ? styles.mensagemRecebida : styles.mensagemEnviada ]}>
+              <Text style={styles.textoMensagem}>{item.conteudo_mensagem}</Text>
             </View>
           )}
           contentContainerStyle={styles.chatContent}
@@ -213,8 +190,16 @@ const styles = StyleSheet.create({
   chatContent: { 
     padding: 16 
   },
-  mensagem: {
+  mensagemRecebida: {
     alignSelf: 'flex-start',
+    backgroundColor: '#f1f1f1',
+    borderRadius: 15,
+    padding: 10,
+    marginBottom: 10,
+    maxWidth: '75%',
+  },
+  mensagemEnviada: {
+    alignSelf: 'flex-end',
     backgroundColor: '#f1f1f1',
     borderRadius: 15,
     padding: 10,
