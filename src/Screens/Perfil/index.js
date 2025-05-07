@@ -54,7 +54,7 @@ export default function Perfil() {
     const alterarFoco =  (icone) => {
         setFocoIcone(icone)
     }
-    
+
     useEffect(() => {
         const fetchUserData = async () => {
         try {
@@ -73,11 +73,7 @@ export default function Perfil() {
             setBanner(data.User.banner_user);
             setSeguidores(data.User.seguidor_count)
             setSeguindo(data.User.seguindo_count)
-            useEffect(() => {
-                setSeguidores(data.User.seguidor_count)
-                setSeguindo(data.User.seguindo_count)
 
-            }, [seguidores, seguindo])
         }
         } catch (error) {
         console.error('Erro ao buscar perfil:', error);
@@ -87,7 +83,7 @@ export default function Perfil() {
             }, 500)
         }
     };
-    
+
       
         fetchUserData();
       }, []);

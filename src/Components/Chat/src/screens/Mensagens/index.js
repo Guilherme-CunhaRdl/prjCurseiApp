@@ -17,10 +17,12 @@ export default function Mensagens() {
   
   const listarChats = async () =>{
     const id = await AsyncStorage.getItem('idUser')
+    
     try {
       const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/recebidor/${id}`);
       setChats(resposta.data.chats); 
       console.log(resposta.data.chats);
+      console.log(id)
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
     }
@@ -30,7 +32,7 @@ export default function Mensagens() {
 
   useEffect(() => {
     listarChats();
-
+    chats
   }, []);
  
   //fiz essa linha pra manter "chats" como uma constante e não utilizar let.
@@ -151,17 +153,17 @@ export default function Mensagens() {
             data={chats}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={ () => navigation.navigate('Conversa', {idEnviador: item.id_user_enviador, imgEnviador: item.img_user, nomeEnviador: item.nome_user, arrobaEnviador: item.arroba_user})} rippleColor="rgba(0, 0, 0, .05)">
+              <TouchableOpacity onPress={ () => navigation.navigate('Conversa', {idUserLogado: idUser,idEnviador: item.id_enviador, imgEnviador: item.img_enviador, nomeEnviador: item.nome_enviador, arrobaEnviador: item.arroba_enviador, idChat:item.id_chat})} rippleColor="rgba(0, 0, 0, .05)">
                 <View style={styles.mensagemItem}>
                   {console.log(item.img_user)}
                   <Image
-                    source={ item.img_user === null ? require('../../img/metalbat.jpg') : {uri : `http://localhost:8000/img/user/fotoPerfil/${item.img_user}`} }
+                    source={ item.img_enviador === null ? require('../../img/metalbat.jpg') : {uri : `http://localhost:8000/img/user/fotoPerfil/${item.img_enviador}`} }
                     style={styles.avatar}
                     
                   />
                   <View style={styles.mensagemTexto}>
-                    <Text style={styles.nome} numberOfLines={1}>{item.nome_user}</Text>
-                    <Text style={styles.ultimaMensagem} numberOfLines={1}>{item.conteudo_mensagem}</Text>
+                    <Text style={styles.nome} numberOfLines={1}>{item.nome_enviador}</Text>
+                    <Text style={styles.ultimaMensagem} numberOfLines={1}>{item.ultima_mensagem}</Text>
                   </View>
                 </View>
               </TouchableOpacity>
