@@ -1,8 +1,29 @@
+import axios from 'axios';
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Modal from 'react-native-modal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const ModalBloquear = ({ visible, onClose }) => {
+const ModalBloquear = ({ visible, onClose,arroba,userPost }) => {
+  async function bloquear() {
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
+    bloqueio = new FormData();
+    bloqueio.append('userPost',userPost);
+    bloqueio.append('idUser',idUserSalvo);
+    url = 'http://localhost:8000/api/posts/interacoes/bloquear';
+    try{
+      await axios.post(url,bloqueio, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      onClose();
+    }catch{
+      console.log('erro ao bloquear usuario')
+    }
+    
+  }
+
   return (
     <Modal
       isVisible={visible}
@@ -17,7 +38,7 @@ const ModalBloquear = ({ visible, onClose }) => {
     >
       <View style={styles.modal}>
         <View style={styles.modalTexto}>
-          <Text style={styles.texto}>Tem certeza que deseja bloquear @nome?</Text>
+          <Text style={styles.texto}>Tem certeza que deseja bloquear @{arroba}?</Text>
           <Text style={styles.descItem}>
             Você não verá mais as publicações dele e ele não poderá ver as suas.
           </Text>
@@ -46,7 +67,7 @@ const ModalBloquear = ({ visible, onClose }) => {
                 justifyContent: 'center',
               }}
             >
-              <Pressable onPress={onClose}>
+              <Pressable onPress={() => bloquear()}>
                 <Text style={{ fontWeight: '600', color: 'red' }}>Confirmar</Text>
               </Pressable>
             </View>

@@ -29,6 +29,8 @@ export default function Post({ idUser = null }) {
     const [mostrarCoracao, setMostrarCoracao] = useState({});
 
   const [posts, setPosts] = useState();
+  const [verificarLoginUser, SetverificarLoginUser] = useState(false);
+
   dayjs.extend(relativeTime);
   dayjs.locale('pt-br')
   useEffect(() => {
@@ -42,6 +44,7 @@ export default function Post({ idUser = null }) {
       } else {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
         if(idUserSalvo){
+          SetverificarLoginUser(true)
           id = idUserSalvo;
           url = `http://localhost:8000/api/posts/1/${id}/100/0/0`;
 
@@ -93,6 +96,7 @@ export default function Post({ idUser = null }) {
       setCurtidos(prev => ({ ...prev, [idPost]: true }));
     }
   }
+  
 
   return (
     <View style={styles.container}>
@@ -153,24 +157,38 @@ export default function Post({ idUser = null }) {
                     </Text>
                   </View>
                 </View>
-                <Configuracoes arroba={item.arroba_user} idPost={item.id_post} userPost={item.id_user} segueUsuario={item.segue_usuario}/>
+                {verificarLoginUser && (
+  <Configuracoes
+    arroba={item.arroba_user}
+    idPost={item.id_post}
+    userPost={item.id_user}
+    segueUsuario={item.segue_usuario}
+  />
+)}
               </View>
               <View style={styles.containerConteudo}>
                 <Text style={styles.postText}>
                   {item.descricao_post}
                 </Text>
-                <TouchableOpacity style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
-                  <Image style={{ width: '100%', height: '100%', borderRadius: 8 }} source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }} />
+                {item.conteudo_post
+    ? (
+        <TouchableOpacity style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
+          <Image
+            style={{ width: '100%', height: '100%', borderRadius: 8 }}
+            source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }}
+          />
 
-                  {mostrarCoracao[item.id_post] && (
-                    <View style={styles.coracaoOverlay}>
-                      <Image
-                        source={require('../../assets/coracaoGif.gif')}
-                        style={{ width: 200, height: 200, }}
-                      />
-                    </View>
-                  )}
-                </TouchableOpacity>
+          {mostrarCoracao[item.id_post] && (
+            <View style={styles.coracaoOverlay}>
+              <Image
+                source={require('../../assets/coracaoGif.gif')}
+                style={{ width: 200, height: 200 }}
+              />
+            </View>
+          )}
+        </TouchableOpacity>
+      )
+    : null}
               </View>
               <View style={styles.postActions}>
                 <TouchableOpacity style={styles.actionButton} onPress={() => verificarCurtida(item.id_post)}>
