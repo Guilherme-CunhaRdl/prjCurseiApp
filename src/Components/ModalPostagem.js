@@ -1,5 +1,11 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useImperativeHandle,
+  forwardRef
+} from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
@@ -10,8 +16,8 @@ import Icon from "react-native-vector-icons/Feather";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import colors  from '../colors';
 import * as ImagePicker from 'expo-image-picker';
-
-export default function ModalPostagem() {
+import dayjs from 'dayjs';
+const ModalPostagem = forwardRef(({idPostRepost  }, ref) => {
 
   const navigation = useNavigation();
   const [modalVisivel, setModalVisivel] = useState(false);
@@ -19,7 +25,13 @@ export default function ModalPostagem() {
   const [imgUser, SetImgUser] = useState('');
   const [arroba, SetArrobaUser] = useState('');
   const [descPost, setDescPost] = useState('');
-
+  const [repost, setRepost] = useState(false);
+  const [repost_img, setRepostImg] = useState('');
+  const [repost_autor, setRepostAutor] = useState('');
+  const [tempo_repostado, setTempoRepostado] = useState(0);
+  const [repost_arroba, setRepostArroba] = useState('5354242435');
+  const [repost_descricao, setRepostDescricao] = useState('');
+  const [repost_conteudo, setRepostConteudo] = useState('');
   const abrirGaleria = async () => {
     const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissao.granted) {
@@ -55,13 +67,10 @@ export default function ModalPostagem() {
     }
   };
 
-  const abrirModal = async () => {
-    setModalVisivel(true);
+  const formatarTempoInsercao = (seconds) => {
+    return dayjs().subtract(seconds, 'seconds').fromNow();
   };
-
-  const fecharModal = () => {
-    setModalVisivel(false);
-  };
+  let lastTap = null;
 
    async function postar() {
     const novoPost = new FormData();
@@ -95,8 +104,11 @@ export default function ModalPostagem() {
       }
 
     }
-
+    if(repost){
+      novoPost.append("repost", repost);
+    }
     novoPost.append("descricaoPost",descPost)
+    
     const idUser =await AsyncStorage.getItem('idUser')
     url = 'http://localhost:8000/api/cursei/posts/'+idUser;
     try{
@@ -116,8 +128,9 @@ export default function ModalPostagem() {
       SetImgUser(imgUser1)
       const arroba = await AsyncStorage.getItem('arrobaUser');
       SetArrobaUser(arroba)
+     
     };
-
+    
     carregarUsuario();
   }, []);
 
@@ -128,13 +141,42 @@ export default function ModalPostagem() {
     foto: `http://localhost:8000/img/user/fotoPerfil/${imgUser}`, 
     username: arroba || 'você'
   };
+
+  const fecharModal = () => {
+    setModalVisivel(false);
+   
+  };
+  async function abrirModal(id) {
+    console.log(id)
+     if(idPostRepost){
+       setRepost(id)
   
+       const url = `http://localhost:8000/api/posts/4/${id}/1/0/0`
+       response = await axios.get(url)
+       data = response.data.data[0]
+       console.log(data)
+       setRepostImg(data.img_user);
+       setRepostAutor(data.repost_autor);
+       setTempoRepostado(data.tempo_insercao);
+       setRepostArroba(data.arroba_user);
+       setRepostDescricao(data.descricao_post);
+       setRepostConteudo(data.conteudo_post);
+     }
+     
+    setModalVisivel(true)
+  }
+  useImperativeHandle(ref, () => ({
+    abrirModal,
+    fecharModal: () => setModalVisivel(false),
+  }));
 
   return (
     <View>
-      <TouchableOpacity style={estilos.sendButton}   onPress={abrirModal}>
-        <Icon name="send" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
+       
+        <TouchableOpacity style={estilos.sendButton} onPress={abrirModal}>
+          <Icon name="send" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+     
 
       <Modal style={estilos.modalTelaCheia}
         animationType="slide"
@@ -172,16 +214,64 @@ export default function ModalPostagem() {
             textAlignVertical="top"
             onChangeText={text => setDescPost(text)}
           />
-
+          {repost?(
+             <View style={estilos.containerRepost}>
+                            <View style={estilos.postHeader}>
+                              <View style={{ flexDirection: 'row', alignItems: 'center',paddingInline: 10, }}>
+                                <Image
+                                  source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${repost_img}` }}
+                                  style={estilos.fotoUserRepost}
+                                />
+                                <View style={{ paddingLeft: 10 }}>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={estilos.institutionTextRepost}>
+                                      {repost_autor}
+                                    </Text>
+                                    <Text style={estilos.horaPost}>
+                                      ·
+                                    </Text>
+                                    <Text style={estilos.horaPost}>
+                                      {formatarTempoInsercao(tempo_repostado)}
+                                    </Text>
+                                  </View>
+                                  <Text style={estilos.arrobaUser}>
+                                    @{repost_arroba}
+                                  </Text>
+                                </View>
+                              </View>
+            
+                            </View>
+                            <Text style={estilos.postTextRepost}>
+                              {repost_descricao}
+                            </Text>
+                            {repost_conteudo
+                              ? (
+                                <TouchableOpacity style={estilos.postContentRepost} >
+                                  <Image
+                                    style={{ width: '100%', height: '100%', borderBottomLeftRadius: 8,borderBottomRightRadius:8 }}
+                                    source={{ uri: `http://localhost:8000/img/user/imgPosts/${repost_conteudo}` }}
+                                  />
+            
+            
+                                </TouchableOpacity>
+                              )
+                              : null}
+                          </View>
+          ):null}
           {/* Exemplo com imagem estática */}
-          <Image
-            source={{ uri: imagem }}
-            style={estilos.imagemPreview}
-            resizeMode="cover"
-          />
+            {!repost?(
+
+              <Image
+                source={{ uri: imagem }}
+                style={estilos.imagemPreview}
+                resizeMode="cover"
+              />
+
+            ):null}
         </ScrollView>
 
         {/* Rodapé */}
+        {!repost?(
         <View style={estilos.rodape}>
           <TouchableOpacity style={estilos.botaoAcao} onPress={abrirGaleria} >
             <Icon name="image" size={20} color="#1E90FF" />
@@ -193,11 +283,12 @@ export default function ModalPostagem() {
             <Text>Foto</Text>
           </TouchableOpacity>
         </View>
+        ):null}
         </View>
       </Modal>
     </View>
   );
-};
+});
 
 const estilos = StyleSheet.create({
 
@@ -284,4 +375,51 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
     elevation: 5,
   },
+  containerRepost: {
+    paddingTop: 10,
+    borderColor: '#cfd9de',
+    borderWidth: 1,
+    borderRadius: 10,
+
+  },
+  fotoUserRepost: {
+    width: 30,
+    height: 30,
+    borderRadius: 25,
+  },
+  institutionTextRepost: {
+    fontSize: 11,
+    fontWeight: 600,
+  },
+  postContentRepost: {
+    height: 210,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  postTextRepost: {
+    fontSize: 14,
+    marginBlock: 10,
+    paddingInline: 10,
+    
+  },
+  postHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  arrobaUser: {
+    fontSize: 12,
+    color: '#666',
+  },
+  horaPost: {
+    fontSize: 10,
+    color: '#666',
+    paddingLeft: 10,
+    alignSelf: 'center',
+  },
 });
+export default ModalPostagem;
+

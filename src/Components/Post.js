@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ActivityIndicator, FlatList, Image, TouchableOpacity } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useRef,modalRef } from 'react';
 import Configuracoes from './Configurações/configuracoes';
 import Comentario from './Comentario';
 import Compartilhar from '../Components/Compartilhar';
@@ -12,43 +12,54 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/pt-br';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ModalPostagem from "./ModalPostagem";
+
 
 export default function Post({ idUser = null }) {
   const navigation = useNavigation();
+  const modalRef = useRef();
 
-    async function verificarLogin() {
-      const idUserSalvo = await AsyncStorage.getItem('idUser');
-      if (idUserSalvo){
-        let id = idUserSalvo
-        return id
-      }else{
-        navigation.navigate('Login')
-      }
+  const handleOpenModal  = (id) => {
+    if (modalRef.current) {
+      modalRef.current.abrirModal(id);
+    } else {
+      console.log("modalRef ainda não está disponível.");
     }
-    
-    const [mostrarCoracao, setMostrarCoracao] = useState({});
+  };
+  async function verificarLogin() {
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
+    if (idUserSalvo) {
+      let id = idUserSalvo
+      return id
+    } else {
+      navigation.navigate('Login')
+    }
+  }
+
+  const [mostrarCoracao, setMostrarCoracao] = useState({});
 
   const [posts, setPosts] = useState();
   const [verificarLoginUser, SetverificarLoginUser] = useState(false);
+  const [teste, setteste] = useState(false);
 
   dayjs.extend(relativeTime);
   dayjs.locale('pt-br')
   useEffect(() => {
     const fetchPosts = async () => {
 
-       
+
 
       if (idUser) {
         const id = idUser;
         url = `http://localhost:8000/api/posts/2/${id}/100/0/0`;
       } else {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
-        if(idUserSalvo){
+        if (idUserSalvo) {
           SetverificarLoginUser(true)
           id = idUserSalvo;
           url = `http://localhost:8000/api/posts/1/${id}/100/0/0`;
 
-        }else[
+        } else[
           id = 0,
           url = `http://localhost:8000/api/posts/0/${id}/100/0/0`
         ]
@@ -61,7 +72,7 @@ export default function Post({ idUser = null }) {
     fetchPosts();
   }, []);
   const formatarTempoInsercao = (seconds) => {
-    return dayjs().subtract(seconds, 'seconds').fromNow(); 
+    return dayjs().subtract(seconds, 'seconds').fromNow();
   };
   let lastTap = null;
 
@@ -96,7 +107,7 @@ export default function Post({ idUser = null }) {
       setCurtidos(prev => ({ ...prev, [idPost]: true }));
     }
   }
-  
+
 
   return (
     <View style={styles.container}>
@@ -130,7 +141,7 @@ export default function Post({ idUser = null }) {
 
             lastTap = now;
           }
-
+          const id = item.id_post
           const curtido = item.curtiu_post === 1 || curtidos[item.id_post] === true;
           return (
             <View style={styles.postContainer}>
@@ -158,31 +169,78 @@ export default function Post({ idUser = null }) {
                   </View>
                 </View>
                 {verificarLoginUser && (
-  <Configuracoes
-    arroba={item.arroba_user}
-    idPost={item.id_post}
-    userPost={item.id_user}
-    segueUsuario={item.segue_usuario}
-  />
-)}
+                  <Configuracoes
+                    arroba={item.arroba_user}
+                    idPost={item.id_post}
+                    userPost={item.id_user}
+                    segueUsuario={item.segue_usuario}
+                  />
+                )}
               </View>
-              <View style={styles.containerConteudo}>
+              
+            
+                <View style={styles.containerConteudo}>
                 <Text style={styles.postText}>
                   {item.descricao_post}
                 </Text>
-                {item.conteudo_post
-    ? (
-        <TouchableOpacity style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
-          <Image
-            style={{ width: '100%', height: '100%', borderRadius: 8 }}
-            source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }}
-          />
+                  {item.conteudo_post
+                    ? (
+                      <TouchableOpacity style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
+                        <Image
+                          style={{ width: '100%', height: '100%', borderRadius: 8 }}
+                          source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }}
+                        />
 
-      
-        </TouchableOpacity>
-      )
-    : null}
+
+                      </TouchableOpacity>
+                    )
+                    : null}
+                </View>
+              
+              {item.repost_id != null && (
+              <View style={styles.containerRepost}>
+                <View style={styles.postHeader}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center',paddingInline: 10, }}>
+                    <Image
+                      source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.repost_img}` }}
+                      style={styles.fotoUserRepost}
+                    />
+                    <View style={{ paddingLeft: 10 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.institutionTextRepost}>
+                          {item.repost_autor}
+                        </Text>
+                        <Text style={styles.horaPost}>
+                          ·
+                        </Text>
+                        <Text style={styles.horaPost}>
+                          {formatarTempoInsercao(item.tempo_repostado)}
+                        </Text>
+                      </View>
+                      <Text style={styles.arrobaUser}>
+                        @{item.repost_arroba}
+                      </Text>
+                    </View>
+                  </View>
+
+                </View>
+                <Text style={styles.postTextRepost}>
+                  {item.repost_descricao}
+                </Text>
+                {item.repost_conteudo
+                  ? (
+                    <TouchableOpacity style={styles.postContentRepost} onPress={() => doiscliques(item.id_post)}>
+                      <Image
+                        style={{ width: '100%', height: '100%', borderBottomLeftRadius: 8,borderBottomRightRadius:8 }}
+                        source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.repost_conteudo}` }}
+                      />
+
+
+                    </TouchableOpacity>
+                  )
+                  : null}
               </View>
+              )}
               <View style={styles.postActions}>
                 <TouchableOpacity style={styles.actionButton} onPress={() => verificarCurtida(item.id_post)}>
                   <Ionicons
@@ -197,14 +255,15 @@ export default function Post({ idUser = null }) {
                   <Comentario idPost={item.id_post} />
                 </View>
 
-                <TouchableOpacity style={styles.actionButton}>
+                <TouchableOpacity style={styles.actionButton}  onPress={() => handleOpenModal(item.id_post)}> 
                   <Icon name="repeat" size={20} color="#666" />
                 </TouchableOpacity>
+              <ModalPostagem ref={modalRef} idPostRepost ={true} />
 
                 <View style={styles.containerShare}>
-                  <Compartilhar/>
+                  <Compartilhar />
                 </View>
-
+             
                 <TouchableOpacity style={styles.actionButton}>
                   <Icon name="download" size={20} color="#666" />
                 </TouchableOpacity>
@@ -213,6 +272,7 @@ export default function Post({ idUser = null }) {
           )
         }}
       />
+
     </View>
   );
 }
@@ -244,6 +304,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
+    
   },
   actionButton: {
     flexDirection: 'row',
@@ -266,6 +327,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 25,
+  },
+  institutionText: {
+    fontWeight: 600,
   },
   arrobaUser: {
     fontSize: 12,
@@ -290,5 +354,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     height: '100%'
+  },
+  containerRepost: {
+    paddingTop: 10,
+    marginTop:5,
+    borderColor: '#cfd9de',
+    borderWidth: 1,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  fotoUserRepost: {
+    width: 30,
+    height: 30,
+    borderRadius: 25,
+  },
+  institutionTextRepost: {
+    fontSize: 11,
+    fontWeight: 600,
+  },
+  postContentRepost: {
+    height: 210,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  postTextRepost: {
+    fontSize: 14,
+    marginBlock: 10,
+    paddingInline: 10,
+    
   },
 });
