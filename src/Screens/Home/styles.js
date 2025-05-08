@@ -67,6 +67,7 @@ export default StyleSheet.create({
         width: '100%',
         borderBottomWidth: 1,
         borderBottomColor: '#C5C5C5',
+        justifyContent:'center'
         
       },
       userContainer:{

@@ -178,14 +178,7 @@ export default function Post({ idUser = null }) {
             source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }}
           />
 
-          {mostrarCoracao[item.id_post] && (
-            <View style={styles.coracaoOverlay}>
-              <Image
-                source={require('../../assets/coracaoGif.gif')}
-                style={{ width: 200, height: 200 }}
-              />
-            </View>
-          )}
+      
         </TouchableOpacity>
       )
     : null}
