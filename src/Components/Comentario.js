@@ -6,6 +6,7 @@ import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/Feather";
 
 
 export default function Comentario({ idPost }) {
@@ -165,9 +166,11 @@ export default function Comentario({ idPost }) {
   return (
     <View style={styles.container}>
       <TouchableOpacity
+      
         onPress={abrirModal}
       >
-        <Ionicons name="chatbubble-outline" size={20} color="#000" />
+     <Icon name="message-circle" size={20} color="#666" />
+    
 
       </TouchableOpacity>
 
@@ -245,7 +248,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f8f8',
   },
 
 

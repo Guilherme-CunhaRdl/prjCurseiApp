@@ -1,11 +1,27 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Modal from 'react-native-modal';
-const NaoInteressado = ({ visible, onClose }) => {
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+const NaoInteressado = ({ visible, onClose,arroba,idPost }) => {
+  async function naointeressar() {
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
+    data = new FormData();
+    data.append('idUser',idUserSalvo)
+    data.append('idPost',idPost)
+    const url = 'http://localhost:8000/api/posts/interacoes/naointeressado';
+    try{
+      axios.post(url,data)
+      onClose()
+    }catch{
+      console.log("erro ao não interessar o post")
+    }
+
+  }
   return (
     <Modal
       isVisible={visible}
-      onBackdropPress={onClose}
+      onBackdropPress={() => naointeressar()}
       onBackButtonPress={onClose}
       backdropOpacity={0}
       animationIn="slideInUp"
@@ -16,7 +32,7 @@ const NaoInteressado = ({ visible, onClose }) => {
     >
       <View style={styles.modal}>
         <View style={styles.modalTexto}>
-          <Text style={styles.texto}>@nome não será mais recomendado.</Text>
+          <Text style={styles.texto}>@{arroba} não será mais recomendado.</Text>
           <Pressable onPress={onClose}>
             <Text style={styles.textoDestacado}>Desfazer</Text>
           </Pressable>

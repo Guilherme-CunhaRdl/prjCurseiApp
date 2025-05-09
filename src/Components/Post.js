@@ -1,11 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ActivityIndicator, FlatList, Image, TouchableOpacity } from 'react-native';
-import { useState, useEffect,useRef,modalRef } from 'react';
+import { useState, useEffect, useRef, modalRef } from 'react';
 import Configuracoes from './Configurações/configuracoes';
 import Comentario from './Comentario';
 import Compartilhar from '../Components/Compartilhar';
 import Icon from "react-native-vector-icons/Feather";
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from "@react-navigation/native";
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -19,7 +19,7 @@ export default function Post({ idUser = null }) {
   const navigation = useNavigation();
   const modalRef = useRef();
 
-  const handleOpenModal  = (id) => {
+  const handleOpenModal = (id) => {
     if (modalRef.current) {
       modalRef.current.abrirModal(id);
     } else {
@@ -121,9 +121,10 @@ export default function Post({ idUser = null }) {
             const resposta = await curtirposts(idPost, item.curtiu_post);
             if (resposta === 1) {
               item.curtiu_post = 0;
+              item.curtidas = item.curtidas-1
             } else {
+              item.curtidas = item.curtidas+1
               setMostrarCoracao(prev => ({ ...prev, [idPost]: true }));
-
               // Oculta o coração após 800ms
               setTimeout(() => {
                 setMostrarCoracao(prev => ({ ...prev, [idPost]: false }));
@@ -177,62 +178,18 @@ export default function Post({ idUser = null }) {
                   />
                 )}
               </View>
-              
-            
-                <View style={styles.containerConteudo}>
+
+
+              <View style={styles.containerConteudo}>
                 <Text style={styles.postText}>
                   {item.descricao_post}
                 </Text>
-                  {item.conteudo_post
-                    ? (
-                      <TouchableOpacity style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
-                        <Image
-                          style={{ width: '100%', height: '100%', borderRadius: 8 }}
-                          source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }}
-                        />
-
-
-                      </TouchableOpacity>
-                    )
-                    : null}
-                </View>
-              
-              {item.repost_id != null && (
-              <View style={styles.containerRepost}>
-                <View style={styles.postHeader}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center',paddingInline: 10, }}>
-                    <Image
-                      source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.repost_img}` }}
-                      style={styles.fotoUserRepost}
-                    />
-                    <View style={{ paddingLeft: 10 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.institutionTextRepost}>
-                          {item.repost_autor}
-                        </Text>
-                        <Text style={styles.horaPost}>
-                          ·
-                        </Text>
-                        <Text style={styles.horaPost}>
-                          {formatarTempoInsercao(item.tempo_repostado)}
-                        </Text>
-                      </View>
-                      <Text style={styles.arrobaUser}>
-                        @{item.repost_arroba}
-                      </Text>
-                    </View>
-                  </View>
-
-                </View>
-                <Text style={styles.postTextRepost}>
-                  {item.repost_descricao}
-                </Text>
-                {item.repost_conteudo
+                {item.conteudo_post
                   ? (
-                    <TouchableOpacity style={styles.postContentRepost} onPress={() => doiscliques(item.id_post)}>
+                    <TouchableOpacity style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
                       <Image
-                        style={{ width: '100%', height: '100%', borderBottomLeftRadius: 8,borderBottomRightRadius:8 }}
-                        source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.repost_conteudo}` }}
+                        style={{ width: '100%', height: '100%', borderRadius: 8 }}
+                        source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }}
                       />
 
 
@@ -240,34 +197,80 @@ export default function Post({ idUser = null }) {
                   )
                   : null}
               </View>
+
+              {item.repost_id != null && (
+                <View style={styles.containerRepost}>
+                  <View style={styles.postHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', paddingInline: 10, }}>
+                      <Image
+                        source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.repost_img}` }}
+                        style={styles.fotoUserRepost}
+                      />
+                      <View style={{ paddingLeft: 10 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <Text style={styles.institutionTextRepost}>
+                            {item.repost_autor}
+                          </Text>
+                          <Text style={styles.horaPost}>
+                            ·
+                          </Text>
+                          <Text style={styles.horaPost}>
+                            {formatarTempoInsercao(item.tempo_repostado)}
+                          </Text>
+                        </View>
+                        <Text style={styles.arrobaUser}>
+                          @{item.repost_arroba}
+                        </Text>
+                      </View>
+                    </View>
+
+                  </View>
+                  <Text style={styles.postTextRepost}>
+                    {item.repost_descricao}
+                  </Text>
+                  {item.repost_conteudo
+                    ? (
+                      <TouchableOpacity style={styles.postContentRepost} onPress={() => doiscliques(item.id_post)}>
+                        <Image
+                          style={{ width: '100%', height: '100%', borderBottomLeftRadius: 8, borderBottomRightRadius: 8 }}
+                          source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.repost_conteudo}` }}
+                        />
+
+
+                      </TouchableOpacity>
+                    )
+                    : null}
+                </View>
               )}
               <View style={styles.postActions}>
                 <TouchableOpacity style={styles.actionButton} onPress={() => verificarCurtida(item.id_post)}>
-                  <Ionicons
-                    name={curtido ? "heart" : "heart-outline"}
-                    size={20}
+                  <MaterialIcons
+                    name={curtido ? "favorite" : "favorite-border"}
+                    size={22}
                     color={curtido ? "#ff0000" : "#666"}
                   />
-
+                  <Text style={styles.QuantidadeAction}>{item.curtidas}</Text>
                 </TouchableOpacity>
 
-                <View style={styles.containerComents}>
+                <View style={styles.actionButton}>
                   <Comentario idPost={item.id_post} />
+                  <Text style={styles.QuantidadeAction}>{item.comentarios}</Text>
                 </View>
 
-                <TouchableOpacity style={styles.actionButton}  onPress={() => handleOpenModal(item.id_post)}> 
-                  <Icon name="repeat" size={20} color="#666" />
+                <TouchableOpacity style={styles.actionButton} onPress={() => handleOpenModal(item.id_post)}>
+                  <Icon name="repeat" size={19} color="#666" />
+                  <Text style={styles.QuantidadeAction}>{item.total_reposts}</Text>
                 </TouchableOpacity>
-              <ModalPostagem ref={modalRef} idPostRepost ={true} />
+
 
                 <View style={styles.containerShare}>
                   <Compartilhar />
+                  
                 </View>
-             
-                <TouchableOpacity style={styles.actionButton}>
-                  <Icon name="download" size={20} color="#666" />
-                </TouchableOpacity>
+
+
               </View>
+              <ModalPostagem ref={modalRef} idPostRepost={true} />
             </View>
           )
         }}
@@ -302,13 +305,21 @@ const styles = StyleSheet.create({
   },
   postActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    
+    justifyContent: 'start',
+    paddingHorizontal: 5,
+
+    gap: 20
+
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 5
+  },
+  QuantidadeAction: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: '#666'
   },
   postContent: {
     height: 210,
@@ -357,7 +368,7 @@ const styles = StyleSheet.create({
   },
   containerRepost: {
     paddingTop: 10,
-    marginTop:5,
+    marginTop: 5,
     borderColor: '#cfd9de',
     borderWidth: 1,
     borderRadius: 10,
@@ -384,6 +395,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBlock: 10,
     paddingInline: 10,
-    
+
   },
 });

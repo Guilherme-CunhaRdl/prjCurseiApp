@@ -67,7 +67,7 @@ export default function Compartilhar({ conteudo }) {
         style={styles.icone}
         activeOpacity={0.7}
       >
-        <Ionicons name="arrow-redo-outline" size={22} color="#657786" />
+        <Ionicons name="arrow-redo-outline" size={20} color="#666" />
       </TouchableOpacity>
 
       {/* Modal */}

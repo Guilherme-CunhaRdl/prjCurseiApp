@@ -101,6 +101,8 @@ const [isSeguindo, setIsSeguindo] = useState(segueUsuario === 1);
       <NaoInteressado
         visible={modalNaoInteressadoVisible}
         onClose={() => setModalNaoInteressadoVisible(false)}
+        arroba={arroba}
+        idPost={idPost}
       />
       <Seguindo
         visible={modalSeguindoVisible}
