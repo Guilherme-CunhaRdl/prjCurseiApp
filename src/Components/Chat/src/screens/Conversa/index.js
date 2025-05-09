@@ -21,7 +21,7 @@ export default function Conversa({route}) {
   const [mensagem, setMensagem] = useState('');
   const navigation = useNavigation();
   const [mensagens, setMensagens] = useState(null)
-
+console.log('idChat:', idChat)
   // trazendo convesas do banco
   const listarConversa = async () =>{
     const id = await AsyncStorage.getItem('idUser')

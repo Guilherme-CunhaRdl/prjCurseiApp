@@ -17,7 +17,7 @@ export default function Mensagens() {
   
   const listarChats = async () =>{
     const id = await AsyncStorage.getItem('idUser')
-    
+    setIdUser(id)
     try {
       const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/recebidor/${id}`);
       setChats(resposta.data.chats); 
@@ -87,7 +87,7 @@ export default function Mensagens() {
 
                 />
               )}
-              onPress={() => {navigation.navigate('AddConversa')}}
+              onPress={() => navigation.navigate('AddConversa', {idUserLogado : idUser})}
             />
           </Appbar.Header>
 

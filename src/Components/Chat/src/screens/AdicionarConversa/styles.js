@@ -66,6 +66,14 @@ export default StyleSheet.create({
         height: '100%',
         flexDirection: 'column'
       },
+      containerSeguidores:{
+        width: '100%',
+        
+      },
+      flatlistSeguidores:{
+        width: '90%',
+        marginLeft: 20
+      },
       boxIcone:{
         borderRadius: '50%',
         width: 60,
