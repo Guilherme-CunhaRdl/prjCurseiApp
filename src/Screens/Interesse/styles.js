@@ -107,7 +107,7 @@
         borderRadius: 8,
         padding: 16,
         alignItems: 'center',
-        marginTop: 70,
+        marginTop: 0,
         marginBottom: 0,
       },
    

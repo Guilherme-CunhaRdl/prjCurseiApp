@@ -20,10 +20,9 @@ export default function Interesse() {
   const [interessesSelecionados, setInteressesSelecionados] = useState([]);
   const [banner, setBanner] = useState('');
   const [userImg, setUserImg] = useState('');
-  const [botaoSalvar, SetBotaoSalvar] = useState(false);
   const interesses = [
     'Tecnologia', 'Saúde', 'Design', 'Artes',
-    'Engenharia', 'Esportes', 'Ciências', 'Línguas'
+    'Engenharia', 'Esportes', 'Ciências', 'Línguas','Administração','Marketing','Nutrição'
   ];
 
   const toggleInteresse = (item) => {
@@ -36,7 +35,16 @@ export default function Interesse() {
   };
   async function salvar() {
     console.log(interessesSelecionados)
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
 
+    const InteressesUser ={
+      idUser : idUserSalvo,
+      escolhas :interessesSelecionados
+    }
+    Response = await axios.post('http://localhost:8000/api/user/escolherInteresesses',InteressesUser)
+    if(Response.data.sucesso){
+      navigation.navigate('Home')
+    }
   }
   async function buscarUser() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -55,7 +63,7 @@ export default function Interesse() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.capa}>
         <Image
           style={styles.banner}
@@ -121,6 +129,6 @@ export default function Interesse() {
           <Text style={styles.voltarText}>Voltar</Text>
         </Pressable> */}
       </View>
-    </View>
+    </ScrollView>
   );
 }
