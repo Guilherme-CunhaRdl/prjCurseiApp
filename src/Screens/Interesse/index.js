@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   View,
@@ -12,12 +12,15 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import styles from './styles';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { useNavigation } from "@react-navigation/native";
 
 export default function Interesse() {
   const [interessesSelecionados, setInteressesSelecionados] = useState([]);
-
+  const [banner, setBanner] = useState('');
+  const [userImg, setUserImg] = useState('');
+  const [botaoSalvar, SetBotaoSalvar] = useState(false);
   const interesses = [
     'Tecnologia', 'Saúde', 'Design', 'Artes',
     'Engenharia', 'Esportes', 'Ciências', 'Línguas'
@@ -29,28 +32,47 @@ export default function Interesse() {
     } else {
       setInteressesSelecionados([...interessesSelecionados, item]);
     }
+
   };
+  async function salvar() {
+    console.log(interessesSelecionados)
+
+  }
+  async function buscarUser() {
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
+
+    const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idUserSalvo}`);
+    var data = resultados.data;
+    setUserImg(data.User.img_user);
+    setBanner(data.User.banner_user);
+  }
 
   const navigation = useNavigation();
+  useEffect(() => {
+    buscarUser()
+    console.log(userImg)
 
+  }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.capa}>
-        {/** <Image
-        source={require('')}
-        />*/}
+        <Image
+          style={styles.banner}
+          source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/itauLogo.png')}
+        />
       </View>
 
       <View >
         <Image style={styles.user}
-          source={require('../../../assets/user.png')}
+
+          source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/jovem.jpeg')}
         />
       </View>
 
       <View style={styles.cadastro}>
         <Text style={styles.titulo}>Seus Interesses</Text>
-        <Text style={styles.subtitulo}>Selecione pelo menos 3 para personalizar sua experiência</Text>
+        <Text style={styles.subtitulo}>Selecione pelo menos 1 para personalizar sua experiência</Text>
 
         <View style={styles.grid}>
           {interesses.map((item, index) => (
@@ -78,19 +100,26 @@ export default function Interesse() {
             </TouchableOpacity>
           ))}
         </View>
+        {interessesSelecionados[0] ? (
+          <Pressable style={styles.btFinalizar}
+            onPress={() => salvar()}
+          >
+            <Text style={styles.buttomText}>Salvar</Text>
+          </Pressable>
 
-        <Pressable style={styles.btFinalizar}
-          onPress={() => navigation.navigate('Home')}
+
+        ) : <Pressable style={[styles.btFinalizar, { opacity: 0.3 }]}
+          onPress={() => salvar()}
         >
-          <Text style={styles.buttomText}>Finalizar Cadastro</Text>
-        </Pressable>
+          <Text style={styles.buttomText}>Salvar</Text>
+        </Pressable>}
 
-        <Pressable style={styles.btVoltar}
+        {/* <Pressable style={styles.btVoltar}
           onPress={() => navigation.navigate('Cadastro')}
         >
           <Icon name="arrow-left" size={16} color="#4B97FF" />
           <Text style={styles.voltarText}>Voltar</Text>
-        </Pressable>
+        </Pressable> */}
       </View>
     </View>
   );

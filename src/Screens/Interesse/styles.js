@@ -19,6 +19,11 @@
         fontSize: 14,
         marginTop: 8,
       },
+      banner:{
+        width:'100%',
+        height:'100%',
+        objectFit:'cover'
+      },
       userContainer: {
         alignItems: 'center',
         marginTop: -40,
@@ -102,9 +107,12 @@
         borderRadius: 8,
         padding: 16,
         alignItems: 'center',
-        marginTop: 10,
-        marginBottom: 16,
+        marginTop: 70,
+        marginBottom: 0,
       },
+   
+      
+
       btVoltar: {
         flexDirection: 'row',
         justifyContent: 'center',

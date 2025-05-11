@@ -1,5 +1,5 @@
 // App.js
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -20,8 +20,9 @@ import adicionarLogo from "../../../assets/adicionarLogo.png";
 import fabricaLogo from "../../../assets/fabricaLogo.jpeg";
 import Post from "../../Components/Post";
 import ModalPostagem from "../../Components/ModalPostagem";
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
 
 const DATA = [
   {
@@ -57,9 +58,20 @@ const DATA = [
 ];
 
 export default function Home() {
-
-
   const navigation = useNavigation();
+  async function verificarInteresses() {
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
+    Response = await axios.get(`http://localhost:8000/api/user/verificarInteresses/${idUserSalvo}`)
+    if(!Response.data.resultado){
+      navigation.navigate('Interesse')
+    }
+  }
+
+
+  useEffect(() => {
+  verificarInteresses()
+  }, []);
+
 
   return (
     <SafeAreaView style={styles.container}>
