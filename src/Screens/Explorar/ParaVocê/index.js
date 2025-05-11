@@ -1,8 +1,9 @@
-import React from 'react';
-import { SafeAreaView, View, Text, ScrollView, Image, Pressable, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, View, Text, ScrollView, FlatList, TouchableOpacity, Pressable, Image} from 'react-native';
 import styles from './styles';
 import User from '../../../../assets/userIMG.png';
 import Configuracoes from '../../../Components/Configurações/configuracoes';
+import axios from 'axios';
 
 const DATA = [
     { id: '1', trendig: "#CURSEINOTA10", numPosts: "100k posts" },
@@ -20,6 +21,7 @@ const USERS = [
 ];
 
 export default function ParaVoce() {
+    
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView style={styles.ScrollCont}>
