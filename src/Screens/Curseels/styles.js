@@ -7,19 +7,22 @@ export default StyleSheet.create({
     backgroundColor: 'black',
   },
   containerHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    height: 60,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: 'white',
-    alignItems: 'center',
-    paddingHorizontal: '3%',
-  },
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 10,
+  height: 60,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  backgroundColor: 'transparent',  // Transparente
+  alignItems: 'center',
+  paddingHorizontal: '3%',
+
+},
+
   tituloHeader: {
+    color:'white',
     fontSize: 20,
     fontWeight: '600'
   },

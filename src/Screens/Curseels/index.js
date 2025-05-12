@@ -9,11 +9,11 @@ export default function Curseels() {
     <SafeAreaView style={styles.container}>
       <View style={styles.containerHeader}>
         <TouchableOpacity>
-          <Ionicons name={'arrow-back'} size={30} color={'black'} />
+          <Ionicons name={'arrow-back'} size={30} color={'white'} />
         </TouchableOpacity>
         <Text style={styles.tituloHeader}>Curtei</Text>
         <TouchableOpacity>
-          <Ionicons name={'camera-outline'} size={30} color={'black'} />
+          <Ionicons name={'camera-outline'} size={30} color={'white'} />
         </TouchableOpacity>
       </View>
 
