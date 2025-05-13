@@ -27,16 +27,16 @@ export default function ConfigsUser() {
       <View style={styles.configs}>
 
         {/* Sua conta */}
-        <TouchableOpacity style={{gap: 2}}>
+        <TouchableOpacity style={{gap: 2}}  onPress={()=> navigation.navigate('Informações da conta')}>
           <View style={{ flexDirection: "row", alignItems: "center", gap:10 }}>
             <AntDesign name="user" style={{ color: "#448FFF", fontSize: 25, marginRight: 8 }} />
             <Text style={styles.textoTitulo}>Sua conta</Text>
           </View>
-          <Text style={styles.textoDescricao}>Veja as informações sobre sua conta.</Text>
+          <Text style={styles.textoDescricao}>Veja e altere as informações da sua conta.</Text>
         </TouchableOpacity>
 
 
-        <TouchableOpacity style={{gap: 2}}>
+        <TouchableOpacity style={{gap: 2}} onPress={() => navigation.navigate('Segurança')}>
           <View style={{ flexDirection: "row", alignItems: "center", gap:10 }}>
             <Feather name="lock" style={{ color: "#448FFF", fontSize: 25, marginRight: 8 }} />
             <Text style={styles.textoTitulo}>Segurança</Text>
