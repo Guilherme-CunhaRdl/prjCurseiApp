@@ -12,7 +12,8 @@ import AddConversa from '../Components/Chat/src/screens/AdicionarConversa';
 import Notificacoes from '../Components/Chat/src/screens/Notificacoes';
 import ConfigsUser from '../Screens/ConfigsUser';
 import VirarInstituicao from '../Screens/VirarInstituicao';
-import Perfil from '../Screens/Perfil';
+import Seguranca from '../Screens/ConfigsUser/segurancaUser.js';
+import alterarUser from '../Screens/ConfigsUser/alterarUser.js';
 const Stack = createNativeStackNavigator();
 
 export default function StackRoutes() {
@@ -44,9 +45,11 @@ export default function StackRoutes() {
 
       <Stack.Screen
         name="Perfil"
-        component={Perfil}
+        component={TabNav}
         options={{
-          headerShown: false,
+          //configuração Cabeçalho
+          headerStyle: { backgroundColor: "#32CD32" },
+          headerTintColor: "#FFFFFF",
         }}
       />
 
@@ -92,6 +95,16 @@ export default function StackRoutes() {
         name="Conta Institucional"
         component={VirarInstituicao}
       />
+      <Stack.Screen
+        name="Segurança"
+        component={Seguranca}
+
+        />
+       <Stack.Screen
+        name="Informações da conta"
+        component={alterarUser}
+
+        />
 
     </Stack.Navigator>
 
