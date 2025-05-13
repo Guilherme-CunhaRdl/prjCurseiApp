@@ -9,7 +9,8 @@ import blackStory from '../../../assets/blackStory.png'
 import React, { useState,useEffect } from 'react';
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation,useRoute } from '@react-navigation/native';
+
 const DATA = [
     {
         id: Math.random().toString(36).substring(2, 27),
@@ -36,6 +37,8 @@ const DATA = [
 
 
 export default function Perfil() {
+    const route = useRoute();
+    const rotavalores = route.params;
     const navigation = useNavigation();
     const [banner, setBanner] = useState('');
     const [userImg, setUserImg] = useState('');
@@ -47,21 +50,25 @@ export default function Perfil() {
     const [idUser, setIdUser] = useState();
     const [seguidores,setSeguidores]= useState('')
     const [seguindo,setSeguindo]= useState('')
-
     const [loading, setLoading] = useState(true);
     const [focoIcone, setFocoIcone] = useState('posts')
+    const [perfilProprio, setPerfilProprio] = useState(false)
 
     const alterarFoco =  (icone) => {
         setFocoIcone(icone)
     }
-
-    useEffect(() => {
-        const fetchUserData = async () => {
-        try {
+    async function carregarPerfil() {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
-        if (idUserSalvo) {
-            setIdUser(idUserSalvo);
-            const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idUserSalvo}`);
+       
+        if(rotavalores){
+            var idPerfil = rotavalores.idUserPerfil;
+        }else{
+            var idPerfil = idUserSalvo
+        }
+        try {
+            console.log(idPerfil+'22')
+            setIdUser(idPerfil);
+            const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idPerfil}`);
             var data = resultados.data;
             console.log(data);
             setNome(data.User.nome_user);
@@ -73,19 +80,29 @@ export default function Perfil() {
             setBanner(data.User.banner_user);
             setSeguidores(data.User.seguidor_count)
             setSeguindo(data.User.seguindo_count)
+            if (idUserSalvo == idPerfil) {
+                setPerfilProprio(true);
+            }
+            
+            } catch (error) {
+            console.error('Erro ao buscar perfil:', error);
+            } finally {
+                setTimeout(() =>{
+                    setLoading(false); 
+                }, 500)
+            }
+    }
 
-        }
-        } catch (error) {
-        console.error('Erro ao buscar perfil:', error);
-        } finally {
-            setTimeout(() =>{
-                setLoading(false); 
-            }, 500)
-        }
-    };
 
-      
-        fetchUserData();
+
+
+
+
+    useEffect(() => {
+        
+        carregarPerfil()
+        
+        
       }, []);
       if (loading) {
         return (
@@ -154,9 +171,12 @@ export default function Perfil() {
 
                 <View style={styles.editarContainer}>
                     <View style={styles.buttonContainer}>
+                        {perfilProprio ?(
                         <Pressable style={styles.editarButton}>
                             <Text style={styles.textEditarPerf}>Editar Perfil</Text>
                         </Pressable>
+
+                        ):null}
                     </View>
 
                     <View style={styles.seguindo}>

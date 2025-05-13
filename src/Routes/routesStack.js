@@ -12,7 +12,7 @@ import AddConversa from '../Components/Chat/src/screens/AdicionarConversa';
 import Notificacoes from '../Components/Chat/src/screens/Notificacoes';
 import ConfigsUser from '../Screens/ConfigsUser';
 import VirarInstituicao from '../Screens/VirarInstituicao';
-
+import Perfil from '../Screens/Perfil';
 const Stack = createNativeStackNavigator();
 
 export default function StackRoutes() {
@@ -44,11 +44,9 @@ export default function StackRoutes() {
 
       <Stack.Screen
         name="Perfil"
-        component={TabNav}
+        component={Perfil}
         options={{
-          //configuração Cabeçalho
-          headerStyle: { backgroundColor: "#32CD32" },
-          headerTintColor: "#FFFFFF",
+          headerShown: false,
         }}
       />
 

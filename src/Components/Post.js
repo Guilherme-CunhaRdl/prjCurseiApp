@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, ActivityIndicator, FlatList, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, Image, TouchableOpacity, Pressable } from 'react-native';
 import { useState, useEffect, useRef, modalRef } from 'react';
 import Configuracoes from './Configurações/configuracoes';
 import Comentario from './Comentario';
@@ -147,7 +147,8 @@ export default function Post({ idUser = null }) {
           return (
             <View style={styles.postContainer}>
               <View style={styles.postHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Pressable style={{ flexDirection: 'row', alignItems: 'center' }}  onPress={() => 
+                  navigation.navigate('Perfil',{idUserPerfil:item.id_user})}>
                   <Image
                     source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }}
                     style={styles.fotoUser}
@@ -168,7 +169,7 @@ export default function Post({ idUser = null }) {
                       @{item.arroba_user}
                     </Text>
                   </View>
-                </View>
+                </Pressable>
                 {verificarLoginUser && (
                   <Configuracoes
                     arroba={item.arroba_user}
@@ -270,6 +271,7 @@ export default function Post({ idUser = null }) {
 
 
               </View>
+            
               <ModalPostagem ref={modalRef} idPostRepost={true} />
             </View>
           )
