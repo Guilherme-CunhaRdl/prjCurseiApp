@@ -58,7 +58,6 @@ const {idUserLogado} = route.params
           const chatExistente = resposta.data.seguidor; 
           const idChatExistente = chatExistente ? chatExistente.id_chat : null;
       
-          // Monta os dados do usuário com base na lista
           const usuario = seguidores.find(user => user.id_seguidor === idSeguidor && user.id_seguido === idSeguido);
       
           const dadosChat = {
@@ -70,7 +69,7 @@ const {idUserLogado} = route.params
       
           if (!idChatExistente) {
             const inserirDados = await axios.post(`http://localhost:8000/api/cursei/chat/adicionarChat/`, dadosChat);
-            idChatFinal = inserirDados.data.id; 
+            idChatFinal = inserirDados.data.id_chat; 
           }
       
           navigation.navigate('Conversa', {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, use } from 'react';
 import {
   View,
   Text,
@@ -13,32 +13,95 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+
+
 export default function Conversa({route}) {
 
   const {idUserLogado, idEnviador, imgEnviador, nomeEnviador, arrobaEnviador, idChat} = route.params;
-  const [mensagem, setMensagem] = useState('');
+  const [ campoMensagem, setCampoMensagem] = useState('')
   const navigation = useNavigation();
-  const [mensagens, setMensagens] = useState(null)
-console.log('idChat:', idChat)
-  // trazendo convesas do banco
-  const listarConversa = async () =>{
-    const id = await AsyncStorage.getItem('idUser')
-    try {
+  const [mensagens, setMensagens] = useState([])
+  const flatListRef = useRef(null);
+const isEnviando = useRef(false);
+
+console.log(idChat)
+
+    
+  const abrirConversaInicio = async () =>{
+
+      try {
       const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/${idChat}`);
+      setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: false });
+    }, 300);
       setMensagens(resposta.data.chats); 
       console.log(resposta.data.chats);
       console.log(mensagens)
+     
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
-    }
+    } 
   }
-//executando a query quando abrir a tela
-  useEffect(() => {
-    listarConversa();
 
-  }, []);
+const listarConversa = async () => {
+  if(isEnviando.current) return;
+  try {
+    const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/${idChat}`);
+    const mensagensBackEnd = resposta.data.chats;
+
+    if (JSON.stringify(mensagensBackEnd) !== JSON.stringify(mensagens)) {
+      setMensagens(mensagensBackEnd);
+    }
+
+   
+  } catch (error) {
+    console.error("Erro ao buscar mensagens:", error);
+  }
+};
+
+useEffect(() => {
+  abrirConversaInicio();
+  const interval = setInterval(listarConversa, 2000);
+  return () => clearInterval(interval);
+}, []);
+
+
+  const enviarMensagem = async () =>{
+    
+    let mensagem = campoMensagem.trim()
+       
+    if (!mensagem) return;
+
+    setCampoMensagem('')
+    isEnviando.current = true;
+      console.log(isEnviando)
+
+    
+    try {
+    const resposta = await axios.post('http://localhost:8000/api/cursei/chat/enviarMensagem', {
+      idChat: idChat,
+      conteudoMensagem: mensagem,
+      idEnviador: idUserLogado
+    });
+
+    // Supondo que o backend retorne a nova mensagem criada
+    if (resposta.data && resposta.data.mensagem) {
+      setMensagens((prev) => [...prev, resposta.data.mensagem]);
+    }
+
+
+      setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: false });
+    }, 100);
+    }catch(erro){
+      console.error("Erro ao enviar mensagem:", error);
+
+    }finally{
+      isEnviando.current = false
+    }
+
+  }
 
 
   
@@ -116,8 +179,9 @@ console.log('idChat:', idChat)
 
         {/* Flatlist das mensagens */}
         <FlatList
+          ref={flatListRef}
           data={mensagens}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id_mensagem?.toString() ?? Math.random().toString()}
           renderItem={({ item }) => (
             <View style={[ item.id_enviador === idEnviador ? styles.mensagemRecebida : styles.mensagemEnviada ]}>
               <Text style={styles.textoMensagem}>{item.conteudo_mensagem}</Text>
@@ -140,11 +204,11 @@ console.log('idChat:', idChat)
             style={styles.input}
             placeholder="Escreva sua Mensagem..."
             placeholderTextColor="#A7A7A7"
-            value={mensagem}
-            onChangeText={setMensagem}
+            value={campoMensagem}
+            onChangeText={setCampoMensagem}
           />
 
-          <TouchableOpacity onPress={() => {}}>
+          <TouchableOpacity onPress={() => enviarMensagem()}>
             <Image source={require('../../img/enviar.png')} style={styles.iconSmall} />
           </TouchableOpacity>
         </View>
