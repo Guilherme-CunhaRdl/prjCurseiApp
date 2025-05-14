@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import {useNavigation} from '@react-navigation/native'
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Pusher from 'pusher-js/react-native';
 
 export default function Mensagens() {
   const navigation = useNavigation();
@@ -27,47 +28,72 @@ export default function Mensagens() {
       console.error("Erro ao buscar mensagens:", error);
     }
   }
-
- 
-
-  useEffect(() => {
+useEffect(() => {
     listarChats();
-    chats
+    
   }, []);
+ 
+useEffect(() => {
+  const pusher = new Pusher('yls40qRApouvChytA220SnHKQViSXBCs', {
+  cluster: 'mt1', 
+  wsHost: '127.0.0.1', 
+  wsPort: 6001,
+  forceTLS: false,
+  enabledTransports: ['ws'],
+  authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth', 
+  auth: {
+    headers: {
+      Authorization: 'Bearer SEU_TOKEN_AQUI',
+    },
+  },
+});
+    const canal = pusher.subscribe(`tela_chat`); 
+
+    canal.bind('mensagens', (data) => {
+      console.log('Chats', data);
+      setChats((prev) => [...prev, data.chats]);
+    });
+
+    return () => {
+      canal.unbind_all();
+      canal.unsubscribe();
+    };
+  }, []);
+  
  
   //fiz essa linha pra manter "chats" como uma constante e não utilizar let.
   useEffect(() =>{
     console.log("atualizando estado das constantes", chats, idUser)
   }, [chats, idUser])
 
-  const mensagens = [
-    {
-      id: 1,
-      nome: 'Kleber Cunha',
-      tipo: 'pessoal',
-      ultimaMensagem: 'Se fosse você...',
-      avatar: require('../../img/dj.jpg'),
-    },
-    {
-      id: 2,
-      nome: 'GRUPO PHP',
-      tipo: 'grupo',
-      ultimaMensagem: 'xd',
-      avatar: require('../../img/metalbat.jpg'),
-    },
-    {
-      id: 3,
-      nome: 'Instituição xd',
-      tipo: 'instituicao',
-      ultimaMensagem: 'Você foi aprovado no curso',
-      avatar: require('../../img/metalbat.jpg'),
-    },
-  ];
+  // const mensagens = [
+  //   {
+  //     id: 1,
+  //     nome: 'Kleber Cunha',
+  //     tipo: 'pessoal',
+  //     ultimaMensagem: 'Se fosse você...',
+  //     avatar: require('../../img/dj.jpg'),
+  //   },
+  //   {
+  //     id: 2,
+  //     nome: 'GRUPO PHP',
+  //     tipo: 'grupo',
+  //     ultimaMensagem: 'xd',
+  //     avatar: require('../../img/metalbat.jpg'),
+  //   },
+  //   {
+  //     id: 3,
+  //     nome: 'Instituição xd',
+  //     tipo: 'instituicao',
+  //     ultimaMensagem: 'Você foi aprovado no curso',
+  //     avatar: require('../../img/metalbat.jpg'),
+  //   },
+  // ];
 
-  const mensagensFiltradas = mensagens.filter((mensagem) => {
-    if (selectedTab === 'todas') return true;
-    return mensagem.tipo === selectedTab;
-  });
+  // const mensagensFiltradas = mensagens.filter((mensagem) => {
+  //   if (selectedTab === 'todas') return true;
+  //   return mensagem.tipo === selectedTab;
+  // });
 
   return (
     <SafeAreaProvider>
@@ -151,7 +177,7 @@ export default function Mensagens() {
 
           <FlatList
             data={chats}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.id_mensagem.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity onPress={ () => navigation.navigate('Conversa', {idUserLogado: idUser,idEnviador: item.id_enviador, imgEnviador: item.img_enviador, nomeEnviador: item.nome_enviador, arrobaEnviador: item.arroba_enviador, idChat:item.id_chat})} rippleColor="rgba(0, 0, 0, .05)">
                 <View style={styles.mensagemItem}>

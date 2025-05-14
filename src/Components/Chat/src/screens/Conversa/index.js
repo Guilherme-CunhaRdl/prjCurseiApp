@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
+import Pusher from 'pusher-js/react-native';
 
 
 export default function Conversa({route}) {
@@ -23,9 +24,8 @@ export default function Conversa({route}) {
   const navigation = useNavigation();
   const [mensagens, setMensagens] = useState([])
   const flatListRef = useRef(null);
-const isEnviando = useRef(false);
+  const isEnviando = useRef(false);
 
-console.log(idChat)
 
     
   const abrirConversaInicio = async () =>{
@@ -44,26 +44,36 @@ console.log(idChat)
     } 
   }
 
-const listarConversa = async () => {
-  if(isEnviando.current) return;
-  try {
-    const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/${idChat}`);
-    const mensagensBackEnd = resposta.data.chats;
 
-    if (JSON.stringify(mensagensBackEnd) !== JSON.stringify(mensagens)) {
-      setMensagens(mensagensBackEnd);
-    }
+ useEffect(() => {
+  const pusher = new Pusher('yls40qRApouvChytA220SnHKQViSXBCs', {
+  cluster: 'mt1', 
+  wsHost: '127.0.0.1', 
+  wsPort: 6001,
+  forceTLS: false,
+  enabledTransports: ['ws'],
+  authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth', 
+  auth: {
+    headers: {
+      Authorization: 'Bearer SEU_TOKEN_AQUI',
+    },
+  },
+});
+    const canal = pusher.subscribe(`chat_mensagem.${idChat}`); 
 
-   
-  } catch (error) {
-    console.error("Erro ao buscar mensagens:", error);
-  }
-};
+    canal.bind('nova_mensagem', (data) => {
+      console.log('Nova mensagem recebida', data);
+      setMensagens((prev) => [...prev, data.mensagem]);
+    });
 
+    return () => {
+      canal.unbind_all();
+      canal.unsubscribe();
+    };
+  }, []);
 useEffect(() => {
   abrirConversaInicio();
-  const interval = setInterval(listarConversa, 2000);
-  return () => clearInterval(interval);
+ 
 }, []);
 
 
@@ -74,8 +84,8 @@ useEffect(() => {
     if (!mensagem) return;
 
     setCampoMensagem('')
-    isEnviando.current = true;
-      console.log(isEnviando)
+    // isEnviando.current = true;
+    //   console.log(isEnviando)
 
     
     try {
@@ -85,11 +95,12 @@ useEffect(() => {
       idEnviador: idUserLogado
     });
 
-    // Supondo que o backend retorne a nova mensagem criada
-    if (resposta.data && resposta.data.mensagem) {
-      setMensagens((prev) => [...prev, resposta.data.mensagem]);
-    }
+    
 
+    // canal.bind('nova_mensagem', (data) => {
+    //       console.log('Nova mensagem recebida', data);
+    //       setMensagens((prev) => [...prev, data]);
+    //     });
 
       setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: false });
