@@ -13,10 +13,10 @@ const Seguindo = ({ visible, onClose,arroba,userPost}) => {
     }
   
     const url = 'http://localhost:8000/api/posts/interacoes/seguir';
-    segurdores = new  FormData();
-    segurdores.append('idUser',idUserSalvo)
-    segurdores.append('userPost',userPost)
-    axios.post(url,segurdores)
+    seguidores = new  FormData();
+    seguidores.append('idUser',idUserSalvo)
+    seguidores.append('userPost',userPost)
+    axios.post(url,seguidores)
     onClose()
   }
   return (

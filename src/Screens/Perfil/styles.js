@@ -51,6 +51,9 @@ export default StyleSheet.create({
         alignItems: 'center',
     },
     boxNomeUser:{
+     flexDirection:'row',
+     alignItems:'center',
+     gap:10
      
     },
     nomeUser:{
@@ -106,9 +109,15 @@ export default StyleSheet.create({
         justifyContent: 'center',
         flexDirection: 'row',
     },
+    buttonContainer:{
+      width:'100%',
+      flexDirection:'row',
+      justifyContent:'space-evenly',
+      alignItems:'center'
+    },
     editarButton:{
-        width: 250,
-        height: 30,
+        width: '70%',
+        height: 35,
         borderWidth: 1,
         borderRadius: 5,
         borderColor: '#E3E3E3',
@@ -133,6 +142,35 @@ export default StyleSheet.create({
         fontSize: 25,
         fontWeight: 700,
     },
+    instIcon:{
+      fontSize: 20,
+      fontWeight: 700,
+      color:colors.azul
+  },
+  buttonCompleto:{
+    width: '40%',
+    height: 32,
+    borderWidth: 0,
+    borderRadius: 5,
+    borderColor: '#E3E3E3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight:500,
+    backgroundColor:colors.azul,
+    color:colors.branco,
+    fontFamily:'arial'
+  },
+  buttonVazado:{
+    width: '40%',
+    height: 32,
+    borderWidth: 1,
+    borderRadius: 5,
+    borderColor: '#E3E3E3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily:'arial'
+    
+  },
     storysContainer:{
         flexDirection: 'row',
         gap: 10,

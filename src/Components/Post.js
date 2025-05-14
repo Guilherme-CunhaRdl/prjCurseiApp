@@ -148,7 +148,10 @@ export default function Post({ idUser = null }) {
             <View style={styles.postContainer}>
               <View style={styles.postHeader}>
                 <Pressable style={{ flexDirection: 'row', alignItems: 'center' }}  onPress={() => 
-                  navigation.navigate('Perfil',{idUserPerfil:item.id_user})}>
+                  navigation.navigate('Perfil', {
+                    idUserPerfil: item.id_user,
+                    titulo: item.arroba_user
+                  })}>
                   <Image
                     source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }}
                     style={styles.fotoUser}

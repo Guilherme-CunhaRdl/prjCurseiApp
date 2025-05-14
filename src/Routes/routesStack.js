@@ -14,11 +14,15 @@ import ConfigsUser from '../Screens/ConfigsUser';
 import VirarInstituicao from '../Screens/VirarInstituicao';
 import Seguranca from '../Screens/ConfigsUser/segurancaUser.js';
 import alterarUser from '../Screens/ConfigsUser/alterarUser.js';
+import Perfil from '../Screens/Perfil';
+
 const Stack = createNativeStackNavigator();
 
 export default function StackRoutes() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+ 
+    >
       <Stack.Screen
         name="Login"
         component={Login}
@@ -45,12 +49,11 @@ export default function StackRoutes() {
 
       <Stack.Screen
         name="Perfil"
-        component={TabNav}
-        options={{
-          //configuração Cabeçalho
-          headerStyle: { backgroundColor: "#32CD32" },
-          headerTintColor: "#FFFFFF",
-        }}
+        component={Perfil}
+        options={({ route }) => ({
+          title: route.params?.titulo || "Perfil", 
+          headerShown: true,
+        })}
       />
 
       <Stack.Screen

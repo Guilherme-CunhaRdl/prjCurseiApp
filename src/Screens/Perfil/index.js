@@ -6,10 +6,11 @@ import styles from './styles';
 import { FlatList } from 'react-native-web';
 import Post from "../../Components/Post";
 import blackStory from '../../../assets/blackStory.png'
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation,useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Configuracoes from '../../Components/Configurações/configuracoes'
 
 const DATA = [
     {
@@ -32,7 +33,7 @@ const DATA = [
         photoURL: require('./helloKitty.png'),
         nome: 'Hello Kitty'
     },
-    
+
 ]
 
 
@@ -46,27 +47,29 @@ export default function Perfil() {
     const [user, setUser] = useState('');
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
+    const [instituicao, setInstituicao] = useState('');
     const [bio, setBio] = useState('');
     const [idUser, setIdUser] = useState();
-    const [seguidores,setSeguidores]= useState('')
-    const [seguindo,setSeguindo]= useState('')
+    const [seguidores, setSeguidores] = useState('')
+    const [seguindo, setSeguindo] = useState('')
     const [loading, setLoading] = useState(true);
     const [focoIcone, setFocoIcone] = useState('posts')
     const [perfilProprio, setPerfilProprio] = useState(false)
-
-    const alterarFoco =  (icone) => {
+    const [segue_usuario, Setsegue_usuario] = useState(false)
+    const alterarFoco = (icone) => {
         setFocoIcone(icone)
     }
+
     async function carregarPerfil() {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
-       
-        if(rotavalores){
+
+        if (rotavalores) {
             var idPerfil = rotavalores.idUserPerfil;
-        }else{
+        } else {
             var idPerfil = idUserSalvo
         }
         try {
-            console.log(idPerfil+'22')
+            console.log(idPerfil + '22')
             setIdUser(idPerfil);
             const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idPerfil}`);
             var data = resultados.data;
@@ -80,37 +83,59 @@ export default function Perfil() {
             setBanner(data.User.banner_user);
             setSeguidores(data.User.seguidor_count)
             setSeguindo(data.User.seguindo_count)
+            setInstituicao(data.User.instituicao)
             if (idUserSalvo == idPerfil) {
                 setPerfilProprio(true);
             }
-            
-            } catch (error) {
-            console.error('Erro ao buscar perfil:', error);
-            } finally {
-                setTimeout(() =>{
-                    setLoading(false); 
-                }, 500)
+            var segue = await axios.get(`http://localhost:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
+            if(segue.data.data){
+                Setsegue_usuario(true)
             }
+        } catch (error) {
+            console.error('Erro ao buscar perfil:', error);
+        } finally {
+            setTimeout(() => {
+                setLoading(false);
+            }, 500)
+        }
+    }
+
+    async function seguir() {
+
+        const idUserSalvo = await AsyncStorage.getItem('idUser');
+        if (!idUserSalvo) {
+            navigation.navigate('Login')
+        }
+
+        const url = 'http://localhost:8000/api/posts/interacoes/seguir';
+        var seguidores = new FormData();
+        seguidores.append('idUser', idUserSalvo)
+        seguidores.append('userPost', idUser)
+        var result = await axios.post(url, seguidores)
+        console.log(result.data)
+        if(result.data =='deseguido'){
+            Setsegue_usuario(false)
+        }else{
+            Setsegue_usuario(true)
+        }
     }
 
 
 
 
-
-
     useEffect(() => {
-        
+
         carregarPerfil()
-        
-        
-      }, []);
-      if (loading) {
+
+
+    }, []);
+    if (loading) {
         return (
-          <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:'center'}}>
-            <Text>Carregando perfil...</Text>
-          </SafeAreaView>
+            <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Carregando perfil...</Text>
+            </SafeAreaView>
         );
-      }
+    }
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView style={styles.containerCont}>
@@ -118,7 +143,7 @@ export default function Perfil() {
                 <View style={styles.header}>
                     <Image
                         style={styles.banner}
-                        source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}`} : require('../../../assets/itauLogo.png')}
+                        source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/itauLogo.png')}
                     />
                 </View>
                 {/*Container do Perfil */}
@@ -127,7 +152,7 @@ export default function Perfil() {
                         <View style={styles.imgContainer}>
                             <Image
                                 style={styles.userImg}
-                                source={ userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/jovem.jpeg')}
+                                source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/jovem.jpeg')}
                             />
                         </View>
 
@@ -135,18 +160,22 @@ export default function Perfil() {
                         <View style={styles.infoContainer}>
                             <View style={styles.infoUser}>
                                 <View style={styles.boxNomeUser}>
+
                                     <Text style={styles.nomeUser}>{nome}</Text>
+                                    {instituicao == 1 ? (
+                                        <Ionicons style={styles.instIcon} name="business-outline"></Ionicons>
+                                    ) : null}
                                 </View>
 
                                 <View>
                                     <Text style={styles.arrobaUser}>@{user}</Text>
                                 </View>
 
-                                
+
                             </View>
-                           
+
                         </View>
-                        
+
                     </View>
                 </View>
 
@@ -156,36 +185,58 @@ export default function Perfil() {
                         <Text style={styles.textBioUser}>{bio}</Text>
                     </View>
                     <View style={styles.boxSeguidores}>
-                    <View style={styles.seguidores}>
-                        <Text style={styles.numSeg}>{seguidores}</Text>
-                        <Text style={styles.textSeguidores}>Seguidores</Text>
-                    </View>
+                        <View style={styles.seguidores}>
+                            <Text style={styles.numSeg}>{seguidores}</Text>
+                            <Text style={styles.textSeguidores}>Seguidores</Text>
+                        </View>
 
-                    <View style={styles.seguindo}>
-                        <Text style={styles.numSeg}>{seguindo}</Text>
-                        <Text style={styles.textSeguindo}>Seguindo</Text>
-                    </View>
-                    </View>
-                </View>
-
-
-                <View style={styles.editarContainer}>
-                    <View style={styles.buttonContainer}>
-                        {perfilProprio ?(
-                        <Pressable style={styles.editarButton}>
-                            <Text style={styles.textEditarPerf}>Editar Perfil</Text>
-                        </Pressable>
-
-                        ):null}
-                    </View>
-
-                    <View style={styles.seguindo}>
-                        <Pressable onPress={() => navigation.navigate('Configurações')} >
-                        <Ionicons style={styles.settingIcon} name="settings-outline"></Ionicons>
-                        </Pressable>
+                        <View style={styles.seguindo}>
+                            <Text style={styles.numSeg}>{seguindo}</Text>
+                            <Text style={styles.textSeguindo}>Seguindo</Text>
+                        </View>
                     </View>
                 </View>
 
+
+                {perfilProprio ? (
+                    <View style={styles.editarContainer}>
+                        <View style={[styles.buttonContainer, { gap: 0 }]}>
+                            <Pressable style={styles.editarButton}>
+                                <Text style={styles.textEditarPerf}>Editar Perfil</Text>
+                            </Pressable>
+
+                            <Pressable onPress={() => navigation.navigate('Configurações')} >
+                                <Ionicons style={styles.settingIcon} name="settings-outline"></Ionicons>
+                            </Pressable>
+
+                        </View>
+
+
+
+                    </View>
+                ) :
+                    <View style={styles.editarContainer}>
+                        <View style={styles.buttonContainer}>
+                            {segue_usuario ? (
+                                <Pressable style={styles.buttonVazado} onPress={seguir}>
+                                    <Text style={{ color: '#00000' }}>Seguindo</Text>
+                                </Pressable>
+                            ) :
+                                <Pressable style={styles.buttonCompleto} onPress={() => seguir()} >
+                                    <Text style={{ color: '#fff' }}>Seguir</Text>
+                                </Pressable>
+                            }
+                            <Pressable style={styles.buttonVazado}>
+                                <Text >Mensagem</Text>
+
+                            </Pressable>
+
+                            <Configuracoes
+
+                            />
+                        </View>
+                    </View>
+                }
                 {/*View Storys*/}
                 <View style={styles.storysContainer}>
                     <FlatList
@@ -193,13 +244,13 @@ export default function Perfil() {
                         data={DATA}
                         keyExtractor={(item) => item.id}
                         showsHorizontalScrollIndicator={false}
-                        renderItem={({item}) => (
+                        renderItem={({ item }) => (
                             <View style={styles.storys}>
                                 <Pressable style={styles.circuloStorys}>
                                     <View
                                         style={[styles.imgLogo]}
                                     >
-                                        <Image style={{width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%'}} source={item.photoURL} />
+                                        <Image style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%' }} source={item.photoURL} />
                                     </View>
                                 </Pressable>
 
@@ -212,23 +263,23 @@ export default function Perfil() {
                 </View>
 
                 {/*Barra de Navegação*/}
-                <View style={styles.barraContainer }>
-                    <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao , focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon , focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline"></Ionicons>
+                <View style={styles.barraContainer}>
+                    <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline"></Ionicons>
                     </Pressable>
 
-                    <Pressable onPress={() => alterarFoco('imagem')} style={[styles.opcao , focoIcone === 'imagem' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                    <Pressable onPress={() => alterarFoco('imagem')} style={[styles.opcao, focoIcone === 'imagem' ? styles.opcaoAtiva : styles.opcaoInativa]}>
                         <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="image-outline"></Ionicons>
-                        </Pressable>
+                    </Pressable>
 
-                    <Pressable onPress={() => alterarFoco('reposts')} style={[styles.opcao , focoIcone === 'reposts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                    <Pressable onPress={() => alterarFoco('reposts')} style={[styles.opcao, focoIcone === 'reposts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
                         <Ionicons style={[styles.opcaoIcon, focoIcone === 'reposts' ? styles.IconeAtivo : styles.iconeInativo]} name="repeat-outline"></Ionicons>
-                        </Pressable>
+                    </Pressable>
 
-                    <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao , focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                    <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao, focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
                         <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline"></Ionicons>
-                        </Pressable>
-                        </View>
+                    </Pressable>
+                </View>
                 {/*Posts*/}
                 <View style={styles.postContainer}>
                     <Post idUser={idUser} />

@@ -28,9 +28,10 @@ function ViewPost() {
 const TabNav = () => {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarShowLabel: false,
+    screenOptions={({ route }) => ({
+      headerShown: false,
+      tabBarShowLabel: false,
+      tabBarStyle: { display: 'flex' },
         tabBarIcon: ({ focused, color, size }) => {
 
           let nomeIcone;
