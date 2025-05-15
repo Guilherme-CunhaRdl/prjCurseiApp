@@ -24,7 +24,6 @@ export default function Conversa({route}) {
   const navigation = useNavigation();
   const [mensagens, setMensagens] = useState([])
   const flatListRef = useRef(null);
-  const isEnviando = useRef(false);
 
 
     
@@ -36,8 +35,6 @@ export default function Conversa({route}) {
       flatListRef.current?.scrollToEnd({ animated: false });
     }, 300);
       setMensagens(resposta.data.chats); 
-      console.log(resposta.data.chats);
-      console.log(mensagens)
      
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
@@ -62,7 +59,6 @@ export default function Conversa({route}) {
     const canal = pusher.subscribe(`chat_mensagem.${idChat}`); 
 
     canal.bind('nova_mensagem', (data) => {
-      console.log('Nova mensagem recebida', data);
       setMensagens((prev) => [...prev, data.mensagem]);
     });
 
@@ -84,32 +80,26 @@ useEffect(() => {
     if (!mensagem) return;
 
     setCampoMensagem('')
-    // isEnviando.current = true;
-    //   console.log(isEnviando)
+    
 
     
     try {
-    const resposta = await axios.post('http://localhost:8000/api/cursei/chat/enviarMensagem', {
+    const resposta = await axios.post(`http://localhost:8000/api/cursei/chat/enviarMensagem/`, {
       idChat: idChat,
       conteudoMensagem: mensagem,
-      idEnviador: idUserLogado
+      idEnviador: idUserLogado,
     });
 
     
 
-    // canal.bind('nova_mensagem', (data) => {
-    //       console.log('Nova mensagem recebida', data);
-    //       setMensagens((prev) => [...prev, data]);
-    //     });
+   
 
       setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: false });
-    }, 100);
+    }, 150);
     }catch(erro){
       console.error("Erro ao enviar mensagem:", error);
 
-    }finally{
-      isEnviando.current = false
     }
 
   }
