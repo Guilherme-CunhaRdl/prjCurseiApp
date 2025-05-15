@@ -15,7 +15,7 @@ import VirarInstituicao from '../Screens/VirarInstituicao';
 import Seguranca from '../Screens/ConfigsUser/segurancaUser.js';
 import alterarUser from '../Screens/ConfigsUser/alterarUser.js';
 import Perfil from '../Screens/Perfil';
-
+import Splash from '../Components/splesh.js'
 const Stack = createNativeStackNavigator();
 
 export default function StackRoutes() {
@@ -23,6 +23,13 @@ export default function StackRoutes() {
     <Stack.Navigator
  
     >
+       {/* <Stack.Screen
+        name="Splash"
+        component={Splash}
+        options={{
+          headerShown: false,
+        }}
+      /> */}
       <Stack.Screen
         name="Login"
         component={Login}

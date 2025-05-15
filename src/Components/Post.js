@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ModalPostagem from "./ModalPostagem";
 
 
-export default function Post({ idUser = null }) {
+export default function Post({ idUser = null,idPostUnico }) {
   const navigation = useNavigation();
   const [perfilProprio, setPerfilProprio] = useState(false)
   const modalRef = useRef();
@@ -67,6 +67,9 @@ export default function Post({ idUser = null }) {
           id = 0,
           url = `http://localhost:8000/api/posts/0/${id}/100/0/0`
         ]
+      }
+      if(idPostUnico){
+        url =`http://localhost:8000/api/posts/4/${idPostUnico}/1/0/0`
       }
       const response = await axios.get(url);
       console.log(response.data.data)
@@ -278,11 +281,14 @@ export default function Post({ idUser = null }) {
                   />
                   <Text style={styles.QuantidadeAction}>{item.curtidas}</Text>
                 </TouchableOpacity>
+                {!idPostUnico?(
 
                 <View style={styles.actionButton}>
                   <Comentario idPost={item.id_post} />
                   <Text style={styles.QuantidadeAction}>{item.comentarios}</Text>
                 </View>
+
+                ):null}
 
                 <TouchableOpacity style={styles.actionButton} onPress={() => handleOpenModal(item.id_post,)}>
                   <Icon name="repeat" size={19} color="#666" />
