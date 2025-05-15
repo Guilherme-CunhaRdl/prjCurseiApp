@@ -131,7 +131,7 @@ export default function Home() {
         </View>
       </View>
       {/* Send Button */}
-   <ModalPostagem/>
+   <ModalPostagem tipo='post'/>
     </SafeAreaView>
   );
 }
