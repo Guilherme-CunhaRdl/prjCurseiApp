@@ -5,19 +5,59 @@ import NaoInteressado from './modalNaoInteressado';
 import Seguindo from './modalSeguindo';
 import ModalBloquear from './modalBloquear';
 import ModalReportar from './modalReportar';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import ModalPostagem from "../ModalPostagem";
+import ModalExcluir from './modalExcluir';
 
 
-const Configuracoes = ({arroba,idPost,userPost,segueUsuario}) => {
+const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo }) => {
 
-const [isSeguindo, setIsSeguindo] = useState(segueUsuario === 1);
+  const modalRef = useRef();
 
-  const data = [
-    { label: 'Não interessado nesse post', value: 'naoInteressado', icon: 'meh' },
-    { label: isSeguindo ? `Deixe de seguir @${arroba}` : `Siga @${arroba}`, value: 'Siga', icon: 'smileo' },
-    { label: `Bloquear  @${arroba}`, value: 'Bloquear', icon: 'frowno' },
-    { label: `Reportar  @${arroba}`, value: 'Reportar', icon: 'exclamationcircleo' },
-  ];
-  
+  const handleOpenModal = (tipo,idPost) => {
+    if (modalRef.current) {
+      modalRef.current.abrirModal(null,tipo,idPost);
+    } else {
+      console.log("modalRef ainda não está disponível.");
+    }
+  };
+
+
+  const [isSeguindo, setIsSeguindo] = useState(segueUsuario === 1);
+  let data = [];
+
+  switch (tipo) {
+    case 'post':
+      data = [
+        { label: 'Não interessado nesse post', value: 'naoInteressado', icon: 'eye-off-outline' ,cor:'#666'},
+        { label: isSeguindo ? `Deixe de seguir @${arroba}` : `Siga @${arroba}`, value: 'Siga', icon: 'person-add-outline' ,cor:'#666'},
+        { label: `Bloquear  @${arroba}`, value: 'Bloquear', icon: 'close-circle-outline' ,cor:'#666'},
+        { label: `Reportar  @${arroba}`, value: 'Reportar', icon: 'alert-circle-outline' ,cor:'#666'},
+      ];
+      break;
+      case 'postPerfil':
+      data = [
+        { label: 'Não interessado nesse post', value: 'naoInteressado', icon: 'eye-off-outline' ,cor:'#666'},
+        { label: `Bloquear  @${arroba}`, value: 'Bloquear', icon: 'close-circle-outline' ,cor:'#666'},
+        { label: `Reportar  @${arroba}`, value: 'Reportar', icon: 'alert-circle-outline' ,cor:'#666'},
+      ];
+      break;
+    case 'perfil':
+      data = [
+         { label: `Bloquear  @${arroba}`, value: 'Bloquear', icon: 'close-circle-outline' ,cor:'#666'},
+        { label: `Reportar  @${arroba}`, value: 'Reportar', icon: 'alert-circle-outline' ,cor:'#666'},
+      ]
+      break;
+    case 'postProprio':
+      data = [
+        { label: `Editar post`, value: 'Editar', icon: 'create-outline' ,cor:'#666'},
+        { label: `Excluir post`, value: 'Excluir', icon: 'alert-circle-outline' ,cor:'red'},
+      ]
+      break;
+
+  }
+
+
   const [menuVisible, setMenuVisible] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
 
@@ -25,6 +65,7 @@ const [isSeguindo, setIsSeguindo] = useState(segueUsuario === 1);
   const [modalSeguindoVisible, setModalSeguindoVisible] = useState(false);
   const [modalBloquearVisible, setModalBloquearVisible] = useState(false);
   const [modalReportarVisible, setModalReportarVisible] = useState(false);
+  const [modalExcluirVisible, setModalExcluirVisible] = useState(false);
 
   const buttonRef = useRef(null);
 
@@ -46,13 +87,19 @@ const [isSeguindo, setIsSeguindo] = useState(segueUsuario === 1);
         break;
       case 'Siga':
         setModalSeguindoVisible(true);
-        setIsSeguindo(prev => !prev); 
+        setIsSeguindo(prev => !prev);
         break;
       case 'Bloquear':
         setModalBloquearVisible(true);
         break;
       case 'Reportar':
         setModalReportarVisible(true);
+        break;
+      case 'Editar':
+      handleOpenModal('editar', idPost);
+      break;
+       case 'Excluir':
+        setModalExcluirVisible(true);
         break;
       default:
         break;
@@ -89,8 +136,10 @@ const [isSeguindo, setIsSeguindo] = useState(segueUsuario === 1);
                 style={styles.menuItem}
                 onPress={() => handleItemSelected(item)}
               >
-                <AntDesign name={item.icon} size={20} color="#555" style={styles.itemIcon} />
-                <Text style={styles.itemText}>{item.label}</Text>
+                  <Ionicons name={item.icon} size={20} color={item.cor} style={styles.itemIcon} />
+    
+                <Text style={[styles.itemText, { color: item.cor }]}>{item.label}</Text>
+
               </TouchableOpacity>
             ))}
           </View>
@@ -122,8 +171,18 @@ const [isSeguindo, setIsSeguindo] = useState(segueUsuario === 1);
         arroba={arroba}
         idPost={idPost}
         userPost={userPost}
-        
+
       />
+          <ModalExcluir
+        visible={modalExcluirVisible}
+        onClose={() => setModalExcluirVisible(false)}
+        arroba={arroba}
+        idPost={idPost}
+        
+
+      />
+      <ModalPostagem ref={modalRef} tipo='editar' idPost={idPost}/>
+
     </View>
   );
 };
@@ -135,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     alignSelf: 'flex-start',
     justifyContent: 'flex-start',
-    
+
   },
   button: {
     padding: 8,
@@ -164,12 +223,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
+    
   },
   itemIcon: {
-    marginRight: 10, // Espaçamento entre ícone e texto
+    marginRight: 10,
+    
+    height:'100%'// Espaçamento entre ícone e texto
   },
   itemText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#333',
   },
 });

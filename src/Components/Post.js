@@ -17,6 +17,7 @@ import ModalPostagem from "./ModalPostagem";
 
 export default function Post({ idUser = null }) {
   const navigation = useNavigation();
+  const [perfilProprio, setPerfilProprio] = useState(false)
   const modalRef = useRef();
 
   const handleOpenModal = (id) => {
@@ -49,11 +50,14 @@ export default function Post({ idUser = null }) {
 
 
 
+      const idUserSalvo = await AsyncStorage.getItem('idUser');
       if (idUser) {
+        if (idUser == idUserSalvo) {
+          setPerfilProprio(true)
+        }
         const id = idUser;
         url = `http://localhost:8000/api/posts/2/${id}/100/0/0`;
       } else {
-        const idUserSalvo = await AsyncStorage.getItem('idUser');
         if (idUserSalvo) {
           SetverificarLoginUser(true)
           id = idUserSalvo;
@@ -121,9 +125,9 @@ export default function Post({ idUser = null }) {
             const resposta = await curtirposts(idPost, item.curtiu_post);
             if (resposta === 1) {
               item.curtiu_post = 0;
-              item.curtidas = item.curtidas-1
+              item.curtidas = item.curtidas - 1
             } else {
-              item.curtidas = item.curtidas+1
+              item.curtidas = item.curtidas + 1
               setMostrarCoracao(prev => ({ ...prev, [idPost]: true }));
               // Oculta o coração após 800ms
               setTimeout(() => {
@@ -147,7 +151,7 @@ export default function Post({ idUser = null }) {
           return (
             <View style={styles.postContainer}>
               <View style={styles.postHeader}>
-                <Pressable style={{ flexDirection: 'row', alignItems: 'center' }}  onPress={() => 
+                <Pressable style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() =>
                   navigation.navigate('Perfil', {
                     idUserPerfil: item.id_user,
                     titulo: item.arroba_user
@@ -173,12 +177,31 @@ export default function Post({ idUser = null }) {
                     </Text>
                   </View>
                 </Pressable>
-                {verificarLoginUser && (
+                {idUser ? (
+                  perfilProprio ? (
+                    <Configuracoes
+                      arroba={item.arroba_user}
+                      idPost={item.id_post}
+                      userPost={item.id_user}
+                      segueUsuario={item.segue_usuario}
+                      tipo='postProprio'
+                    />
+                  ) : (
+                    <Configuracoes
+                      arroba={item.arroba_user}
+                      idPost={item.id_post}
+                      userPost={item.id_user}
+                      segueUsuario={item.segue_usuario}
+                      tipo='postPerfil'
+                    />
+                  )
+                ) : (
                   <Configuracoes
                     arroba={item.arroba_user}
                     idPost={item.id_post}
                     userPost={item.id_user}
                     segueUsuario={item.segue_usuario}
+                    tipo='post'
                   />
                 )}
               </View>
@@ -261,7 +284,7 @@ export default function Post({ idUser = null }) {
                   <Text style={styles.QuantidadeAction}>{item.comentarios}</Text>
                 </View>
 
-                <TouchableOpacity style={styles.actionButton} onPress={() => handleOpenModal(item.id_post)}>
+                <TouchableOpacity style={styles.actionButton} onPress={() => handleOpenModal(item.id_post,)}>
                   <Icon name="repeat" size={19} color="#666" />
                   <Text style={styles.QuantidadeAction}>{item.total_reposts}</Text>
                 </TouchableOpacity>
@@ -269,13 +292,13 @@ export default function Post({ idUser = null }) {
 
                 <View style={styles.containerShare}>
                   <Compartilhar />
-                  
+
                 </View>
 
-
+                <ModalPostagem ref={modalRef} idPostRepost={true} />
               </View>
-            
-              <ModalPostagem ref={modalRef} idPostRepost={true} />
+
+
             </View>
           )
         }}

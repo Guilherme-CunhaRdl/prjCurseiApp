@@ -45,6 +45,13 @@ export default function StackRoutes() {
         }}
       />
 
+        <Stack.Screen
+        name="user"
+        component={Perfil}
+        options={{
+          headerShown: false,
+        }}
+      />
 
 
       <Stack.Screen

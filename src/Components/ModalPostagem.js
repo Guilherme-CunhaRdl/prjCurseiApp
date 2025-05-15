@@ -17,7 +17,7 @@ import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import colors  from '../colors';
 import * as ImagePicker from 'expo-image-picker';
 import dayjs from 'dayjs';
-const ModalPostagem = forwardRef(({idPostRepost  }, ref) => {
+const ModalPostagem = forwardRef(({idPostRepost ,tipo,idPost,tela}, ref) => {
 
   const navigation = useNavigation();
   const [modalVisivel, setModalVisivel] = useState(false);
@@ -29,7 +29,7 @@ const ModalPostagem = forwardRef(({idPostRepost  }, ref) => {
   const [repost_img, setRepostImg] = useState('');
   const [repost_autor, setRepostAutor] = useState('');
   const [tempo_repostado, setTempoRepostado] = useState(0);
-  const [repost_arroba, setRepostArroba] = useState('5354242435');
+  const [repost_arroba, setRepostArroba] = useState('');
   const [repost_descricao, setRepostDescricao] = useState('');
   const [repost_conteudo, setRepostConteudo] = useState('');
   const abrirGaleria = async () => {
@@ -118,6 +118,9 @@ const ModalPostagem = forwardRef(({idPostRepost  }, ref) => {
         },
       });
       fecharModal();
+      // if(tela=='perfil'){
+      //   navigation.replace('user');
+      // }
     }catch{
       console.log('erro ao fazer a postagem')
     }
@@ -162,7 +165,14 @@ const ModalPostagem = forwardRef(({idPostRepost  }, ref) => {
        setRepostDescricao(data.descricao_post);
        setRepostConteudo(data.conteudo_post);
      }
-     
+     if(tipo =='editar'){
+      const url = `http://localhost:8000/api/posts/4/${idPost}/1/0/0`
+      response = await axios.get(url)
+      data = response.data.data[0];
+      console.log(data)
+      setDescPost(data.descricao_post);
+      setImagem(`http://localhost:8000/img/user/imgPosts/${data.conteudo_post}`)
+     }
     setModalVisivel(true)
   }
   useImperativeHandle(ref, () => ({
@@ -172,11 +182,12 @@ const ModalPostagem = forwardRef(({idPostRepost  }, ref) => {
 
   return (
     <View>
-       
-        <TouchableOpacity style={estilos.sendButton} onPress={abrirModal}>
-          <Icon name="send" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-     
+       {tipo =='post'?(
+
+         <TouchableOpacity style={estilos.sendButton} onPress={abrirModal}>
+           <Icon name="send" size={24} color="#FFFFFF" />
+         </TouchableOpacity>
+       ): null }
 
       <Modal style={estilos.modalTelaCheia}
         animationType="slide"
@@ -212,6 +223,7 @@ const ModalPostagem = forwardRef(({idPostRepost  }, ref) => {
             multiline
             style={estilos.campoTexto}
             textAlignVertical="top"
+            value={descPost}
             onChangeText={text => setDescPost(text)}
           />
           {repost?(

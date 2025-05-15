@@ -1,4 +1,4 @@
-import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable } from 'react-native';
+import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable,ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -11,6 +11,8 @@ import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Configuracoes from '../../Components/Configurações/configuracoes'
+import colors from '../../colors';
+import ModalPostagem from "../../Components/ModalPostagem";
 
 const DATA = [
     {
@@ -69,7 +71,7 @@ export default function Perfil() {
             var idPerfil = idUserSalvo
         }
         try {
-            console.log(idPerfil + '22')
+            
             setIdUser(idPerfil);
             const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idPerfil}`);
             var data = resultados.data;
@@ -96,7 +98,7 @@ export default function Perfil() {
         } finally {
             setTimeout(() => {
                 setLoading(false);
-            }, 500)
+            }, 1500)
         }
     }
 
@@ -108,14 +110,20 @@ export default function Perfil() {
         }
 
         const url = 'http://localhost:8000/api/posts/interacoes/seguir';
-        var seguidores = new FormData();
-        seguidores.append('idUser', idUserSalvo)
-        seguidores.append('userPost', idUser)
-        var result = await axios.post(url, seguidores)
+        var seguidor = new FormData();
+        seguidor.append('idUser', idUserSalvo)
+        seguidor.append('userPost', idUser)
+        var result = await axios.post(url, seguidor)
         console.log(result.data)
+        const seguidoresAtual = parseInt(seguidores)
+        console.log(seguidoresAtual)
         if(result.data =='deseguido'){
             Setsegue_usuario(false)
+            setSeguidores(seguidores-1)
         }else{
+            
+            setSeguidores(seguidores+1)
+
             Setsegue_usuario(true)
         }
     }
@@ -131,8 +139,8 @@ export default function Perfil() {
     }, []);
     if (loading) {
         return (
-            <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text>Carregando perfil...</Text>
+            <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' ,backgroundColor:"#fff"}}>
+                      <ActivityIndicator size="large" color="#3498db" />
             </SafeAreaView>
         );
     }
@@ -143,11 +151,12 @@ export default function Perfil() {
                 <View style={styles.header}>
                     <Image
                         style={styles.banner}
-                        source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/itauLogo.png')}
+                        source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/itauLogo.png')} 
                     />
                 </View>
                 {/*Container do Perfil */}
                 <View style={styles.perfilContainer}>
+                    
                     <View style={styles.itensContainer}>
                         <View style={styles.imgContainer}>
                             <Image
@@ -155,6 +164,7 @@ export default function Perfil() {
                                 source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/jovem.jpeg')}
                             />
                         </View>
+                        
 
                         {/*Container do Informações do Usúario */}
                         <View style={styles.infoContainer}>
@@ -232,7 +242,9 @@ export default function Perfil() {
                             </Pressable>
 
                             <Configuracoes
-
+                              arroba={user}
+                              userPerfil={idUser}
+                              tipo='perfil'
                             />
                         </View>
                     </View>
@@ -288,7 +300,9 @@ export default function Perfil() {
 
 
 
+
             </ScrollView>
+            <ModalPostagem tipo ='post' tela='perfil'/>
         </SafeAreaView>
     )
 };
