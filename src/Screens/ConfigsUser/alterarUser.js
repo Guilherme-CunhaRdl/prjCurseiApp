@@ -10,6 +10,7 @@ import {
   TextInput,
   Button,
   Pressable
+  ,ActivityIndicator 
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -97,9 +98,9 @@ export default function AlterarUser() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Carregando dados do usuário...</Text>
-      </SafeAreaView>
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' ,backgroundColor:"#fff"}}>
+      <ActivityIndicator size="large" color="#3498db" />
+</SafeAreaView> 
     );
   }
 

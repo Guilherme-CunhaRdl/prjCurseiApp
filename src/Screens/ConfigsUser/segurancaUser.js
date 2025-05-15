@@ -7,7 +7,15 @@ import { useNavigation } from '@react-navigation/native';
 export default function SegurancaUser() {
   const [protecaoSenha, setProtecaoSenha] = useState(false);
   const navigation = useNavigation;
-
+  const ativarAutenticacao = async () => {
+    try {
+      await axios.post(`http://localhost:8000/api/cursei/user/autenticacao/${userId}`, {
+        
+      });
+    } catch (error) {
+      console.error('Desgraça:', error);
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.descricao}>
