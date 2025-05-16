@@ -6,7 +6,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Home from '../Screens/Home';
 import Perfil from '../Screens/Perfil';
 import Login from '../Screens/Login';
-import Curseels from '../Screens/Curseels';
+import Curseels from '../Screens/Curtei';
 import Explorar from '../Screens/Explorar';
 import TopTabs from './TopTab';
 

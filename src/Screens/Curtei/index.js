@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   containerInfoStory: {
-    width: '90%',
+    width: '100%',
   },
   containerInfoPerfil: {
     flexDirection: 'row',
