@@ -7,14 +7,17 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import Pusher from 'pusher-js/react-native';
+import colors from '../../../../../colors';
+import Icon from "react-native-vector-icons/Feather";
 
 
 export default function Conversa({route}) {
@@ -24,7 +27,13 @@ export default function Conversa({route}) {
   const navigation = useNavigation();
   const [mensagens, setMensagens] = useState([])
   const flatListRef = useRef(null);
+    const [modalFoto, setModalFoto] = useState(false)
+  const [imagem, setImagem] = useState(null)
 
+
+  useFocusEffect(() =>{
+
+  })
 
     
   const abrirConversaInicio = async () =>{
@@ -108,13 +117,19 @@ useEffect(() => {
   
  //Bliblioteca que puxa o gerenciador de arquivos padrão do android
   const abrirDocumentos = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'image/*',
-      });
-    } catch (error) {
-      console.error('Erro ao abrir documentos:', error);
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!resultado.canceled) {
+      setImagem(resultado.assets[0].uri);
+            console.log(imagem)
+      setModalFoto(true)
+
     }
+
   };
   //parada para a camera funcionar
   useEffect(() => {
@@ -137,16 +152,21 @@ useEffect(() => {
     })();
   }, []);
 
-  async function tirarFoto() {
-    let result = await ImagePicker.launchCameraAsync({
+  const tirarFoto = async () =>  {
+     const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
       quality: 1,
     });
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+
+    if (!resultado.canceled) {
+      setImagem(resultado.assets[0].uri);
+      setModalFoto(true)
+
     }
   }
+
+
 
   return (
     <SafeAreaProvider>
@@ -169,13 +189,7 @@ useEffect(() => {
             </View>
           </View>
 
-          <TouchableOpacity onPress={() => {}}>
-            <Image source={require('../../img/Phone.png')} style={styles.iconSmall} />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => {}}>
-            <Image source={require('../../img/Video.png')} style={styles.iconSmall} />
-          </TouchableOpacity>
+        
         </View>
 
         {/* Flatlist das mensagens */}
@@ -213,6 +227,54 @@ useEffect(() => {
             <Image source={require('../../img/enviar.png')} style={styles.iconSmall} />
           </TouchableOpacity>
         </View>
+                <Modal
+                  animationType="slide"
+                  transparent={true}
+                  visible={modalFoto}
+                  // onRequestClose={fecharModal}
+                  style={styles.containerModalFoto}
+                >
+                  <View style={styles.containerModalFoto}>
+                    <View style={styles.boxModalFoto}>
+                      <View style={styles.cabecalhoModalFoto}>
+                        <TouchableOpacity onPress={() => setModalFoto(false)}>
+                        <Icon name="x" size={22} color={colors.azul} />
+                        </TouchableOpacity>
+                        <Text style={{fontSize: 16, fontWeight: 500, color: colors.branco, paddingLeft: 7}}>Verifique Sua Imagem</Text>
+                      </View>
+
+                      <View style={styles.viewImgModalFoto}>
+                        <View style={styles.fotoModalFoto}>
+                          {imagem && (
+                            <Image 
+                              source={{uri: imagem}} 
+                              style={styles.imgModalFoto}
+                              resizeMode="contain"
+                            />
+                          )}
+                        </View>
+                      </View>
+                      <View style={styles.boxMsgModalFoto}>
+                         <View style={[styles.inputContainer, { width: '90%'}]}>
+          
+
+                      <TextInput
+                        style={[styles.input]}
+                        placeholder="Escreva sua Mensagem..."
+                        placeholderTextColor="#A7A7A7"
+                        value={campoMensagem}
+                        onChangeText={setCampoMensagem}
+                      />
+
+          <TouchableOpacity onPress={() => enviarMensagem()}>
+            <Image source={require('../../img/enviar.png')} style={styles.iconSmall} />
+          </TouchableOpacity>
+        </View>
+                      </View>
+                    </View>
+                  </View>
+                </Modal>
+
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -276,6 +338,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   textoMensagem: { color: '#000', fontSize: 14 },
+
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -291,4 +354,71 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     color: '#000',
   },
+  containerModalFoto:{
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'flex-start',
+
+    backgroundColor:'transparent'
+  },
+  boxModalFoto:{
+   width: '100%',
+   flex: 1,
+   backgroundColor: colors.branco,
+   shadowColor: colors.preto,
+   shadowOffset: {width: 0, height: 0},
+   shadowOpacity: 0.5,
+   shadowRadius: 5,
+   backgroundColor: colors.preto,
+   opacity: 0.93
+
+  },
+  cabecalhoModalFoto:{
+    width: '100%',
+    flexDirection: 'row',
+    padding: 6
+  },
+  viewImgModalFoto:{
+    height: '90%',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fotoModalFoto:{
+    width: '100%',
+    height: '100%',
+    
+  },
+  imgModalFoto:{
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain'
+  },
+  boxMsgModalFoto:{
+    position: 'absolute',
+    bottom: 10,
+    left: 5,
+    width: '100%',
+    height: 40,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  inputModalFoto:{
+    width: '100%',
+    shadowColor: colors.preto,
+   shadowOffset: {width: 0, height: 0},
+   shadowOpacity: 0.5,
+   shadowRadius: 5,
+   marginRight: 10
+  },
+  boxEnviar:{
+    width: 45,
+    height: 45,
+    borderRadius: '50%',
+    backgroundColor: colors.azul,
+    justifyContent: 'center',
+    alignItems: 'center'
+    
+  }
 });
