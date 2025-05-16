@@ -19,6 +19,9 @@ export default function Splash() {
       if(logado === '1') {
         navigation.navigate('Home');
       }
+      else{
+        navigation.navigate('Login')
+      }
     }
     
   }, []);
