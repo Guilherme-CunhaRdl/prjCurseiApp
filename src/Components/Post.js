@@ -13,13 +13,15 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/pt-br';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ModalPostagem from "./ModalPostagem";
-
+import ModalPosts from './ModalPosts';
 
 export default function Post({ idUser = null,idPostUnico }) {
   const navigation = useNavigation();
   const [perfilProprio, setPerfilProprio] = useState(false)
+    const [loading, setLoading] = useState(false);
+  
   const modalRef = useRef();
-
+ const modalPostRef = useRef();
   const handleOpenModal = (id) => {
     if (modalRef.current) {
       modalRef.current.abrirModal(id);
@@ -27,6 +29,10 @@ export default function Post({ idUser = null,idPostUnico }) {
       console.log("modalRef ainda não está disponível.");
     }
   };
+  function abrirModalPost (id){
+    modalPostRef.current.abrirModalPost (id);
+  }
+
   async function verificarLogin() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
     if (idUserSalvo) {
@@ -48,29 +54,30 @@ export default function Post({ idUser = null,idPostUnico }) {
   useEffect(() => {
     const fetchPosts = async () => {
 
-
-
+      setLoading(true)
+    
       const idUserSalvo = await AsyncStorage.getItem('idUser');
       if (idUser) {
         if (idUser == idUserSalvo) {
           setPerfilProprio(true)
         }
         const id = idUser;
-        url = `http://localhost:8000/api/posts/2/${id}/100/0/0`;
+        url = `http://localhost:8000/api/posts/2/${id}/50/0/0`;
       } else {
         if (idUserSalvo) {
           SetverificarLoginUser(true)
           id = idUserSalvo;
-          url = `http://localhost:8000/api/posts/1/${id}/100/0/0`;
+          url = `http://localhost:8000/api/posts/1/${id}/50/0/0`;
 
         } else[
           id = 0,
-          url = `http://localhost:8000/api/posts/0/${id}/100/0/0`
+          url = `http://localhost:8000/api/posts/0/${id}/50/0/0`
         ]
       }
       if(idPostUnico){
         url =`http://localhost:8000/api/posts/4/${idPostUnico}/1/0/0`
       }
+       setLoading(false)
       const response = await axios.get(url);
       console.log(response.data.data)
       setPosts(response.data.data)
@@ -118,6 +125,10 @@ export default function Post({ idUser = null,idPostUnico }) {
 
   return (
     <View style={styles.container}>
+      {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '100%' }}>
+                  <ActivityIndicator size="large" color="#3498db" />
+                </View>
+                ) : null}
       <StatusBar style="auto" />
       <FlatList
         data={posts}
@@ -154,11 +165,11 @@ export default function Post({ idUser = null,idPostUnico }) {
           return (
             <View style={styles.postContainer}>
               <View style={styles.postHeader}>
-                <Pressable style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() =>
+                <Pressable style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() =>{
                   navigation.navigate('Perfil', {
                     idUserPerfil: item.id_user,
                     titulo: item.arroba_user
-                  })}>
+                  });fecharModalPost()}}>
                   <Image
                     source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }}
                     style={styles.fotoUser}
@@ -216,20 +227,20 @@ export default function Post({ idUser = null,idPostUnico }) {
                 </Text>
                 {item.conteudo_post
                   ? (
-                    <TouchableOpacity style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
+                    <Pressable style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
                       <Image
                         style={{ width: '100%', height: '100%', borderRadius: 8 }}
                         source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }}
                       />
 
 
-                    </TouchableOpacity>
+                    </Pressable>
                   )
                   : null}
               </View>
 
               {item.repost_id != null && (
-                <View style={styles.containerRepost}>
+                <Pressable style={styles.containerRepost} onPress={()=> abrirModalPost(item.repost_id )}>
                   <View style={styles.postHeader}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', paddingInline: 10, }}>
                       <Image
@@ -260,17 +271,15 @@ export default function Post({ idUser = null,idPostUnico }) {
                   </Text>
                   {item.repost_conteudo
                     ? (
-                      <TouchableOpacity style={styles.postContentRepost} onPress={() => doiscliques(item.id_post)}>
+                      <View style={styles.postContentRepost}>
                         <Image
                           style={{ width: '100%', height: '100%', borderBottomLeftRadius: 8, borderBottomRightRadius: 8 }}
                           source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.repost_conteudo}` }}
                         />
-
-
-                      </TouchableOpacity>
+                      </View>
                     )
                     : null}
-                </View>
+                </Pressable>
               )}
               <View style={styles.postActions}>
                 <TouchableOpacity style={styles.actionButton} onPress={() => verificarCurtida(item.id_post)}>
@@ -302,6 +311,7 @@ export default function Post({ idUser = null,idPostUnico }) {
                 </View>
 
                 <ModalPostagem ref={modalRef} idPostRepost={true} />
+                <ModalPosts ref={modalPostRef} />
               </View>
 
 
@@ -356,7 +366,7 @@ const styles = StyleSheet.create({
     color: '#666'
   },
   postContent: {
-    height: 210,
+    height: 280,
     backgroundColor: '#F0F0F0',
     borderRadius: 8,
     marginBottom: 8,
@@ -418,7 +428,7 @@ const styles = StyleSheet.create({
     fontWeight: 600,
   },
   postContentRepost: {
-    height: 210,
+    height: 250,
     backgroundColor: '#F0F0F0',
     borderRadius: 8,
     position: 'relative',

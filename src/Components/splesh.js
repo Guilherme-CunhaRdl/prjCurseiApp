@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Splash() {
   const animacaoRef = useRef(null);
@@ -11,8 +12,15 @@ export default function Splash() {
     // Inicia a animação
     animacaoRef.current?.animate({ 0: { opacity: 0, scale: 0.8 }, 1: { opacity: 1, scale: 1 } }, 1000)
       .then(() => {
-        setTimeout(() => navigation.replace('Login'), 800);
+        setTimeout(() => verificarLogin(), 300);
       });
+       async function verificarLogin() {
+      const logado = await AsyncStorage.getItem('logado');
+      if(logado === '1') {
+        navigation.navigate('Home');
+      }
+    }
+    
   }, []);
 
   return (

@@ -245,7 +245,7 @@ const ModalPostagem = forwardRef(
       <View>
         {tipo == "post" ? (
           <TouchableOpacity style={estilos.sendButton} onPress={abrirModal}>
-            <Icon name="send" size={24} color="#FFFFFF" />
+             <Image source={require('../../assets/LogoBranca.png')} style={{width:38,height:37,resizeMode:'contain'}} />
           </TouchableOpacity>
         ) : null}
 
@@ -444,9 +444,9 @@ const estilos = StyleSheet.create({
     position: "fixed",
     right: 20,
     bottom: 70,
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 60,
+    height: 60,
+    borderRadius: 60,
     backgroundColor: "#3B82F6",
     justifyContent: "center",
     alignItems: "center",
