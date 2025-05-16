@@ -23,7 +23,7 @@ import ModalPostagem from "../../Components/ModalPostagem";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
-
+import ModalPosts from "../../Components/ModalPosts"
 const DATA = [
   {
     id: Math.random().toString(36).substring(2, 27),
@@ -132,6 +132,11 @@ export default function Home() {
       </View>
       {/* Send Button */}
    <ModalPostagem tipo='post'/>
+    <ModalPosts/>
+
+  
     </SafeAreaView>
+    
+    
   );
 }

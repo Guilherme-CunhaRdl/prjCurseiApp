@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   Pressable,
+  Modal,
   ScrollView,
 } from "react-native";
 import {
@@ -30,11 +31,13 @@ export default function Mensagens() {
   const [selectedTab, setSelectedTab] = useState("todas");
   const [chats, setChats] = useState([]);
   const [idUser, setIdUser] = useState(null);
-
+  const [IsVisto, setIsVisto] = useState()
   const listarChats = async () => {
     const id = await AsyncStorage.getItem("idUser");
-    setIdUser(Number(id));
-    console.log(id, idUser);
+
+
+    setIdUser(id);
+    console.log(id);
     try {
       const resposta = await axios.get(
         `http://localhost:8000/api/cursei/chat/recebidor/${id}`
@@ -51,7 +54,6 @@ export default function Mensagens() {
   }, []);
 
   useEffect(() => {
-    if (!idUser) return;
     const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
       wsHost: "127.0.0.1",
@@ -69,14 +71,18 @@ export default function Mensagens() {
 
     canal.bind("chats", (data) => {
       const novaMensagem = data.msgs[0];
-
+      console.log(novaMensagem)
       if (!novaMensagem || novaMensagem.id_recebedor != idUser) return;
 
       setChats((prevChats) => {
         const chatExistente = prevChats.find(
           (c) => c.id_chat === novaMensagem.id_chat
         );
-
+        if(novaMensagem.status_chat === 1){
+          setIsVisto(true)
+        }else{
+          setIsVisto(false)
+        }
         if (chatExistente) {
           return prevChats.map((chat) =>
             chat.id_chat === novaMensagem.id_chat
@@ -92,8 +98,8 @@ export default function Mensagens() {
 
   //fiz essa linha pra manter "chats" como uma constante e não utilizar let.
   useEffect(() => {
-    console.log("atualizando estado das constantes", chats, idUser);
-  }, [chats, idUser]);
+    console.log("atualizando estado das constantes", chats, idUser, IsVisto);
+  }, [chats, idUser, IsVisto]);
 
   console.log("chats:", chats);
   chats.forEach((item, index) => {
@@ -155,8 +161,8 @@ export default function Mensagens() {
             >
               {[
                 { label: "Todas", value: "todas" },
-                { label: "Grupos", value: "grupo" },
-                { label: "Instituição", value: "instituicao" },
+                { label: "Canais", value: "canais" },
+                { label: "Instituições", value: "instituicoes" },
               ].map((tab) => {
                 const isSelected = selectedTab === tab.value;
 
@@ -231,7 +237,7 @@ export default function Mensagens() {
                       <Text
                         style={[
                           styles.ultimaMensagem,
-                          item.status_mensagem == 0 && item.enviador != idUser
+                          item.status_mensagem === 0 && item.enviador != idUser
                             ? { fontWeight: 500, color: "black" }
                             : { fontWeight: "normal" },
                         ]}
@@ -250,6 +256,9 @@ export default function Mensagens() {
           <StatusBar style="auto" />
         </View>
       </PaperProvider>
+
+      
+
     </SafeAreaProvider>
   );
 }
