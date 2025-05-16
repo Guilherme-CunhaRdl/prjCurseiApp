@@ -41,7 +41,7 @@ const TabNav = () => {
           } else if (route.name === 'pesquisa') {
             nomeIcone = focused ? 'search' : 'search-outline'
           } else if (route.name === 'post') {
-            nomeIcone = focused ? 'chatbubbles-outline' : 'chatbubbles-outline'
+            nomeIcone = focused ? 'paper-plane' : 'paper-plane-outline'
           }
           else if (route.name === 'add') {
             nomeIcone = focused ? 'add' : 'add-outline'
