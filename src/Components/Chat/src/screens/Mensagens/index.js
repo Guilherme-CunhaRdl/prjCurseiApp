@@ -30,31 +30,40 @@ export default function Mensagens() {
   const onChangeSearch = (query) => setSearchQuery(query);
   const [selectedTab, setSelectedTab] = useState("todas");
   const [chats, setChats] = useState([]);
-  const [idUser, setIdUser] = useState(null);
+  const [idUser, setIdUser] = useState(null)
   const [IsVisto, setIsVisto] = useState()
-  const listarChats = async () => {
-    const id = await AsyncStorage.getItem("idUser");
+  const listarChats = async (userId) => {
+    console.log(userId)
 
-
-    setIdUser(id);
-    console.log(id);
     try {
       const resposta = await axios.get(
-        `http://localhost:8000/api/cursei/chat/recebidor/${id}`
+        `http://localhost:8000/api/cursei/chat/recebidor/${userId}`
       );
       setChats(resposta.data.chats);
       console.log(resposta.data.chats);
-      console.log(id);
+      console.log(userId);
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
     }
   };
-  useEffect(() => {
-    listarChats();
-  }, []);
 
   useEffect(() => {
-    const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
+    const inicializar = async () => {
+      const id = await AsyncStorage.getItem("idUser");
+      setIdUser(id)
+      if(id){
+    await listarChats(id);
+    conectarCanal(id)
+      }
+
+    }
+
+    inicializar()
+    
+  }, []);
+
+  const conectarCanal = async (userId) => {
+  const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
       wsHost: "127.0.0.1",
       wsPort: 6001,
@@ -71,8 +80,9 @@ export default function Mensagens() {
 
     canal.bind("chats", (data) => {
       const novaMensagem = data.msgs[0];
+      console.log(data)
       console.log(novaMensagem)
-      if (!novaMensagem || novaMensagem.id_recebedor != idUser) return;
+      if (!novaMensagem) return;
 
       setChats((prevChats) => {
         const chatExistente = prevChats.find(
@@ -94,19 +104,38 @@ export default function Mensagens() {
         }
       });
     });
-  }, []);
+}
 
-  //fiz essa linha pra manter "chats" como uma constante e não utilizar let.
-  useEffect(() => {
-    console.log("atualizando estado das constantes", chats, idUser, IsVisto);
-  }, [chats, idUser, IsVisto]);
+useEffect(() =>{
+  console.log(idUser)
+},[idUser])
+  
+    const [query, setQuery] = useState('');
+    const [chatsPesquisados, setChatsPesquisados] = useState([]);
+    
+    const procurarChat = async (userId) => {
+        try {
+              const response = await axios.get(`http://localhost:8000/api/cursei/chat/pesquisa/${query}/${userId}`);            
+              setChatsPesquisados(response.data.chats);
+              console.log(response)
+        } catch (error) {
+            console.error('Search error:', error);
+        }
+    };
+useEffect(() => {
+        if (query.length > 0) {
+            const contador = setTimeout(() => {
+              procurarChat(idUser);
+              console.log(query, idUser)
+              console.log(chatsPesquisados)
 
-  console.log("chats:", chats);
-  chats.forEach((item, index) => {
-    if (!item || !item.id_chat) {
-      console.warn("Item inválido na posição", index, item);
-    }
-  });
+            }, 500);
+            
+            return () => clearTimeout(contador);
+        } else {
+            setChatsPesquisados([]);
+        }
+    }, [query]);
 
   return (
     <SafeAreaProvider>
@@ -140,8 +169,8 @@ export default function Mensagens() {
             <TextInput
               placeholder="Buscar Conversas..."
               placeholderTextColor="#A7A7A7"
-              value={searchQuery}
-              onChangeText={onChangeSearch}
+              value={query}
+              onChangeText={setQuery}
               style={styles.customSearchInput}
             />
           </View>
@@ -197,12 +226,15 @@ export default function Mensagens() {
 
           <FlatList
             data={
-              Array.isArray(chats)
+              query.length > 0 ? Array.isArray(chatsPesquisados)
+                ? chatsPesquisados.filter((item) => item && item.id_chat != null)
+
+                : [] : Array.isArray(chats)
                 ? chats.filter((item) => item && item.id_chat != null)
                 : []
             }
             keyExtractor={(item, index) =>
-              item?.id_chat != null ? item.id_chat.toString() : index.toString()
+              item?.id_mensagem != null ? item.id_mensagem.toString() : index.toString()
             }
             renderItem={({ item }) =>
               item && (
