@@ -6,7 +6,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Home from '../Screens/Home';
 import Perfil from '../Screens/Perfil';
 import Login from '../Screens/Login';
-import Curseels from '../Screens/Curtei';
+import Curtei from '../Screens/Curtei';
 import Explorar from '../Screens/Explorar';
 import TopTabs from './TopTab';
 
@@ -28,7 +28,7 @@ function ViewPost() {
 const TabNav = () => {
   return (
     <Tab.Navigator
-    screenOptions={({ route }) => ({
+    screenOptions={({ route }) => ({  
       headerShown: false,
       tabBarShowLabel: false,
       tabBarStyle: { display: 'flex' },
@@ -60,7 +60,7 @@ const TabNav = () => {
     >
       <Tab.Screen name='home' component={Home} />
       <Tab.Screen name='post' component={Mensagens} />
-      <Tab.Screen name='add' component={Curseels} />
+      <Tab.Screen name='add' component={Curtei} />
       <Tab.Screen name='pesquisa' component={Explorar} />
       <Tab.Screen name='user' component={Perfil} />
 
