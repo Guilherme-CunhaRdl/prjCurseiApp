@@ -21,15 +21,10 @@ import fabricaLogo from "../../../assets/fabricaLogo.jpeg";
 import Post from "../../Components/Post";
 import ModalPostagem from "../../Components/ModalPostagem";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import ModalPosts from "../../Components/ModalPosts"
 const DATA = [
-  {
-    id: Math.random().toString(36).substring(2, 27),
-    photoURL: adicionarLogo,
-    nome: "Seu Story", 
-  },
   {
     id: Math.random().toString(36).substring(2, 27),
     photoURL: 'https://th.bing.com/th/id/OIP.YmtJRv73dOTsmE6c2alf9AHaHa?rs=1&pid=ImgDetMain',
@@ -72,6 +67,52 @@ export default function Home() {
   verificarInteresses()
   }, []);
 
+  const route = useRoute();
+  const rotavalores = route.params;
+
+  const [nome, setNome] = useState('');
+  const [userImg, setUserImg] = useState('');
+  const [user, setUser] = useState('');
+  const [idUser, setIdUser] = useState();
+  const [loading, setLoading] = useState(true);
+  const [perfilProprio, setPerfilProprio] = useState(false)
+
+  async function carregarPerfil() {
+          const idUserSalvo = await AsyncStorage.getItem('idUser');
+
+          if (rotavalores) {
+              var idPerfil = rotavalores.idUserPerfil;
+          } else {
+              var idPerfil = idUserSalvo
+          }
+          try {
+              
+              setIdUser(idPerfil);
+              const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idPerfil}`);
+              var data = resultados.data;
+              
+              setNome(data.User.nome_user);
+              setUserImg(data.User.img_user);
+              setUser(data.User.arroba_user);
+
+              if (idUserSalvo == idPerfil) {
+                  setPerfilProprio(true);
+              }
+              var segue = await axios.get(`http://localhost:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
+              if(segue.data.data){
+                  Setsegue_usuario(true)
+              }
+          } catch (error) {
+              console.error('Erro ao buscar perfil:', error);
+          } finally {
+              setTimeout(() => {
+                  setLoading(false);
+              }, 1500)
+          }
+      }
+    useEffect(() => {
+        carregarPerfil()
+    }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -81,8 +122,22 @@ export default function Home() {
         <View style={styles.Header}>
           {/*View informações user*/}
           <View style={styles.userContainer}>
+
             <View style={styles.infoUser}>
-              <Text style={styles.textUser}>Olá, Usuário(a)!</Text>
+              <View style={{flexDirection:'row'}}>
+                <TouchableOpacity style={styles.imgContainer} onPress={() => navigation.navigate('Perfil')}>
+                  <Image
+                    style={styles.userImg}
+                    source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
+                  />
+                </TouchableOpacity>
+                <View style={styles.msgUser}>
+                  <Text style={styles.textUser}>{nome}!</Text>
+                  <Text style={styles.textInicio}>@{user}</Text>
+                </View>
+              </View>
+              
+
               <View style={styles.notifyContainer}>
                 <Pressable style={styles.notifyUser}
                   onPress={() => navigation.navigate('Notificacoes')}>
@@ -99,9 +154,7 @@ export default function Home() {
                 </View>
               </View>
             </View>
-            <View style={styles.msgUser}>
-              <Text style={styles.textInicio}>Bem Vindo de Volta</Text>
-            </View>
+            
           </View>
           {/*View Storys*/}
           <View style={styles.storysContainer}>
@@ -110,16 +163,27 @@ export default function Home() {
               data={DATA}
               showsHorizontalScrollIndicator={false}
               keyExtractor={(item) => item.id}
-              renderItem={(item) => (
+              ListHeaderComponent={
                 <View style={styles.storys}>
-                  <Pressable style={styles.circuloStorys}>
-                    <Image style={styles.imgLogo} source={item.item.photoURL} />
+                  <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('CriarCurteis')}>
+                    <Image style={styles.imgLogo} source={adicionarLogo} />
                   </Pressable>
                   <View>
-                    <Text style={styles.nomeStorys}>{item.item.nome}</Text>
+                    <Text style={styles.nomeStorys}>Seu Story</Text>
+                  </View>
+                </View>
+              }
+              renderItem={({item}) => (
+                <View style={styles.storys}>
+                  <Pressable style={styles.circuloStorys}>
+                    <Image style={styles.imgLogo} source={item.photoURL} />
+                  </Pressable>
+                  <View>
+                    <Text style={styles.nomeStorys}>{item.nome}</Text>
                   </View>
                 </View>
               )}
+              contentContainerStyle={styles.flatListContent}
             />
           </View>
         </View>

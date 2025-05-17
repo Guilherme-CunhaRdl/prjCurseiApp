@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { SafeAreaView, View, Text, TouchableOpacity, Image, FlatList, StyleSheet, Dimensions } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 const { height } = Dimensions.get('window');
 const ITEM_HEIGHT = height; // Altura total da tela para cada item
@@ -34,7 +35,8 @@ const storiesData = [
   },
 ];
 
-export default function Curseels() {
+export default function Curtei() {
+    const navigation = useNavigation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
 
@@ -88,7 +90,7 @@ export default function Curseels() {
           </View>
           <View style={styles.containerDescPost}>
             <Text
-              numberOfLines={2}
+              numberOfLines={1}
               ellipsizeMode="tail"
               style={styles.descricaoTexto}
             >
@@ -120,11 +122,11 @@ export default function Curseels() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.containerHeader}>
-        <TouchableOpacity>
+        <TouchableOpacity  onPress={() => navigation.goBack()}>
           <Ionicons name={'arrow-back'} size={30} color={'white'} />
         </TouchableOpacity>
         <Text style={styles.tituloHeader}>Curtei</Text>
-        <TouchableOpacity>
+        <TouchableOpacity  onPress={() => navigation.navigate('CriarCurteis')}>
           <Ionicons name={'camera-outline'} size={30} color={'white'} />
         </TouchableOpacity>
       </View>
@@ -217,6 +219,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   containerDescPost: {
+    width:'80%',
     marginTop: 8,
     marginBottom: 60, // Espaço extra para a descrição ficar visível acima do tab nav
   },

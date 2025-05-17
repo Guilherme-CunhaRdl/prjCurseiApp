@@ -75,7 +75,7 @@ export default StyleSheet.create({
         paddingVertical: 10,
       },
       infoUser:{
-        paddingHorizontal: 16,
+        paddingHorizontal: '5%',
         flexDirection: 'row',
         justifyContent: 'space-between'
       },
@@ -99,7 +99,6 @@ export default StyleSheet.create({
 
       },
       textInicio:{
-        paddingHorizontal: 16,
         color: 'gray',
         fontWeight: '500'
       },
@@ -137,6 +136,22 @@ export default StyleSheet.create({
       containerConf:{
         alignSelf: 'center',
         paddingLeft: 5,
-      }
-
+      },
+    imgContainer:{
+        backgroundColor: 'white',
+        alignItems: 'center',
+        borderRadius: 80,
+        height: 50,
+        width: 50,
+        overflow:'hidden',
+        borderColor:'#F9F9F9',
+        borderWidth:1
+        
+    },
+    userImg:{
+     
+      width:'100%',
+      height:'100%',
+      objectFit:'cover',
+    },
 });

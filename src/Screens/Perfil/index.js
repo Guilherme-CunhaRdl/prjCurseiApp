@@ -153,7 +153,7 @@ export default function Perfil() {
                 <View style={styles.header}>
                     <Image
                         style={styles.banner}
-                        source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/itauLogo.png')} 
+                        source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/backGroundDeslogado.jpg')} 
                     />
                 </View>
                 {/*Container do Perfil */}
@@ -163,7 +163,7 @@ export default function Perfil() {
                         <View style={styles.imgContainer}>
                             <Image
                                 style={styles.userImg}
-                                source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/jovem.jpeg')}
+                                source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
                             />
                         </View>
                         

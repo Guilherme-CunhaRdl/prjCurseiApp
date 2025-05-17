@@ -15,7 +15,9 @@ import VirarInstituicao from '../Screens/VirarInstituicao';
 import Seguranca from '../Screens/ConfigsUser/segurancaUser.js';
 import alterarUser from '../Screens/ConfigsUser/alterarUser.js';
 import Perfil from '../Screens/Perfil';
-import Splash from '../Components/splesh.js'
+import Splash from '../Components/splesh.js';
+import CriarCurteis from '../Screens/Curtei/CriarCurteis.js';
+
 const Stack = createNativeStackNavigator();
 import SeguindoSeguidores from '../Screens/SeguindoSeguidores'
 export default function StackRoutes() {
@@ -125,6 +127,24 @@ export default function StackRoutes() {
 
         />
 
+        <Stack.Screen
+        name="CriarCurteis"
+        component={CriarCurteis}
+        options={{
+          headerTitle: () => (
+          <Text style={{ 
+            fontSize: 18, 
+            fontWeight: 'bold',
+            color: '#000'
+          }}>
+            Crie um Curtei!
+          </Text>
+        ),
+        headerTitleAlign: 'center',
+        }}
+
+        />
+
        <Stack.Screen
         name="SeguindoSeguidores"
         component={SeguindoSeguidores}
@@ -136,4 +156,4 @@ export default function StackRoutes() {
     </Stack.Navigator>
 
   );
-} 
+}
