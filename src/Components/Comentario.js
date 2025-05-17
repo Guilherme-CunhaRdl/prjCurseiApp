@@ -1,12 +1,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
+import dayjs from 'dayjs';
 
 
 export default function Comentario({ idPost }) {
@@ -31,8 +32,9 @@ export default function Comentario({ idPost }) {
       const usuario = comentario.usuario || {};
       return {
         id: comentario.id,
+        idUserComent:comentario.id_user,
         usuario: usuario.arroba_user || 'Usuário desconhecido',
-        tempoCriacao: new Date(Date.now() - 3600000),
+        tempoCriacao: formatarTempoInsercao(comentario.tempo_insercao),
         texto: comentario.comentario || '',
         curtidas: 0,
         curtido: false,
@@ -41,11 +43,13 @@ export default function Comentario({ idPost }) {
           : 'https://via.placeholder.com/150', // imagem padrão
       };
     });
-  
+    
     setComentarios(listaComentarios);
   }
 
-
+ const formatarTempoInsercao = (seconds) => {
+    return dayjs().subtract(seconds, 'seconds').fromNow();
+  };
 
   const abrirModal = async () => {
     setModalVisivel(true);
@@ -88,7 +92,8 @@ export default function Comentario({ idPost }) {
     const novoComentario = {
       id: comentar.data[0].id,
       usuario: comentar.data[0].arroba_user,
-      tempoCriacao: new Date(),
+      idUser:comentar.data[0].id_user,
+      tempoCriacao: formatarTempoInsercao(comentario.tempo_insercao),
       texto: comentario,
       curtidas: 0,
       curtido: false,
@@ -101,46 +106,29 @@ export default function Comentario({ idPost }) {
   };
 
 
-  function formatarTempo(dataCriacao) {
+  
 
-
-    const agora = new Date();
-    const diferenca = agora - dataCriacao;
-    const minutos = Math.floor(diferenca / 60000);
-    const horas = Math.floor(minutos / 60);
-    const dias = Math.floor(horas / 24);
-
-    if (minutos < 1) return "Agora";
-    if (minutos < 60) return `${minutos}min`;
-    if (horas < 24) return `${horas}h`;
-    if (dias < 7) return `${dias}d`;
-
-    return dataCriacao.toLocaleDateString('pt-BR', {
-      day: 'numeric',
-      month: 'short'
-    });
-  }
-
-  const ItemComentario = React.memo(({ usuario, tempoCriacao, texto, curtidas, curtido, foto, id }) => {
-    const [tempoFormatado, setTempoFormatado] = useState(formatarTempo(tempoCriacao));
+  const ItemComentario = React.memo(({ usuario, tempoCriacao, texto, curtidas, curtido, foto, id ,idUserComent}) => {
+    
 
     useEffect(() => {
-      const interval = setInterval(() => {
-        setTempoFormatado(formatarTempo(tempoCriacao));
-      }, 60000); // atualiza a cada 1 min
-
-      return () => clearInterval(interval);
-    }, [tempoCriacao]);
+     
+    }, );
 
     return (
       <View style={styles.itemComentario}>
-        <View style={styles.cabecalhoComentario}>
+        <Pressable style={styles.cabecalhoComentario}  onPress={() =>{
+                  navigation.navigate('Perfil', {
+                    idUserPerfil: idUserComent,
+                    titulo: usuario
+                  });fecharModal()}}>
+                    
           <Image source={{ uri: foto }} style={styles.fotoUsuario} />
           <View style={styles.infoUsuario}>
             <Text style={styles.nomeUsuario}>@{usuario}</Text>
-            <Text style={styles.tempo}> • {tempoFormatado}</Text>
+            <Text style={styles.tempo}> • {tempoCriacao}</Text>
           </View>
-        </View>
+        </Pressable>
         <Text style={styles.textoComentario}>{texto}</Text>
         <View style={styles.acoesComentario}>
           <TouchableOpacity
@@ -213,6 +201,7 @@ export default function Comentario({ idPost }) {
                     curtidas={comentario.curtidas}
                     curtido={comentario.curtido}
                     foto={comentario.foto}
+                    idUserComent={comentario.idUserComent}
                   />
                 ))}
               </ScrollView>

@@ -58,6 +58,7 @@ export default function Perfil() {
     const [focoIcone, setFocoIcone] = useState('posts')
     const [perfilProprio, setPerfilProprio] = useState(false)
     const [segue_usuario, Setsegue_usuario] = useState(false)
+    const [postsCount,setPostsCount] = useState('')
     const alterarFoco = (icone) => {
         setFocoIcone(icone)
     }
@@ -75,7 +76,7 @@ export default function Perfil() {
             setIdUser(idPerfil);
             const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idPerfil}`);
             var data = resultados.data;
-            console.log(data);
+            
             setNome(data.User.nome_user);
             setUser(data.User.arroba_user);
             setEmail(data.User.email_user);
@@ -85,6 +86,7 @@ export default function Perfil() {
             setBanner(data.User.banner_user);
             setSeguidores(data.User.seguidor_count)
             setSeguindo(data.User.seguindo_count)
+            setPostsCount(data.User.posts_count)
             setInstituicao(data.User.instituicao)
             if (idUserSalvo == idPerfil) {
                 setPerfilProprio(true);
@@ -195,14 +197,28 @@ export default function Perfil() {
                         <Text style={styles.textBioUser}>{bio}</Text>
                     </View>
                     <View style={styles.boxSeguidores}>
-                        <View style={styles.seguidores}>
+                        <Pressable style={styles.seguidores} onPress={() =>{
+                  navigation.navigate('SeguindoSeguidores', {
+                    idUserPerfil: idUser,
+                    titulo: user,
+                    pagina:'seguidores',
+                  })}}>
                             <Text style={styles.numSeg}>{seguidores}</Text>
                             <Text style={styles.textSeguidores}>Seguidores</Text>
-                        </View>
+                        </Pressable>
 
-                        <View style={styles.seguindo}>
+                        <Pressable style={styles.seguindo}  onPress={() =>{
+                  navigation.navigate('SeguindoSeguidores', {
+                    idUserPerfil: idUser,
+                    titulo: user,
+                    pagina:'seguindo',
+                  })}}>
                             <Text style={styles.numSeg}>{seguindo}</Text>
                             <Text style={styles.textSeguindo}>Seguindo</Text>
+                        </Pressable>
+                        <View style={styles.seguindo}>
+                            <Text style={styles.numSeg}>{postsCount}</Text>
+                            <Text style={styles.textSeguindo}>Posts</Text>
                         </View>
                     </View>
                 </View>

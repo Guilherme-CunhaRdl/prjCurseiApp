@@ -77,10 +77,11 @@ export default function Post({ idUser = null,idPostUnico }) {
       if(idPostUnico){
         url =`http://localhost:8000/api/posts/4/${idPostUnico}/1/0/0`
       }
-       setLoading(false)
+      
       const response = await axios.get(url);
-      console.log(response.data.data)
+      
       setPosts(response.data.data)
+       setLoading(false)
     };
 
     fetchPosts();
@@ -169,7 +170,7 @@ export default function Post({ idUser = null,idPostUnico }) {
                   navigation.navigate('Perfil', {
                     idUserPerfil: item.id_user,
                     titulo: item.arroba_user
-                  });fecharModalPost()}}>
+                  })}}>
                   <Image
                     source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }}
                     style={styles.fotoUser}

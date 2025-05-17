@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image, ActivityIndicator, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
@@ -9,7 +9,7 @@ import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 import Post from './Post';
 import colors from '../colors';
-
+import dayjs from 'dayjs';
 
 const ModalPosts = forwardRef(({ }, ref) => {
   useImperativeHandle(ref, () => ({
@@ -38,14 +38,15 @@ const ModalPosts = forwardRef(({ }, ref) => {
   }
 
   async function buscarComentarios(id) {
-    console.log("viado")
+ 
     url = 'http://localhost:8000/api/posts/interacoes/comentarios';
     const post = {
       idPost: id
     }
-    console.log("3232", idPost)
+    
     response = await axios.post(url, post)
     const resposta = response.data;
+  
     carregarComentarios(resposta)
     return resposta;
   }
@@ -57,8 +58,9 @@ const ModalPosts = forwardRef(({ }, ref) => {
       const usuario = comentario.usuario || {};
       return {
         id: comentario.id,
+        idUserComent:comentario.id_user,
         usuario: usuario.arroba_user || 'Usuário desconhecido',
-        tempoCriacao: new Date(Date.now() - 3600000),
+        tempoCriacao: formatarTempoInsercao(comentario.tempo_insercao),
         texto: comentario.comentario || '',
         curtidas: 0,
         curtido: false,
@@ -71,27 +73,11 @@ const ModalPosts = forwardRef(({ }, ref) => {
     setComentarios(listaComentarios);
   }
 
+ const formatarTempoInsercao = (seconds) => {
+    return dayjs().subtract(seconds, 'seconds').fromNow();
+  };
 
 
-  function formatarTempo(dataCriacao) {
-
-
-    const agora = new Date();
-    const diferenca = agora - dataCriacao;
-    const minutos = Math.floor(diferenca / 60000);
-    const horas = Math.floor(minutos / 60);
-    const dias = Math.floor(horas / 24);
-
-    if (minutos < 1) return "Agora";
-    if (minutos < 60) return `${minutos}min`;
-    if (horas < 24) return `${horas}h`;
-    if (dias < 7) return `${dias}d`;
-
-    return dataCriacao.toLocaleDateString('pt-BR', {
-      day: 'numeric',
-      month: 'short'
-    });
-  }
 
   const adicionarComentario = async () => {
     if (comentario.trim() === '') return;
@@ -110,7 +96,8 @@ const ModalPosts = forwardRef(({ }, ref) => {
       const novoComentario = {
         id: comentar.data[0].id,
         usuario: comentar.data[0].arroba_user,
-        tempoCriacao: new Date(),
+        idUserComent:comentar.data[0].id_user,
+        tempoCriacao: formatarTempoInsercao(comentario.tempo_insercao),
         texto: comentario,
         curtidas: 0,
         curtido: false,
@@ -125,20 +112,23 @@ const ModalPosts = forwardRef(({ }, ref) => {
   useEffect(() => {
 
   }, []);
-  const ItemComentario = React.memo(({ usuario, tempoCriacao, texto, curtidas, curtido, foto, id }) => {
-    const [tempoFormatado, setTempoFormatado] = useState(formatarTempo(tempoCriacao));
+  const ItemComentario = React.memo(({ usuario, tempoCriacao, texto, curtidas, curtido, foto, id,idUserComent }) => {
 
 
 
     return (
       <View style={styles.itemComentario}>
-        <View style={styles.cabecalhoComentario}>
+        <Pressable style={styles.cabecalhoComentario} onPress={() =>{
+                  navigation.navigate('Perfil', {
+                    idUserPerfil: idUserComent,
+                    titulo: usuario
+                  });fecharModal()}}>
           <Image source={{ uri: foto }} style={styles.fotoUsuario} />
           <View style={styles.infoUsuario}>
             <Text style={styles.nomeUsuario}>@{usuario}</Text>
-            <Text style={styles.tempo}> • {tempoFormatado}</Text>
+            <Text style={styles.tempo}> • {tempoCriacao}</Text>
           </View>
-        </View>
+        </Pressable>
         <Text style={styles.textoComentario}>{texto}</Text>
         <View style={styles.acoesComentario}>
           <TouchableOpacity
@@ -198,6 +188,7 @@ const ModalPosts = forwardRef(({ }, ref) => {
                 curtidas={comentario.curtidas}
                 curtido={comentario.curtido}
                 foto={comentario.foto}
+                idUserComent={comentario.idUserComent}
               />
             ))}
           </ScrollView>

@@ -85,10 +85,11 @@ export default StyleSheet.create({
     },
     boxSeguidores:{
       flexDirection: 'row',
-      alignSelf: 'center',
+      alignSelf:'flex-start',
       gap: 30,
       width: '70%',
-      marginTop: 20
+      marginTop: 20,
+      marginLeft:25
   },
     numSeg:{
         fontWeight: 'bold',

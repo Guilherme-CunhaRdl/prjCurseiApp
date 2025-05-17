@@ -17,12 +17,13 @@ import alterarUser from '../Screens/ConfigsUser/alterarUser.js';
 import Perfil from '../Screens/Perfil';
 import Splash from '../Components/splesh.js'
 const Stack = createNativeStackNavigator();
-
+import SeguindoSeguidores from '../Screens/SeguindoSeguidores'
 export default function StackRoutes() {
   return (
     <Stack.Navigator
  
     >
+   
        <Stack.Screen
         name="Splash"
         component={Splash}
@@ -30,6 +31,7 @@ export default function StackRoutes() {
           headerShown: false,
         }}
       />
+   
       <Stack.Screen
         name="Login"
         component={Login}
@@ -123,6 +125,14 @@ export default function StackRoutes() {
 
         />
 
+       <Stack.Screen
+        name="SeguindoSeguidores"
+        component={SeguindoSeguidores}
+        options={({ route }) => ({
+          title: route.params?.titulo || "Perfil", 
+          headerShown: true,
+        })}
+      />
     </Stack.Navigator>
 
   );
