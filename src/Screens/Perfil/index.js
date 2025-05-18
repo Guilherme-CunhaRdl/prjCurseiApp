@@ -116,9 +116,9 @@ export default function Perfil() {
         seguidor.append('idUser', idUserSalvo)
         seguidor.append('userPost', idUser)
         var result = await axios.post(url, seguidor)
-        console.log(result.data)
+        
         const seguidoresAtual = parseInt(seguidores)
-        console.log(seguidoresAtual)
+        
         if(result.data =='deseguido'){
             Setsegue_usuario(false)
             setSeguidores(seguidores-1)

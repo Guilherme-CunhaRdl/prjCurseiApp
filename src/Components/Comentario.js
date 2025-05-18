@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image, Pressable } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image, Pressable, ActivityIndicator } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
@@ -16,14 +16,15 @@ export default function Comentario({ idPost }) {
   const [modalVisivel, setModalVisivel] = useState(false);
   const [comentario, setComentario] = useState('');
   const refConteudoModal = useRef(null);
+  const [loading, setLoading] = useState(true);
   async function buscarComentarios(idPost) {
     url = 'http://localhost:8000/api/posts/interacoes/comentarios';
-    const post ={
-     idPost: idPost
+    const post = {
+      idPost: idPost
     }
-    response = await axios.post(url,post)
+    response = await axios.post(url, post)
     const resposta = response.data;
-    
+
     return resposta;
   }
   const [comentarios, setComentarios] = useState([]);
@@ -32,7 +33,7 @@ export default function Comentario({ idPost }) {
       const usuario = comentario.usuario || {};
       return {
         id: comentario.id,
-        idUserComent:comentario.id_user,
+        idUserComent: comentario.id_user,
         usuario: usuario.arroba_user || 'Usuário desconhecido',
         tempoCriacao: formatarTempoInsercao(comentario.tempo_insercao),
         texto: comentario.comentario || '',
@@ -43,11 +44,12 @@ export default function Comentario({ idPost }) {
           : 'https://via.placeholder.com/150', // imagem padrão
       };
     });
-    
+
     setComentarios(listaComentarios);
+    setLoading(false)
   }
 
- const formatarTempoInsercao = (seconds) => {
+  const formatarTempoInsercao = (seconds) => {
     return dayjs().subtract(seconds, 'seconds').fromNow();
   };
 
@@ -78,51 +80,52 @@ export default function Comentario({ idPost }) {
   const adicionarComentario = async () => {
     if (comentario.trim() === '') return;
     const idUserSalvo = await AsyncStorage.getItem('idUser');
-    if (!idUserSalvo){
+    if (!idUserSalvo) {
       fecharModal();
       navigation.navigate('Login')
-    }else{
-    const Createcomentario ={
-      idPost: idPost,
-      idUser : idUserSalvo,
-      comentario : comentario
-     }
-    const comentar = await axios.post('http://127.0.0.1:8000/api/posts/interacoes/comentar',Createcomentario)
+    } else {
+      const Createcomentario = {
+        idPost: idPost,
+        idUser: idUserSalvo,
+        comentario: comentario
+      }
+      const comentar = await axios.post('http://127.0.0.1:8000/api/posts/interacoes/comentar', Createcomentario)
 
-    const novoComentario = {
-      id: comentar.data[0].id,
-      usuario: comentar.data[0].arroba_user,
-      idUser:comentar.data[0].id_user,
-      tempoCriacao: formatarTempoInsercao(comentario.tempo_insercao),
-      texto: comentario,
-      curtidas: 0,
-      curtido: false,
-      foto: `http://localhost:8000/img/user/fotoPerfil/${comentar.data[0].img_user}`
-    };
+      const novoComentario = {
+        id: comentar.data[0].id,
+        usuario: comentar.data[0].arroba_user,
+        idUser: comentar.data[0].id_user,
+        tempoCriacao: formatarTempoInsercao(comentario.tempo_insercao),
+        texto: comentario,
+        curtidas: 0,
+        curtido: false,
+        foto: `http://localhost:8000/img/user/fotoPerfil/${comentar.data[0].img_user}`
+      };
 
-    setComentarios([novoComentario, ...comentarios]);
-    setComentario('');
-  }
+      setComentarios([novoComentario, ...comentarios]);
+      setComentario('');
+    }
   };
 
 
-  
 
-  const ItemComentario = React.memo(({ usuario, tempoCriacao, texto, curtidas, curtido, foto, id ,idUserComent}) => {
-    
+
+  const ItemComentario = React.memo(({ usuario, tempoCriacao, texto, curtidas, curtido, foto, id, idUserComent }) => {
+
 
     useEffect(() => {
-     
-    }, );
+
+    },);
 
     return (
       <View style={styles.itemComentario}>
-        <Pressable style={styles.cabecalhoComentario}  onPress={() =>{
-                  navigation.navigate('Perfil', {
-                    idUserPerfil: idUserComent,
-                    titulo: usuario
-                  });fecharModal()}}>
-                    
+        <Pressable style={styles.cabecalhoComentario} onPress={() => {
+          navigation.navigate('Perfil', {
+            idUserPerfil: idUserComent,
+            titulo: usuario
+          }); fecharModal()
+        }}>
+
           <Image source={{ uri: foto }} style={styles.fotoUsuario} />
           <View style={styles.infoUsuario}>
             <Text style={styles.nomeUsuario}>@{usuario}</Text>
@@ -154,11 +157,11 @@ export default function Comentario({ idPost }) {
   return (
     <View style={styles.container}>
       <TouchableOpacity
-      
+
         onPress={abrirModal}
       >
-     <Icon name="message-circle" size={20} color="#666" />
-    
+        <Icon name="message-circle" size={20} color="#666" />
+
 
       </TouchableOpacity>
 
@@ -169,6 +172,8 @@ export default function Comentario({ idPost }) {
         onRequestClose={fecharModal}
       >
         <View style={styles.fundoModal}>
+
+
           <KeyboardAvoidingView
 
             style={styles.containerTeclado}
@@ -179,6 +184,8 @@ export default function Comentario({ idPost }) {
               duration={300}
               style={styles.conteudoModal}
             >
+
+
               <View style={styles.cabecalhoModal}>
                 <TouchableOpacity
                   style={styles.botaoFechar}
@@ -190,7 +197,13 @@ export default function Comentario({ idPost }) {
                 <View style={styles.espacadorCabecalho} />
               </View>
 
-              <ScrollView style={styles.listaComentarios}>
+              {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 99, width: '100%', height: '100%', backgroundColor: 'rtransparencyed' }}>
+                <ActivityIndicator size="large" color="#3498db" />
+              </View>
+              ) : (!loading && comentarios?.length === 0 ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 99, width: '100%', height: '100%', backgroundColor: 'transparency' }}>
+                <Text style={{ fontSize: 20, color: '#666', fontWeight: 600 }}>Ainda não há comentários</Text>
+              </View>
+              ) : <ScrollView style={styles.listaComentarios}>
                 {comentarios.map((comentario) => (
                   <ItemComentario
                     key={comentario.id}
@@ -204,8 +217,10 @@ export default function Comentario({ idPost }) {
                     idUserComent={comentario.idUserComent}
                   />
                 ))}
-              </ScrollView>
 
+              </ScrollView>)
+              }
+        
               <View style={styles.containerInput}>
                 <TextInput
                   style={styles.inputComentario}

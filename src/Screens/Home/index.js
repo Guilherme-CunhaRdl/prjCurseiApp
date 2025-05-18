@@ -125,7 +125,7 @@ export default function Home() {
 
             <View style={styles.infoUser}>
               <View style={{flexDirection:'row'}}>
-                <TouchableOpacity style={styles.imgContainer} onPress={() => navigation.navigate('Perfil')}>
+                <TouchableOpacity style={styles.imgContainer} onPress={() => navigation.navigate('user')}>
                   <Image
                     style={styles.userImg}
                     source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}

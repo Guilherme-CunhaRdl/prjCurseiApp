@@ -126,7 +126,7 @@ export default function Post({ idUser = null,idPostUnico }) {
 
   return (
     <View style={styles.container}>
-      {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '100%' }}>
+      {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '50%',backgroundColor:'transparency' }}>
                   <ActivityIndicator size="large" color="#3498db" />
                 </View>
                 ) : null}
