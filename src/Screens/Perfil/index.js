@@ -1,4 +1,4 @@
-import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable,ActivityIndicator } from 'react-native';
+import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -13,7 +13,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Configuracoes from '../../Components/Configurações/configuracoes'
 import colors from '../../colors';
 import ModalPostagem from "../../Components/ModalPostagem";
-
+import ModalEditarPerfil from '../../Components/modalEditarPerfil';
 const DATA = [
     {
         id: Math.random().toString(36).substring(2, 27),
@@ -58,7 +58,8 @@ export default function Perfil() {
     const [focoIcone, setFocoIcone] = useState('posts')
     const [perfilProprio, setPerfilProprio] = useState(false)
     const [segue_usuario, Setsegue_usuario] = useState(false)
-    const [postsCount,setPostsCount] = useState('')
+    const [modalEditarVisivel, setModalEditarVisivel] = useState(false);
+    const [postsCount, setPostsCount] = useState('')
     const alterarFoco = (icone) => {
         setFocoIcone(icone)
     }
@@ -92,7 +93,7 @@ export default function Perfil() {
                 setPerfilProprio(true);
             }
             var segue = await axios.get(`http://localhost:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
-            if(segue.data.data){
+            if (segue.data.data) {
                 Setsegue_usuario(true)
             }
         } catch (error) {
@@ -119,12 +120,12 @@ export default function Perfil() {
         
         const seguidoresAtual = parseInt(seguidores)
         
-        if(result.data =='deseguido'){
+        if (result.data == 'deseguido') {
             Setsegue_usuario(false)
-            setSeguidores(seguidores-1)
-        }else{
-            
-            setSeguidores(seguidores+1)
+            setSeguidores(seguidores - 1)
+        } else {
+
+            setSeguidores(seguidores + 1)
 
             Setsegue_usuario(true)
         }
@@ -141,7 +142,7 @@ export default function Perfil() {
     }, []);
     if (loading) {
         return (
-            <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' ,backgroundColor:"#fff"}}>
+            <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff" }}>
                       <ActivityIndicator size="large" color="#3498db" />
             </SafeAreaView>
         );
@@ -197,22 +198,24 @@ export default function Perfil() {
                         <Text style={styles.textBioUser}>{bio}</Text>
                     </View>
                     <View style={styles.boxSeguidores}>
-                        <Pressable style={styles.seguidores} onPress={() =>{
-                  navigation.navigate('SeguindoSeguidores', {
-                    idUserPerfil: idUser,
-                    titulo: user,
-                    pagina:'seguidores',
-                  })}}>
+                        <Pressable style={styles.seguidores} onPress={() => {
+                            navigation.navigate('SeguindoSeguidores', {
+                                idUserPerfil: idUser,
+                                titulo: user,
+                                pagina: 'seguidores',
+                            })
+                        }}>
                             <Text style={styles.numSeg}>{seguidores}</Text>
                             <Text style={styles.textSeguidores}>Seguidores</Text>
                         </Pressable>
 
-                        <Pressable style={styles.seguindo}  onPress={() =>{
-                  navigation.navigate('SeguindoSeguidores', {
-                    idUserPerfil: idUser,
-                    titulo: user,
-                    pagina:'seguindo',
-                  })}}>
+                        <Pressable style={styles.seguindo} onPress={() => {
+                            navigation.navigate('SeguindoSeguidores', {
+                                idUserPerfil: idUser,
+                                titulo: user,
+                                pagina: 'seguindo',
+                            })
+                        }}>
                             <Text style={styles.numSeg}>{seguindo}</Text>
                             <Text style={styles.textSeguindo}>Seguindo</Text>
                         </Pressable>
@@ -227,7 +230,8 @@ export default function Perfil() {
                 {perfilProprio ? (
                     <View style={styles.editarContainer}>
                         <View style={[styles.buttonContainer, { gap: 0 }]}>
-                            <Pressable style={styles.editarButton}>
+                            <Pressable style={styles.editarButton}
+                            onPress={() => setModalEditarVisivel(true)}>
                                 <Text style={styles.textEditarPerf}>Editar Perfil</Text>
                             </Pressable>
 
@@ -303,22 +307,48 @@ export default function Perfil() {
                     <Pressable onPress={() => alterarFoco('reposts')} style={[styles.opcao, focoIcone === 'reposts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
                         <Ionicons style={[styles.opcaoIcon, focoIcone === 'reposts' ? styles.IconeAtivo : styles.iconeInativo]} name="repeat-outline"></Ionicons>
                     </Pressable>
+                    {instituicao == 1 ? (
 
                     <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao, focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
                         <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline"></Ionicons>
                     </Pressable>
+                    ) : null}
                 </View>
                 {/*Posts*/}
+                {focoIcone === 'reposts' ? (
+                    <View style={styles.postContainer}>
+                        <Post key="post-1" idUser={idUser} tipo="reposts" />
+                    </View>
+                ) : focoIcone =='imagem'?(
                 <View style={styles.postContainer}>
-                    <Post idUser={idUser} />
+                    <Post key="post-2" idUser={idUser} tipo="normais"/>
                 </View>
-
+                ): <View style={styles.postContainer}>
+                        <Post key="post-3" idUser={idUser} />
+                    </View>}
 
 
 
 
             </ScrollView>
-            <ModalPostagem tipo ='post' tela='perfil'/>
+            <ModalPostagem tipo='post' tela='perfil' />
+
+<ModalEditarPerfil
+  visivel={modalEditarVisivel}
+  onClose={() => setModalEditarVisivel(false)}
+  usuarioAtual={{
+    nome: nome,
+    bio: bio,
+    banner: banner,
+    foto: userImg
+  }}
+  onSaveSuccess={(dadosAtualizados) => {
+    setNome(dadosAtualizados.nome);
+    setBio(dadosAtualizados.bio);
+    if (dadosAtualizados.foto) setUserImg(dadosAtualizados.foto);
+    if (dadosAtualizados.banner) setBanner(dadosAtualizados.banner);
+  }}
+/>
         </SafeAreaView>
     )
 };
