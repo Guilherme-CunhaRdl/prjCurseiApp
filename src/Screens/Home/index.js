@@ -1,5 +1,5 @@
 // App.js
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import ModalPosts from "../../Components/ModalPosts"
+import Notificacoes from "../../Components/Chat/src/screens/Notificacoes";
 const DATA = [
   {
     id: Math.random().toString(36).substring(2, 27),
@@ -42,7 +43,7 @@ const DATA = [
   },
   {
     id: Math.random().toString(36).substring(2, 27),
-    photoURL: 'https://th.bing.com/th/id/OIP.5YdHzgQhfS1mFfUOpVXeUAHaHa?rs=1&pid=ImgDetMain', 
+    photoURL: 'https://th.bing.com/th/id/OIP.5YdHzgQhfS1mFfUOpVXeUAHaHa?rs=1&pid=ImgDetMain',
     nome: "X",
   },
   {
@@ -57,14 +58,14 @@ export default function Home() {
   async function verificarInteresses() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
     Response = await axios.get(`http://localhost:8000/api/user/verificarInteresses/${idUserSalvo}`)
-    if(!Response.data.resultado){
+    if (!Response.data.resultado) {
       navigation.navigate('Interesse')
     }
   }
 
 
   useEffect(() => {
-  verificarInteresses()
+    verificarInteresses()
   }, []);
 
   const route = useRoute();
@@ -76,43 +77,45 @@ export default function Home() {
   const [idUser, setIdUser] = useState();
   const [loading, setLoading] = useState(true);
   const [perfilProprio, setPerfilProprio] = useState(false)
-
+  const [countNotificacoes ,setCountNotificacoes]= useState(0);
   async function carregarPerfil() {
-          const idUserSalvo = await AsyncStorage.getItem('idUser');
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
 
-          if (rotavalores) {
-              var idPerfil = rotavalores.idUserPerfil;
-          } else {
-              var idPerfil = idUserSalvo
-          }
-          try {
-              
-              setIdUser(idPerfil);
-              const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idPerfil}`);
-              var data = resultados.data;
-              
-              setNome(data.User.nome_user);
-              setUserImg(data.User.img_user);
-              setUser(data.User.arroba_user);
+    if (rotavalores) {
+      var idPerfil = rotavalores.idUserPerfil;
+    } else {
+      var idPerfil = idUserSalvo
+    }
+    try {
 
-              if (idUserSalvo == idPerfil) {
-                  setPerfilProprio(true);
-              }
-              var segue = await axios.get(`http://localhost:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
-              if(segue.data.data){
-                  Setsegue_usuario(true)
-              }
-          } catch (error) {
-              console.error('Erro ao buscar perfil:', error);
-          } finally {
-              setTimeout(() => {
-                  setLoading(false);
-              }, 1500)
-          }
+      setIdUser(idPerfil);
+      const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idPerfil}`);
+      var data = resultados.data;
+
+      setNome(data.User.nome_user);
+      setUserImg(data.User.img_user);
+      setUser(data.User.arroba_user);
+
+      if (idUserSalvo == idPerfil) {
+        setPerfilProprio(true);
       }
-    useEffect(() => {
-        carregarPerfil()
-    }, []);
+      var segue = await axios.get(`http://localhost:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
+      if (segue.data.data) {
+        Setsegue_usuario(true)
+      }
+      const notificacoes = await axios.get(`http://localhost:8000/api/cursei/user/notificacao/${idUserSalvo}/count`)
+      setCountNotificacoes(notificacoes.data)
+    } catch (error) {
+      console.error('Erro ao buscar perfil:', error);
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+      }, 1500)
+    }
+  }
+  useEffect(() => {
+    carregarPerfil()
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -124,7 +127,7 @@ export default function Home() {
           <View style={styles.userContainer}>
 
             <View style={styles.infoUser}>
-              <View style={{flexDirection:'row'}}>
+              <View style={{ flexDirection: 'row' }}>
                 <TouchableOpacity style={styles.imgContainer} onPress={() => navigation.navigate('user')}>
                   <Image
                     style={styles.userImg}
@@ -136,7 +139,7 @@ export default function Home() {
                   <Text style={styles.textInicio}>@{user}</Text>
                 </View>
               </View>
-              
+
 
               <View style={styles.notifyContainer}>
                 <Pressable style={styles.notifyUser}
@@ -145,6 +148,9 @@ export default function Home() {
                     style={styles.notifyIcon}
                     name="notifications-outline"
                   ></Ionicons>
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{countNotificacoes}</Text>
+                  </View>
                 </Pressable>
                 <View style={styles.logoCursei}>
                   <Image
@@ -154,7 +160,7 @@ export default function Home() {
                 </View>
               </View>
             </View>
-            
+
           </View>
           {/*View Storys*/}
           <View style={styles.storysContainer}>
@@ -173,7 +179,7 @@ export default function Home() {
                   </View>
                 </View>
               }
-              renderItem={({item}) => (
+              renderItem={({ item }) => (
                 <View style={styles.storys}>
                   <Pressable style={styles.circuloStorys}>
                     <Image style={styles.imgLogo} source={item.photoURL} />
@@ -190,17 +196,17 @@ export default function Home() {
         <View style={styles.feedContainer}>
           {/*Posts*/}
           <View style={styles.postContainer}>
-            <Post/>
+            <Post />
           </View>
         </View>
       </View>
       {/* Send Button */}
-   <ModalPostagem tipo='post'/>
-    <ModalPosts/>
+      <ModalPostagem tipo='post' />
+      <ModalPosts />
 
-  
+
     </SafeAreaView>
-    
-    
+
+
   );
 }

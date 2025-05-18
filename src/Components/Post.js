@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ModalPostagem from "./ModalPostagem";
 import ModalPosts from './ModalPosts';
 
-export default function Post({ idUser = null,idPostUnico }) {
+export default function Post({ idUser = null,idPostUnico ,tipo}) {
   const navigation = useNavigation();
   const [perfilProprio, setPerfilProprio] = useState(false)
     const [loading, setLoading] = useState(false);
@@ -62,7 +62,16 @@ export default function Post({ idUser = null,idPostUnico }) {
           setPerfilProprio(true)
         }
         const id = idUser;
-        url = `http://localhost:8000/api/posts/2/${id}/50/0/0`;
+        if(tipo){
+          if(tipo =='normais'){
+            console.log("aa")
+            url = `http://localhost:8000/api/posts/6/${id}/100/0/0`;
+          }else {
+            url = `http://localhost:8000/api/posts/5/${id}/100/0/0`;
+          }
+        }else{
+           url = `http://localhost:8000/api/posts/2/${id}/100/0/0`;
+        }
       } else {
         if (idUserSalvo) {
           SetverificarLoginUser(true)

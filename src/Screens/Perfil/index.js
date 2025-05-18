@@ -73,11 +73,11 @@ export default function Perfil() {
             var idPerfil = idUserSalvo
         }
         try {
-            
+
             setIdUser(idPerfil);
             const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idPerfil}`);
             var data = resultados.data;
-            
+
             setNome(data.User.nome_user);
             setUser(data.User.arroba_user);
             setEmail(data.User.email_user);
@@ -93,7 +93,7 @@ export default function Perfil() {
                 setPerfilProprio(true);
             }
             var segue = await axios.get(`http://localhost:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
-            if (segue.data.data) {
+            if  (segue.data.data)  {
                 Setsegue_usuario(true)
             }
         } catch (error) {
@@ -117,10 +117,10 @@ export default function Perfil() {
         seguidor.append('idUser', idUserSalvo)
         seguidor.append('userPost', idUser)
         var result = await axios.post(url, seguidor)
-        
+
         const seguidoresAtual = parseInt(seguidores)
-        
-        if (result.data == 'deseguido') {
+
+        if  (result.data ==  'deseguido')  {
             Setsegue_usuario(false)
             setSeguidores(seguidores - 1)
         } else {
@@ -154,12 +154,12 @@ export default function Perfil() {
                 <View style={styles.header}>
                     <Image
                         style={styles.banner}
-                        source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/backGroundDeslogado.jpg')} 
+                        source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/backGroundDeslogado.jpg')}
                     />
                 </View>
                 {/*Container do Perfil */}
                 <View style={styles.perfilContainer}>
-                    
+
                     <View style={styles.itensContainer}>
                         <View style={styles.imgContainer}>
                             <Image
@@ -167,7 +167,7 @@ export default function Perfil() {
                                 source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
                             />
                         </View>
-                        
+
 
                         {/*Container do Informações do Usúario */}
                         <View style={styles.infoContainer}>
@@ -262,9 +262,9 @@ export default function Perfil() {
                             </Pressable>
 
                             <Configuracoes
-                              arroba={user}
-                              userPerfil={idUser}
-                              tipo='perfil'
+                                arroba={user}
+                                userPerfil={idUser}
+                                tipo='perfil'
                             />
                         </View>
                     </View>
