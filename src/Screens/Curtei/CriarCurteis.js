@@ -34,6 +34,8 @@ const CriarCurtei = () => {
   const scrollViewRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(0);
+  const videoFileRef = useRef(null);
+  const thumbFileRef = useRef(null);
 
   // Auto-advance when fields are filled
   useEffect(() => {
@@ -57,6 +59,7 @@ const CriarCurtei = () => {
         input.onchange = (e) => {
           const file = e.target.files[0];
           if (file) {
+            videoFileRef.current = file;
             const videoUrl = URL.createObjectURL(file);
             setVideoUri(videoUrl);
           }
@@ -73,6 +76,12 @@ const CriarCurtei = () => {
       
       if (result.assets && result.assets[0].uri) {
         setVideoUri(result.assets[0].uri);
+        // No mobile, usamos a URI diretamente
+        videoFileRef.current = {
+          uri: result.assets[0].uri,
+          type: result.assets[0].type || 'video/mp4',
+          name: result.assets[0].fileName || `video_${Date.now()}.mp4`
+        };
       }
     } catch (error) {
       console.error('Error selecting video:', error);
@@ -82,6 +91,22 @@ const CriarCurtei = () => {
 
   const selectThumbnail = async () => {
     try {
+      if (Platform.OS === 'web') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            thumbFileRef.current = file;
+            const thumbUrl = URL.createObjectURL(file);
+            setThumbUri(thumbUrl);
+          }
+        };
+        input.click();
+        return;
+      }
+      
       const result = await launchImageLibrary({
         mediaType: 'photo',
         quality: 0.8,
@@ -89,6 +114,11 @@ const CriarCurtei = () => {
       
       if (result.assets && result.assets[0].uri) {
         setThumbUri(result.assets[0].uri);
+        thumbFileRef.current = {
+          uri: result.assets[0].uri,
+          type: result.assets[0].type || 'image/jpeg',
+          name: result.assets[0].fileName || `thumb_${Date.now()}.jpg`
+        };
       }
     } catch (error) {
       console.error('Error selecting thumbnail:', error);
@@ -97,7 +127,10 @@ const CriarCurtei = () => {
   };
 
   const handleUpload = async () => {
-    if (!videoUri || !thumbUri) {
+    const idUserString = await AsyncStorage.getItem('idUser');
+    const idUser = parseInt(idUserString);
+    
+    if (!videoFileRef.current || !thumbFileRef.current) {
       Alert.alert('Atenção', 'Você precisa selecionar um vídeo e uma thumbnail');
       return;
     }
@@ -105,20 +138,11 @@ const CriarCurtei = () => {
     setUploading(true);
 
     try {
-      const idUserString = await AsyncStorage.getItem('idUser');
-      const idUser = parseInt(idUserString);
-
       const formData = new FormData();
-      formData.append('caminho_curtei', {
-        uri: videoUri,
-        type: 'video/mp4',
-        name: 'video.mp4'
-      });
-      formData.append('caminho_curtei_thumb', {
-        uri: thumbUri,
-        type: 'image/jpeg',
-        name: 'thumbnail.jpg'
-      });
+      
+      // Adiciona os arquivos diretamente (funciona tanto web quanto mobile)
+      formData.append('caminho_curtei', videoFileRef.current);
+      formData.append('caminho_curtei_thumb', thumbFileRef.current);
       formData.append('legenda_curtei', caption);
       formData.append('id_user', idUser);
 
@@ -133,15 +157,18 @@ const CriarCurtei = () => {
       setVideoUri(null);
       setThumbUri(null);
       setCaption('');
+      videoFileRef.current = null;
+      thumbFileRef.current = null;
       
     } catch (error) {
-      console.error('Erro no upload:', error);
-      let errorMessage = 'Ocorreu um erro ao enviar o vídeo';
+      console.error('Erro completo:', error);
+      console.error('Resposta do erro:', error.response?.data);
       
-      if (error.response) {
-        errorMessage = error.response.data.message || errorMessage;
-      } else if (error.message) {
-        errorMessage = error.message;
+      let errorMessage = 'Ocorreu um erro ao enviar o vídeo';
+      if (error.response?.data?.errors) {
+        errorMessage = Object.values(error.response.data.errors).flat().join('\n');
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
       }
       
       Alert.alert('Erro', errorMessage);
@@ -299,6 +326,7 @@ const CriarCurtei = () => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
