@@ -82,6 +82,7 @@ export default function ConfigsUser() {
             Torne-se uma Instituição em nosso aplicativo.
           </Text>
         </TouchableOpacity>
+        
 
         <TouchableOpacity style={{gap: 2}} onPress={() => fazerLogoff()}>
           <View style={{ flexDirection: "row", alignItems: "center", gap:10 }}>

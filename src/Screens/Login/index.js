@@ -7,7 +7,8 @@ import {
   TouchableOpacity, 
   SafeAreaView, 
   StatusBar,
-  ScrollView
+  ScrollView,
+  Alert
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
@@ -48,22 +49,6 @@ export default function Login() {
     return formatoValidoEmail.test(email); // Testa se o email bate com o formato valido
   };
   
-  const enviarCodigo = async () => {
-    try {
-      const idUser = await AsyncStorage.getItem('idUser');
-      const response = await axios.post(`http://localhost:8000/api/cursei/user/enviar-codigo/${idUser}`);
-      
-      if (response.data.success) {
-        Alert.alert('Sucesso', 'Verifique seu e-mail para o código.');
-        // redirecionar para a tela de verificação
-      } else {
-        Alert.alert('Erro', 'Não foi possível enviar o código.');
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Erro', 'Falha ao enviar o código.');
-    }
-  };
   
   const fazerLogin = async () => {
     setErroEmail('');
@@ -97,23 +82,13 @@ export default function Login() {
 
       if(resposta.data.sucesso) {
         const usuario = resposta.data.usuario;
+        console.log(usuario)
         
         await AsyncStorage.setItem('idUser', usuario.id);
         await AsyncStorage.setItem('logado', '1');
         await AsyncStorage.setItem('imgUser', usuario.img_user);
         await AsyncStorage.setItem('arrobaUser', usuario.arroba_user);
-      {/*
-        await AsyncStorage.setItem('dois_fatores_user', usuario.doisfa);
-        console.log(usuario.doisfa);
-        if(usuario.doisfa == 1) {
-          await enviarCodigo();
-          navigation.navigate('DoisFatores')
-        }
-        else if(usuario.doisfa == 0) {
         navigation.navigate('Home');
-        }
-      */}
-      navigation.navigate('Home');
       } else {
         setErroEmail('Informações inválidas');
         setErroSenha('Informações inválidas');
