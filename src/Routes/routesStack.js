@@ -16,6 +16,7 @@ import Seguranca from '../Screens/ConfigsUser/segurancaUser.js';
 import alterarUser from '../Screens/ConfigsUser/alterarUser.js';
 import Perfil from '../Screens/Perfil';
 import Splash from '../Components/splesh.js';
+import DoisFatores from '../Screens/Login/doisfatores.js';
 import CriarCurteis from '../Screens/Curtei/CriarCurteis.js';
 
 const Stack = createNativeStackNavigator();
@@ -124,6 +125,11 @@ export default function StackRoutes() {
        <Stack.Screen
         name="Informações da conta"
         component={alterarUser}
+
+        />
+      <Stack.Screen
+        name="DoisFatores"
+        component={DoisFatores}
 
         />
 
