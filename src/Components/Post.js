@@ -13,15 +13,15 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/pt-br';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ModalPostagem from "./ModalPostagem";
-import ModalPosts from './ModalPosts';
 
-export default function Post({ idUser = null,idPostUnico ,tipo}) {
+
+export default function Post({ idUser = null, idPostUnico, tipo }) {
   const navigation = useNavigation();
   const [perfilProprio, setPerfilProprio] = useState(false)
-    const [loading, setLoading] = useState(false);
-  
+  const [loading, setLoading] = useState(false);
+
   const modalRef = useRef();
- const modalPostRef = useRef();
+  const modalPostRef = useRef();
   const handleOpenModal = (id) => {
     if (modalRef.current) {
       modalRef.current.abrirModal(id);
@@ -29,8 +29,11 @@ export default function Post({ idUser = null,idPostUnico ,tipo}) {
       console.log("modalRef ainda não está disponível.");
     }
   };
-  function abrirModalPost (id){
-    modalPostRef.current.abrirModalPost (id);
+  function abrirPost(id) {
+    navigation
+  }
+  function fecharModalPost(id) {
+    modalPostRef.current.fecharModalPost(id)
   }
 
   async function verificarLogin() {
@@ -55,22 +58,22 @@ export default function Post({ idUser = null,idPostUnico ,tipo}) {
     const fetchPosts = async () => {
 
       setLoading(true)
-    
+
       const idUserSalvo = await AsyncStorage.getItem('idUser');
       if (idUser) {
         if (idUser == idUserSalvo) {
           setPerfilProprio(true)
         }
         const id = idUser;
-        if(tipo){
-          if(tipo =='normais'){
+        if (tipo) {
+          if (tipo == 'normais') {
             console.log("aa")
             url = `http://localhost:8000/api/posts/6/${id}/100/0/0`;
-          }else {
+          } else {
             url = `http://localhost:8000/api/posts/5/${id}/100/0/0`;
           }
-        }else{
-           url = `http://localhost:8000/api/posts/2/${id}/100/0/0`;
+        } else {
+          url = `http://localhost:8000/api/posts/2/${id}/100/0/0`;
         }
       } else {
         if (idUserSalvo) {
@@ -83,14 +86,14 @@ export default function Post({ idUser = null,idPostUnico ,tipo}) {
           url = `http://localhost:8000/api/posts/0/${id}/50/0/0`
         ]
       }
-      if(idPostUnico){
-        url =`http://localhost:8000/api/posts/4/${idPostUnico}/1/0/0`
+      if (idPostUnico) {
+        url = `http://localhost:8000/api/posts/4/${idPostUnico}/1/0/0`
       }
-      
+
       const response = await axios.get(url);
-      
+
       setPosts(response.data.data)
-       setLoading(false)
+      setLoading(false)
     };
 
     fetchPosts();
@@ -135,10 +138,10 @@ export default function Post({ idUser = null,idPostUnico ,tipo}) {
 
   return (
     <View style={styles.container}>
-      {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '50%',backgroundColor:'transparency' }}>
-                  <ActivityIndicator size="large" color="#3498db" />
-                </View>
-                ) : null}
+      {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '50%', backgroundColor: 'transparency' }}>
+        <ActivityIndicator size="large" color="#3498db" />
+      </View>
+      ) : null}
       <StatusBar style="auto" />
       <FlatList
         data={posts}
@@ -175,11 +178,12 @@ export default function Post({ idUser = null,idPostUnico ,tipo}) {
           return (
             <View style={styles.postContainer}>
               <View style={styles.postHeader}>
-                <Pressable style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() =>{
+                <Pressable style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => {
                   navigation.navigate('Perfil', {
                     idUserPerfil: item.id_user,
                     titulo: item.arroba_user
-                  })}}>
+                  });
+                }}>
                   <Image
                     source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }}
                     style={styles.fotoUser}
@@ -250,7 +254,10 @@ export default function Post({ idUser = null,idPostUnico ,tipo}) {
               </View>
 
               {item.repost_id != null && (
-                <Pressable style={styles.containerRepost} onPress={()=> abrirModalPost(item.repost_id )}>
+                <Pressable style={styles.containerRepost} onPress={() =>  navigation.navigate('PostUnico', {
+                    idPost: item.repost_id,
+                    titulo: item.repost_arroba
+                  })}>
                   <View style={styles.postHeader}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', paddingInline: 10, }}>
                       <Image
@@ -300,14 +307,14 @@ export default function Post({ idUser = null,idPostUnico ,tipo}) {
                   />
                   <Text style={styles.QuantidadeAction}>{item.curtidas}</Text>
                 </TouchableOpacity>
-                {!idPostUnico?(
+                {!idPostUnico ? (
 
-                <View style={styles.actionButton}>
-                  <Comentario idPost={item.id_post} />
-                  <Text style={styles.QuantidadeAction}>{item.comentarios}</Text>
-                </View>
+                  <View style={styles.actionButton}>
+                    <Comentario idPost={item.id_post} />
+                    <Text style={styles.QuantidadeAction}>{item.comentarios}</Text>
+                  </View>
 
-                ):null}
+                ) : null}
 
                 <TouchableOpacity style={styles.actionButton} onPress={() => handleOpenModal(item.id_post,)}>
                   <Icon name="repeat" size={19} color="#666" />
@@ -321,7 +328,7 @@ export default function Post({ idUser = null,idPostUnico ,tipo}) {
                 </View>
 
                 <ModalPostagem ref={modalRef} idPostRepost={true} />
-                <ModalPosts ref={modalPostRef} />
+
               </View>
 
 

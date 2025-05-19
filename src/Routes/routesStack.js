@@ -18,7 +18,7 @@ import Perfil from '../Screens/Perfil';
 import Splash from '../Components/splesh.js';
 import DoisFatores from '../Screens/Login/doisfatores.js';
 import CriarCurteis from '../Screens/Curtei/CriarCurteis.js';
-
+import postUnico from '../Screens/PostUnico'
 const Stack = createNativeStackNavigator();
 import SeguindoSeguidores from '../Screens/SeguindoSeguidores'
 export default function StackRoutes() {
@@ -26,7 +26,7 @@ export default function StackRoutes() {
     <Stack.Navigator
  
     >
-   
+    
        <Stack.Screen
         name="Splash"
         component={Splash}
@@ -156,6 +156,14 @@ export default function StackRoutes() {
         component={SeguindoSeguidores}
         options={({ route }) => ({
           title: route.params?.titulo || "Perfil", 
+          headerShown: true,
+        })}
+      />
+      <Stack.Screen
+        name="PostUnico"
+        component={postUnico}
+        options={({ route }) => ({
+          title: `post de @${route.params?.titulo}` || "Perfil", 
           headerShown: true,
         })}
       />
