@@ -23,7 +23,7 @@ import ModalPostagem from "../../Components/ModalPostagem";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
-import ModalPosts from "../../Components/ModalPosts"
+import ModalPosts from "../PostUnico"
 import Notificacoes from "../../Components/Chat/src/screens/Notificacoes";
 const DATA = [
   {
@@ -202,7 +202,7 @@ export default function Home() {
       </View>
       {/* Send Button */}
       <ModalPostagem tipo='post' />
-      <ModalPosts />
+    
 
 
     </SafeAreaView>
