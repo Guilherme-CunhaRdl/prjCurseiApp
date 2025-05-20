@@ -5,65 +5,58 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from "react-native-vector-icons/Feather";
-import Post from './Post';
-import colors from '../colors';
+import Post from '../../Components/Post';
+import colors from '../../colors';
 import dayjs from 'dayjs';
 
-const ModalPosts = forwardRef(({ }, ref) => {
-  useImperativeHandle(ref, () => ({
-    abrirModalPost,
-    fecharModal
-
-  }));
+export default function PostUnico() {
+    const route = useRoute();
+    const rotavalores = route.params;
   const navigation = useNavigation();
   const [comentario, setComentario] = useState('');
-  const [idPost, setIdPost] = useState('');
-  const [modalVisivelPost, setModalVisivelPost] = useState(false);
+  const [idPost, setIdPost] = useState(rotavalores.idPost);
   const [loading, setLoading] = useState(false);
+  const [curtidasEmProcesso, setCurtidasEmProcesso] = useState([]); // Array de IDs em processo
 
-  async function abrirModalPost(id) {
-    setIdPost(id)
+  async function carregarPost(id) {
     setLoading(true)
-    setModalVisivelPost(true)
     await buscarComentarios(id)
     setLoading(false)
-  }
-  async function fecharModal() {
-    setModalVisivelPost(false)
-
-
-
+   
   }
 
-  async function buscarComentarios(id) {
- 
+  useEffect(() => {
+    carregarPost(rotavalores.idPost);
+    
+  },[]);
+
+  async function buscarComentarios(idPost) {
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
     url = 'http://localhost:8000/api/posts/interacoes/comentarios';
     const post = {
-      idPost: id
+      idPost: idPost,
+      idUser: idUserSalvo
     }
-    
     response = await axios.post(url, post)
     const resposta = response.data;
-  
+
     carregarComentarios(resposta)
-    return resposta;
   }
-
-
   const [comentarios, setComentarios] = useState([]);
   function carregarComentarios(comentariosAPI) {
     const listaComentarios = comentariosAPI.map(comentario => {
       const usuario = comentario.usuario || {};
       return {
         id: comentario.id,
-        idUserComent:comentario.id_user,
+        idUserComent: comentario.id_user,
         usuario: usuario.arroba_user || 'Usuário desconhecido',
         tempoCriacao: formatarTempoInsercao(comentario.tempo_insercao),
         texto: comentario.comentario || '',
-        curtidas: 0,
-        curtido: false,
+        curtidas: comentario.total_curtidas,
+        curtido: comentario.curtiu == 1 ? true : false,
+
         foto: usuario.img_user
           ? `http://localhost:8000/img/user/fotoPerfil/${usuario.img_user}`
           : 'https://via.placeholder.com/150', // imagem padrão
@@ -71,19 +64,60 @@ const ModalPosts = forwardRef(({ }, ref) => {
     });
 
     setComentarios(listaComentarios);
+    setLoading(false)
+   
   }
 
- const formatarTempoInsercao = (seconds) => {
+  const formatarTempoInsercao = (seconds) => {
     return dayjs().subtract(seconds, 'seconds').fromNow();
   };
 
 
+  const curtirComentario = async (id) => {
+    
+  if (curtidasEmProcesso.includes(id)) {
+    return; 
+  }
+
+  setCurtidasEmProcesso((prev) => [...prev, id]); 
+  const comentarioCurtido = comentarios.find((item) => item.id === id);
+  const idUserSalvo = await AsyncStorage.getItem('idUser');
+
+  const NovaCurtida = {
+    idComentario: id,
+    idUser: idUserSalvo,
+    acao: comentarioCurtido.curtido ? 'descurtir' : 'curtir',
+  };
+
+  try {
+    await axios.post('http://127.0.0.1:8000/api/posts/interacoes/curtirComentario', NovaCurtida);
+
+    setComentarios((prevComentarios) =>
+      prevComentarios.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              curtido: !comentarioCurtido.curtido,
+              curtidas: comentarioCurtido.curtido
+                ? item.curtidas - 1
+                : item.curtidas + 1,
+            }
+          : item
+      )
+    );
+  } catch (error) {
+    console.error('Erro ao curtir/descurtir:', error);
+  } finally {
+    
+    setCurtidasEmProcesso((prev) => prev.filter((itemId) => itemId !== id));
+  }
+};
 
   const adicionarComentario = async () => {
     if (comentario.trim() === '') return;
     const idUserSalvo = await AsyncStorage.getItem('idUser');
     if (!idUserSalvo) {
-      fecharModal();
+     
       navigation.navigate('Login')
     } else {
       const Createcomentario = {
@@ -92,18 +126,18 @@ const ModalPosts = forwardRef(({ }, ref) => {
         comentario: comentario
       }
       const comentar = await axios.post('http://127.0.0.1:8000/api/posts/interacoes/comentar', Createcomentario)
-
       const novoComentario = {
-        id: comentar.data[0].id,
-        usuario: comentar.data[0].arroba_user,
-        idUserComent:comentar.data[0].id_user,
-        tempoCriacao: formatarTempoInsercao(comentario.tempo_insercao),
+        id: comentar.data.comentario.id,
+        usuario: comentar.data.usuario[0].arroba_user,
+        idUserComent: comentar.data.usuario[0].id,
+        tempoCriacao: formatarTempoInsercao(0),
         texto: comentario,
         curtidas: 0,
         curtido: false,
-        foto: `http://localhost:8000/img/user/fotoPerfil/${comentar.data[0].img_user}`
-      };
 
+        foto: `http://localhost:8000/img/user/fotoPerfil/${comentar.data.usuario[0].img_user}`
+      };
+      
       setComentarios([novoComentario, ...comentarios]);
       setComentario('');
     }
@@ -122,7 +156,7 @@ const ModalPosts = forwardRef(({ }, ref) => {
                   navigation.navigate('Perfil', {
                     idUserPerfil: idUserComent,
                     titulo: usuario
-                  });fecharModal()}}>
+                  })}}>
           <Image source={{ uri: foto }} style={styles.fotoUsuario} />
           <View style={styles.infoUsuario}>
             <Text style={styles.nomeUsuario}>@{usuario}</Text>
@@ -151,13 +185,7 @@ const ModalPosts = forwardRef(({ }, ref) => {
   });
   return (
     <View style={styles.container}>
-      <Modal
-        style={styles.modalTelaCheia}
-        animationType="slide"
-        transparent={true}
-        visible={modalVisivelPost}
-        
-      >
+   
         <ScrollView style={styles.containerModal}>
           
           {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '100%' }}>
@@ -165,19 +193,12 @@ const ModalPosts = forwardRef(({ }, ref) => {
           </View>
           ) : null}
 
-          <View style={styles.cabecalho}>
-            <TouchableOpacity onPress={() => fecharModal()}>
-              <Icon name="x" size={24} color="#000" />
-            </TouchableOpacity>
-            <Text style={styles.titulo}>Post de @viado</Text>
-
-          </View>
           <View style={styles.post}>
 
             <Post idPostUnico={idPost} />
           </View>
           <ScrollView style={styles.listaComentarios}>
-            <Text style={styles.tituloComentarios}>Comentarios</Text>
+            <Text style={styles.tituloComentarios}>Comentarios ({comentarios.length})</Text>
             {comentarios.map((comentario) => (
               <ItemComentario
                 key={comentario.id}
@@ -203,6 +224,7 @@ const ModalPosts = forwardRef(({ }, ref) => {
             value={comentario}
             onChangeText={setComentario}
             onSubmitEditing={adicionarComentario}
+            keyboardType='text'
           />
 
           <TouchableOpacity
@@ -213,22 +235,21 @@ const ModalPosts = forwardRef(({ }, ref) => {
           </TouchableOpacity>
 
         </View>
-      </Modal>
+    
     </View>
   );
 }
-)
+
 
 const styles = StyleSheet.create({
   container: {
-    flex: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1,
+   
   },
   modalTelaCheia: {
     flex: 1,
-
     zIndex: 99,
+    width:'100%'
   },
   containerModal: {
     backgroundColor: colors.branco
@@ -345,4 +366,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ModalPosts;

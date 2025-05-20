@@ -7,7 +7,8 @@ import {
   TouchableOpacity, 
   SafeAreaView, 
   StatusBar,
-  ScrollView
+  ScrollView,
+  Alert
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
@@ -47,7 +48,8 @@ export default function Login() {
 
     return formatoValidoEmail.test(email); // Testa se o email bate com o formato valido
   };
-
+  
+  
   const fazerLogin = async () => {
     setErroEmail('');
     setErroSenha('');
@@ -80,6 +82,7 @@ export default function Login() {
 
       if(resposta.data.sucesso) {
         const usuario = resposta.data.usuario;
+        console.log(usuario)
         
         await AsyncStorage.setItem('idUser', usuario.id);
         await AsyncStorage.setItem('logado', '1');

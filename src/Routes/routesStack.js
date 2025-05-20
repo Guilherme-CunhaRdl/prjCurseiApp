@@ -16,7 +16,9 @@ import Seguranca from '../Screens/ConfigsUser/segurancaUser.js';
 import alterarUser from '../Screens/ConfigsUser/alterarUser.js';
 import Perfil from '../Screens/Perfil';
 import Splash from '../Components/splesh.js';
+import DoisFatores from '../Screens/Login/doisfatores.js';
 import CriarCurteis from '../Screens/Curtei/CriarCurteis.js';
+import postUnico from '../Screens/PostUnico';
 import TelaPesquisa from '../Screens/Explorar/TelaPesquisa/index.js';
 
 const Stack = createNativeStackNavigator();
@@ -26,8 +28,8 @@ export default function StackRoutes() {
     <Stack.Navigator
 
     >
-
-      <Stack.Screen
+    
+       <Stack.Screen
         name="Splash"
         component={Splash}
         options={{
@@ -126,6 +128,16 @@ export default function StackRoutes() {
         name="Informações da conta"
         component={alterarUser}
 
+        />
+      <Stack.Screen
+        name="DoisFatores"
+        component={DoisFatores}
+
+        />
+      <Stack.Screen
+        name="DoisFatores"
+        component={DoisFatores}
+
       />
 
       <Stack.Screen
@@ -153,6 +165,14 @@ export default function StackRoutes() {
         component={SeguindoSeguidores}
         options={({ route }) => ({
           title: route.params?.titulo || "Perfil",
+          headerShown: true,
+        })}
+      />
+      <Stack.Screen
+        name="PostUnico"
+        component={postUnico}
+        options={({ route }) => ({
+          title: `post de @${route.params?.titulo}` || "Perfil", 
           headerShown: true,
         })}
       />

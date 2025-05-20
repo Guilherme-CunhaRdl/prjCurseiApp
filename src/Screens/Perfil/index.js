@@ -13,7 +13,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Configuracoes from '../../Components/Configurações/configuracoes'
 import colors from '../../colors';
 import ModalPostagem from "../../Components/ModalPostagem";
-
+import ModalEditarPerfil from '../../Components/modalEditarPerfil';
 const DATA = [
     {
         id: Math.random().toString(36).substring(2, 27),
@@ -58,6 +58,7 @@ export default function Perfil() {
     const [focoIcone, setFocoIcone] = useState('posts')
     const [perfilProprio, setPerfilProprio] = useState(false)
     const [segue_usuario, Setsegue_usuario] = useState(false)
+    const [modalEditarVisivel, setModalEditarVisivel] = useState(false);
     const [postsCount, setPostsCount] = useState('')
     const alterarFoco = (icone) => {
         setFocoIcone(icone)
@@ -92,7 +93,7 @@ export default function Perfil() {
                 setPerfilProprio(true);
             }
             var segue = await axios.get(`http://localhost:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
-            if (segue.data.data) {
+            if  (segue.data.data)  {
                 Setsegue_usuario(true)
             }
         } catch (error) {
@@ -119,7 +120,7 @@ export default function Perfil() {
 
         const seguidoresAtual = parseInt(seguidores)
 
-        if (result.data == 'deseguido') {
+        if  (result.data ==  'deseguido')  {
             Setsegue_usuario(false)
             setSeguidores(seguidores - 1)
         } else {
@@ -131,8 +132,43 @@ export default function Perfil() {
     }
 
 
+    const irParaChat = async  () => {
+            let idChatFinal;
+            const idUserLogado = await AsyncStorage.getItem('idUser');
+            try {
+                    const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/adicionarChat/${idUserLogado}/${idUser}`);
+                    const chatExistente = resposta.data.seguidor; 
+                    const idChatExistente = chatExistente ? chatExistente.id_chat : null;
+                
+                    const dadosChat = {
+                        idUser1: idUserLogado,
+                        idUser2: idUser
+                    };
+                
+                    
+                    idChatFinal = idChatExistente
+                    if (!idChatExistente) {
+                        const inserirDados = await axios.post(`http://localhost:8000/api/cursei/chat/adicionarChat/`, dadosChat);
+                        idChatFinal = inserirDados.data.id_chat; 
+                    }
+                    
+                    console.log(idChatFinal)
 
-
+                }
+    catch(e) {
+            console.log(e)
+          }finally{
+            navigation.navigate("Conversa", {
+            idUserLogado: idUserLogado,
+            idEnviador: idUserLogado,
+            imgEnviador: userImg,
+            nomeEnviador: nome,
+            arrobaEnviador: user,
+            idChat: idChatFinal,
+        })
+          }
+    
+    }
     useEffect(() => {
 
         carregarPerfil()
@@ -142,7 +178,7 @@ export default function Perfil() {
     if (loading) {
         return (
             <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff" }}>
-                <ActivityIndicator size="large" color="#3498db" />
+                      <ActivityIndicator size="large" color="#3498db" />
             </SafeAreaView>
         );
     }
@@ -229,7 +265,8 @@ export default function Perfil() {
                 {perfilProprio ? (
                     <View style={styles.editarContainer}>
                         <View style={[styles.buttonContainer, { gap: 0 }]}>
-                            <Pressable style={styles.editarButton}>
+                            <Pressable style={styles.editarButton}
+                            onPress={() => setModalEditarVisivel(true)}>
                                 <Text style={styles.textEditarPerf}>Editar Perfil</Text>
                             </Pressable>
 
@@ -254,8 +291,8 @@ export default function Perfil() {
                                     <Text style={{ color: '#fff' }}>Seguir</Text>
                                 </Pressable>
                             }
-                            <Pressable style={styles.buttonVazado}>
-                                <Text >Mensagem</Text>
+                            <Pressable style={styles.buttonVazado} onPress={() => irParaChat()}>
+                                <Text>Mensagem</Text>
 
                             </Pressable>
 
@@ -295,21 +332,21 @@ export default function Perfil() {
                 {/*Barra de Navegação*/}
                 <View style={styles.barraContainer}>
                     <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline"></Ionicons>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
                     </Pressable>
 
                     <Pressable onPress={() => alterarFoco('imagem')} style={[styles.opcao, focoIcone === 'imagem' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="image-outline"></Ionicons>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="image-outline" />
                     </Pressable>
 
                     <Pressable onPress={() => alterarFoco('reposts')} style={[styles.opcao, focoIcone === 'reposts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'reposts' ? styles.IconeAtivo : styles.iconeInativo]} name="repeat-outline"></Ionicons>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'reposts' ? styles.IconeAtivo : styles.iconeInativo]} name="repeat-outline" />
                     </Pressable>
                     {instituicao == 1 ? (
 
-                        <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao, focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                            <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline"></Ionicons>
-                        </Pressable>
+                    <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao, focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline" />
+                    </Pressable>
                     ) : null}
                 </View>
                 {/*Posts*/}
@@ -318,9 +355,9 @@ export default function Perfil() {
                         <Post key="post-1" idUser={idUser} tipo="reposts" />
                     </View>
                 ) : focoIcone =='imagem'?(
-                    <View style={styles.postContainer}>
-                        <Post key="post-2" idUser={idUser} tipo="normais"/>
-                    </View>
+                <View style={styles.postContainer}>
+                    <Post key="post-2" idUser={idUser} tipo="normais"/>
+                </View>
                 ): <View style={styles.postContainer}>
                         <Post key="post-3" idUser={idUser} />
                     </View>}
@@ -328,10 +365,25 @@ export default function Perfil() {
 
 
 
-
-
             </ScrollView>
             <ModalPostagem tipo='post' tela='perfil' />
+
+<ModalEditarPerfil
+  visivel={modalEditarVisivel}
+  onClose={() => setModalEditarVisivel(false)}
+  usuarioAtual={{
+    nome: nome,
+    bio: bio,
+    banner: banner,
+    foto: userImg
+  }}
+  onSaveSuccess={(dadosAtualizados) => {
+    setNome(dadosAtualizados.nome);
+    setBio(dadosAtualizados.bio);
+    if (dadosAtualizados.foto) setUserImg(dadosAtualizados.foto);
+    if (dadosAtualizados.banner) setBanner(dadosAtualizados.banner);
+  }}
+/>
         </SafeAreaView>
     )
 };

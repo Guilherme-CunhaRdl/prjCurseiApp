@@ -247,6 +247,7 @@ export default StyleSheet.create({
       postContainer: {
         paddingTop: 20,
         marginBottom: 20,
+        minHeight:500,
         paddingHorizontal: 10,
       },
       postHeader: {

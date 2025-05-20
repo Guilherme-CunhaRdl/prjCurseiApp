@@ -1,98 +1,157 @@
-  import React, { useState, useEffect } from 'react';
-  import { View, Text, StyleSheet } from 'react-native';
-  import { Switch } from 'react-native-paper';
-  import { SafeAreaView } from 'react-native-safe-area-context';
-  import AsyncStorage from '@react-native-async-storage/async-storage';
-  import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { Switch } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
-  export default function SegurancaUser() {
-    const [userId, setUserId] = useState('');
-    const [doisFatoresAtivo, setDoisFatoresAtivo] = useState(false);
-    const [protecaoSenha, setProtecaoSenha] = useState(false);
 
-    useEffect(() => {
-      const carregarId = async () => {
-        const id = await AsyncStorage.getItem('idUser');
-        if (id) setUserId(id);
-      };
-      carregarId();
-    }, []);
+const API_BASE_URL = 'http://localhost:8000';
 
-    const ativarAutenticacao = async (novoValor) => {
+export default function SegurancaUser() {
+  const [userId, setUserId] = useState(null);
+  const [doisFatoresAtivo, setDoisFatoresAtivo] = useState(false);
+  const [protecaoSenha, setProtecaoSenha] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+
+  useEffect(() => {
+    const carregarDadosUsuario = async () => {
       try {
-        await axios.post(`http://localhost:8000/api/cursei/user/autenticacao/${userId}`, {
-          dois_fatores_user: novoValor
-        }); 
-        setDoisFatoresAtivo(novoValor);
+        const id = await AsyncStorage.getItem('idUser');
+        
+        setUserId(id);
+        
+
+        const response = await axios.get(`${API_BASE_URL}/api/cursei/user/${id}`);
+        setDoisFatoresAtivo(response.data.dois_fatores_user ?? false);
+        
       } catch (error) {
-        console.error('Erro ao atualizar autenticação:', error);
+        console.error('Erro ao carregar dados:', error);
+        Alert.alert('Erro', 'Não foi possível carregar as configurações de segurança');
+      } finally {
+        setLoading(false);
       }
     };
 
+    carregarDadosUsuario();
+  }, []);
+
+  const ativarAutenticacao = async (novoValor) => {
+    console.log('Tentativa de alteração para:', novoValor); 
+    if (!userId) {
+      console.log('UserId não encontrado');
+ 
+      return;
+    }
+  
+    setUpdating(true);
+    try {
+      console.log('Enviando requisição para:', `${API_BASE_URL}/api/cursei/user/autenticacao/${userId}`); // Debug 3
+      const response = await axios.post(
+        `${API_BASE_URL}/api/cursei/user/autenticacao/${userId}`,
+        { dois_fatores_user: novoValor }
+      );
+      console.log('Resposta da API:', response.data); 
+      
+      if (response.data.success) {
+        setDoisFatoresAtivo(novoValor);
+        Alert.alert('Sucesso', response.data.message || 'Configuração atualizada');
+      } else {
+        throw new Error(response.data.message || 'Erro na resposta da API');
+      }
+    } catch (error) {
+      console.error('Erro completo:', error.response || error); 
+      
+      setDoisFatoresAtivo(!novoValor);
+      Alert.alert('Erro', error.response?.data?.message || error.message || 'Falha na comunicação');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.descricao}>
-          Gerencie a segurança da sua conta da melhor forma.
-        </Text>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Autenticação em duas etapas</Text>
-          <View style={styles.row}>
-            <Text style={styles.sectionDescricao}>
-              Para evitar acesso não autorizado, proteja sua conta exigindo um segundo método de autenticação, além da sua senha.
-            </Text>
-            <Switch
-              value={doisFatoresAtivo}
-              onValueChange={ativarAutenticacao}
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Proteção de senha</Text>
-          <View style={styles.row}>
-            <Text style={styles.sectionDescricao}>
-              Para melhorar sua proteção, você precisará confirmar seu número de celular ou endereço de e-mail para redefinir a senha.
-            </Text>
-            <Switch
-              value={protecaoSenha}
-              onValueChange={() => setProtecaoSenha(!protecaoSenha)}
-            />
-          </View>
-        </View>
+      <SafeAreaView style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color="#0000ff" />
       </SafeAreaView>
     );
   }
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#fff',
-      padding: 16,
-    },
-    descricao: {
-      color: '#777',
-      fontSize: 13,
-      marginBottom: 24,
-    },
-    section: {
-      marginBottom: 32,
-    },
-    sectionTitle: {
-      fontWeight: '600',
-      fontSize: 16,
-      marginBottom: 4,
-      color: '#787F89'
-    },
-    sectionDescricao: {
-      color: '#555',
-      fontSize: 13,
-      flex: 1,
-      marginRight: 10,
-    },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-  });
+  return (
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.descricao}>
+        Gerencie a segurança da sua conta da melhor forma.
+      </Text>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Autenticação em duas etapas</Text>
+        <View style={styles.row}>
+          <Text style={styles.sectionDescricao}>
+            Para evitar acesso não autorizado, proteja sua conta exigindo um segundo método de autenticação, além da sua senha.
+          </Text>
+          {updating ? (
+            <ActivityIndicator />
+          ) : (
+            <Switch
+              value={doisFatoresAtivo}
+              onValueChange={ativarAutenticacao}
+              disabled={updating}
+            />
+          )}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Proteção de senha</Text>
+        <View style={styles.row}>
+          <Text style={styles.sectionDescricao}>
+            Para melhorar sua proteção, você precisará confirmar seu número de celular ou endereço de e-mail para redefinir a senha.
+          </Text>
+          <Switch
+            value={protecaoSenha}
+            onValueChange={() => setProtecaoSenha(!protecaoSenha)}
+            disabled={updating}
+          />
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 16,
+  },
+  descricao: {
+    color: '#777',
+    fontSize: 13,
+    marginBottom: 24,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontWeight: '600',
+    fontSize: 16,
+    marginBottom: 4,
+    color: '#787F89'
+  },
+  sectionDescricao: {
+    color: '#555',
+    fontSize: 13,
+    flex: 1,
+    marginRight: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
