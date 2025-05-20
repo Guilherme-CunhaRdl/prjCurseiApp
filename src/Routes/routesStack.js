@@ -17,23 +17,24 @@ import alterarUser from '../Screens/ConfigsUser/alterarUser.js';
 import Perfil from '../Screens/Perfil';
 import Splash from '../Components/splesh.js';
 import CriarCurteis from '../Screens/Curtei/CriarCurteis.js';
+import TelaPesquisa from '../Screens/Explorar/TelaPesquisa/index.js';
 
 const Stack = createNativeStackNavigator();
 import SeguindoSeguidores from '../Screens/SeguindoSeguidores'
 export default function StackRoutes() {
   return (
     <Stack.Navigator
- 
+
     >
-   
-       <Stack.Screen
+
+      <Stack.Screen
         name="Splash"
         component={Splash}
         options={{
           headerShown: false,
         }}
       />
-   
+
       <Stack.Screen
         name="Login"
         component={Login}
@@ -56,7 +57,7 @@ export default function StackRoutes() {
         }}
       />
 
-        <Stack.Screen
+      <Stack.Screen
         name="user"
         component={Perfil}
         options={{
@@ -69,7 +70,7 @@ export default function StackRoutes() {
         name="Perfil"
         component={Perfil}
         options={({ route }) => ({
-          title: route.params?.titulo || "Perfil", 
+          title: route.params?.titulo || "Perfil",
           headerShown: true,
         })}
       />
@@ -120,39 +121,51 @@ export default function StackRoutes() {
         name="Segurança"
         component={Seguranca}
 
-        />
-       <Stack.Screen
+      />
+      <Stack.Screen
         name="Informações da conta"
         component={alterarUser}
 
-        />
+      />
 
-        <Stack.Screen
+      <Stack.Screen
         name="CriarCurteis"
         component={CriarCurteis}
         options={{
           headerTitle: () => (
-          <Text style={{ 
-            fontSize: 18, 
-            fontWeight: 'bold',
-            color: '#000'
-          }}>
-            Crie um Curtei!
-          </Text>
-        ),
-        headerTitleAlign: 'center',
+            <Text style={{
+              fontSize: 18,
+              fontWeight: 'bold',
+              color: '#000'
+            }}>
+              Crie um Curtei!
+            </Text>
+          ),
+          headerTitleAlign: 'center',
         }}
 
-        />
+      />
 
-       <Stack.Screen
+
+
+      <Stack.Screen
         name="SeguindoSeguidores"
         component={SeguindoSeguidores}
         options={({ route }) => ({
-          title: route.params?.titulo || "Perfil", 
+          title: route.params?.titulo || "Perfil",
           headerShown: true,
         })}
       />
+
+      <Stack.Screen
+        name="Pesquisar"
+        component={TelaPesquisa}
+        options={{
+          headerShown: false,
+          
+        }}
+      />
+
     </Stack.Navigator>
 
   );

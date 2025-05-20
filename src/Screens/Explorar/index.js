@@ -1,19 +1,22 @@
-import React from 'react';
-import { SafeAreaView, View, Text, ScrollView, TextInput} from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, View, Text, ScrollView, TextInput } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
 import TopTabs from '../../Routes/TopTab';
-
-const DATA = [
-    {
-        id: Math.random().toString(36).substring(2, 27),
-        trendig: "#CURSEINOTA10",
-        numPosts: "100k posts",
-    },
-]
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 export default function Explorar() {
+    const navigation = useNavigation();
 
+    const [termoPesquisado, setTermoPesquisado] = useState('');
+
+
+    const pesquisar = () => {
+        if (termoPesquisado.trim() === '') return;
+
+        console.log('Buscar por:', termoPesquisado);
+        navigation.navigate('Pesquisar', { termoPesquisado: termoPesquisado });
+    };
     return (
         <SafeAreaView style={styles.container}>
             {/* Feed Content */}
@@ -31,6 +34,9 @@ export default function Explorar() {
                                 style={styles.input}
                                 placeholder="Seu futuro a uma pesquisa..."
                                 autoCapitalize="none"
+                                value={termoPesquisado}
+                                onChangeText={setTermoPesquisado}
+                                onSubmitEditing={pesquisar}
                             />
                         </View>
                     </View>

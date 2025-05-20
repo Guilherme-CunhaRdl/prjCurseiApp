@@ -62,7 +62,7 @@ export default StyleSheet.create({
   trendigName: {
     fontSize: 16,
     fontWeight: '700',
-    marginTop: 5,
+    marginTop: 3,
   },
   trendigNum: {
     fontSize: 12,

@@ -45,7 +45,7 @@ export default function Assuntos() {
                   </View>
 
                   <Text style={styles.trendigName}>{item.hashtag}</Text>
-                  <Text style={styles.trendigNum}>{item.usos} usos</Text>
+                  <Text style={styles.trendigNum}>{item.usos} Posts</Text>
                 </View>
               )}
             />
