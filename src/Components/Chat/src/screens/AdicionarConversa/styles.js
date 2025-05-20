@@ -106,5 +106,85 @@ export default StyleSheet.create({
         height: '100%', 
         objectFit: 'cover',
         borderRadius: '50%'
-      }
+      },
+      containerModal:{
+        flex: 1,
+        backgroundColor: colors.branco,
+        width: '100%'
+      },
+      headerModal:{
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center'
+
+      },
+      containerImgCanal:{
+        height: 300,
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      boxImgCanal:{
+        height: 200,
+        width: '50%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+      },
+      viewFotoCanal:{
+        backgroundColor: colors.cinza,
+        borderRadius: 15,
+        width: 200,
+        height: 200,
+        backgroundColor: 'red'
+      },
+      imgCanal:{
+        width:'100%',
+        height: '100%',
+        borderRadius: 15
+      },
+      boxInputs:{
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center'
+      },
+      inputContainer: {
+        flexDirection: 'row',
+        width: '80%',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#e1e1e1',
+        borderRadius: 8,
+        marginBottom: 16,
+        paddingLeft: 12,
+        padding: 10,
+        backgroundColor: '#f8f8f8',
+
+      },
+      inputIcon: {
+        marginRight: 10,
+        fontSize: 20,
+        color: 'gray',
+      },
+      input: {
+        width: '100%',
+
+        color: '#333',
+        fontSize: 16,
+         outlineStyle: "none",        // Remove borda azul no focus
+      },
+      botaoCriarCanal: {
+        backgroundColor: '#2196F3',
+        borderRadius: 8,
+        height: 50,
+        width: '80%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 10,
+      },
+      botaoCriarCanalText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+      },
 })

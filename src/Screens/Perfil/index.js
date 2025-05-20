@@ -132,8 +132,43 @@ export default function Perfil() {
     }
 
 
+    const irParaChat = async  () => {
+            let idChatFinal;
+            const idUserLogado = await AsyncStorage.getItem('idUser');
+            try {
+                    const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/adicionarChat/${idUserLogado}/${idUser}`);
+                    const chatExistente = resposta.data.seguidor; 
+                    const idChatExistente = chatExistente ? chatExistente.id_chat : null;
+                
+                    const dadosChat = {
+                        idUser1: idUserLogado,
+                        idUser2: idUser
+                    };
+                
+                    
+                    idChatFinal = idChatExistente
+                    if (!idChatExistente) {
+                        const inserirDados = await axios.post(`http://localhost:8000/api/cursei/chat/adicionarChat/`, dadosChat);
+                        idChatFinal = inserirDados.data.id_chat; 
+                    }
+                    
+                    console.log(idChatFinal)
 
-
+                }
+    catch(e) {
+            console.log(e)
+          }finally{
+            navigation.navigate("Conversa", {
+            idUserLogado: idUserLogado,
+            idEnviador: idUserLogado,
+            imgEnviador: userImg,
+            nomeEnviador: nome,
+            arrobaEnviador: user,
+            idChat: idChatFinal,
+        })
+          }
+    
+    }
     useEffect(() => {
 
         carregarPerfil()
@@ -256,8 +291,8 @@ export default function Perfil() {
                                     <Text style={{ color: '#fff' }}>Seguir</Text>
                                 </Pressable>
                             }
-                            <Pressable style={styles.buttonVazado}>
-                                <Text >Mensagem</Text>
+                            <Pressable style={styles.buttonVazado} onPress={() => irParaChat()}>
+                                <Text>Mensagem</Text>
 
                             </Pressable>
 
@@ -297,20 +332,20 @@ export default function Perfil() {
                 {/*Barra de Navegação*/}
                 <View style={styles.barraContainer}>
                     <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline"></Ionicons>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
                     </Pressable>
 
                     <Pressable onPress={() => alterarFoco('imagem')} style={[styles.opcao, focoIcone === 'imagem' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="image-outline"></Ionicons>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="image-outline" />
                     </Pressable>
 
                     <Pressable onPress={() => alterarFoco('reposts')} style={[styles.opcao, focoIcone === 'reposts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'reposts' ? styles.IconeAtivo : styles.iconeInativo]} name="repeat-outline"></Ionicons>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'reposts' ? styles.IconeAtivo : styles.iconeInativo]} name="repeat-outline" />
                     </Pressable>
                     {instituicao == 1 ? (
 
                     <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao, focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline"></Ionicons>
+                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline" />
                     </Pressable>
                     ) : null}
                 </View>

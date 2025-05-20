@@ -23,6 +23,8 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Pusher from "pusher-js/react-native";
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import colors from "../../../../../colors";
 
 export default function Mensagens() {
   const navigation = useNavigation();
@@ -32,6 +34,7 @@ export default function Mensagens() {
   const [chats, setChats] = useState([]);
   const [idUser, setIdUser] = useState(null)
   const [IsVisto, setIsVisto] = useState()
+  
   const listarChats = async (userId) => {
     console.log(userId)
 
@@ -81,8 +84,6 @@ export default function Mensagens() {
     canal.bind("chats", (data) => {
       const novaMensagem = data.msgs[0];
       console.log(data)
-      console.log(novaMensagem)
-      if (!novaMensagem) return;
 
       setChats((prevChats) => {
         const chatExistente = prevChats.find(
@@ -275,9 +276,19 @@ useEffect(() => {
                         ]}
                         numberOfLines={1}
                       >
-                        {item.ultima_mensagem}
+                        {item.foto_enviada ? (
+                          <View style={styles.ultimaMensagemImg}> 
+                          <View style={styles.circuloImagem}>
+                          <Ionicons style={styles.imagemIcon} name="image-outline" color={colors.branco} />
+                          </View>
+                          <Text>Imagem </Text>
+                           
+                          </View>
+                        ) : (
+                          <Text>{item.ultima_mensagem}</Text>
+                        )}
                       </Text>
-                    </View>
+                      </View>
                   </View>
                 </TouchableOpacity>
               )
@@ -341,10 +352,30 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     color: "#000",
   },
+  
   ultimaMensagem: {
     fontSize: 14,
     color: "#666",
     marginTop: 2,
+    
+   
+  },
+  circuloImagem:{
+    borderRadius: '50%',
+    backgroundColor: colors.azul,
+    justifyContent: 'center',
+    alignItems: "center",
+    width: 22,
+    height: 22,
+    marginRight: 3
+  },
+  ultimaMensagemImg:{
+    alignItems: 'center',
+    flexDirection: 'row'
+  },
+  imagemIcon: {
+    fontSize: 15,
+
   },
   listaMensagens: {
     paddingTop: 8,
