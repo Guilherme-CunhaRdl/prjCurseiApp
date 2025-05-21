@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ModalPostagem from "./ModalPostagem";
 
 
-export default function Post({ idUser = null, idPostUnico, tipo }) {
+export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
   const navigation = useNavigation();
   const [perfilProprio, setPerfilProprio] = useState(false)
   const [loading, setLoading] = useState(false);
@@ -89,10 +89,14 @@ export default function Post({ idUser = null, idPostUnico, tipo }) {
       if (idPostUnico) {
         url = `http://localhost:8000/api/posts/4/${idPostUnico}/1/0/0`
       }
+      if(pesquisa){
+         url = `http://localhost:8000/api/posts/3/0/50/0/${pesquisa}`
+      }
 
       const response = await axios.get(url);
 
       setPosts(response.data.data)
+      console.log(posts)
       setLoading(false)
     };
 
@@ -459,3 +463,4 @@ const styles = StyleSheet.create({
 
   },
 });
+

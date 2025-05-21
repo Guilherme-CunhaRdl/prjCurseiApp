@@ -1,12 +1,13 @@
 import { StyleSheet } from "react-native";
+import colors from "../../../colors";
 
 export default StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FBFF',
+        backgroundColor:colors.branco
       },
       ScrollCont:{
-        flex: 1,
+        
       },
       Header:{
         flex: 2,
@@ -79,4 +80,8 @@ export default StyleSheet.create({
         borderBottomColor: "#D2D2D2",
         borderBottomWidth: 2,
       },
+      containerPost:{
+       backgroundColor:colors.branco,
+       paddingHorizontal:15
+      }
 })

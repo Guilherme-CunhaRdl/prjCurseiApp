@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import colors from "../../../colors";
 
 export default StyleSheet.create({
   container: {
@@ -124,9 +125,24 @@ export default StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#448FFF',
   },
+  buttonFollowActive:{
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 87,
+    height: 28,
+    borderRadius: 5,
+    borderWidth:1,
+    borderColor:colors.preto,
+    backgroundColor: 'transparency',
+  },
   titleButton: {
     color: 'white',
     fontSize: 12,
     fontWeight: '600',
   },
+  titleButtonActive:{
+    color: colors.preto,
+    fontSize: 12,
+    fontWeight: '600',
+  }
 });

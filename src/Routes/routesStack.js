@@ -129,11 +129,7 @@ export default function StackRoutes() {
         component={alterarUser}
 
         />
-      <Stack.Screen
-        name="DoisFatores"
-        component={DoisFatores}
 
-        />
       <Stack.Screen
         name="DoisFatores"
         component={DoisFatores}
