@@ -205,6 +205,7 @@ export default function Conversa({ route }) {
     }
   };
 
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -221,7 +222,7 @@ export default function Conversa({ route }) {
 
           <View style={styles.headerInfo}>
             <TouchableOpacity style={{width: '100%', flexDirection: 'row'}} onPress={() => navigation.navigate('Perfil', {
-             idUserPerfil: idEnviador,
+              idUserPerfil: idEnviador,
               titulo: arrobaEnviador
             })}> 
             <Image
@@ -274,6 +275,7 @@ export default function Conversa({ route }) {
             </View>
           )}
           contentContainerStyle={styles.chatContent}
+          style={{flex: 1}}
         />
 
         {/* Input de enviar mensagem */}
@@ -323,7 +325,7 @@ export default function Conversa({ route }) {
                 <Text
                   style={{
                     fontSize: 16,
-                    fontWeight: 500,
+                    fontWeight: '500',
                     color: colors.branco,
                     paddingLeft: 7,
                   }}

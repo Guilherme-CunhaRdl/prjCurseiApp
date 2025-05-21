@@ -31,7 +31,10 @@ export default function Mensagens() {
   const [searchQuery, setSearchQuery] = useState("");
   const onChangeSearch = (query) => setSearchQuery(query);
   const [selectedTab, setSelectedTab] = useState("todas");
+  const [conversas, setConversas] = useState([])
   const [chats, setChats] = useState([]);
+  const [canais, setCanais] = useState([])
+  const [instituicoes, setInstituicoes] = useState([])
   const [idUser, setIdUser] = useState(null)
   const [IsVisto, setIsVisto] = useState()
   
@@ -40,14 +43,31 @@ export default function Mensagens() {
 
     try {
       const resposta = await axios.get(
-        `http://localhost:8000/api/cursei/chat/recebidor/${userId}`
+        `http://localhost:8000/api/cursei/chat/recebidor/${userId}/todas`
       );
-      setChats(resposta.data.chats);
-      console.log(resposta.data.chats);
+       const respostaCanais = await axios.get(
+      `http://localhost:8000/api/cursei/chat/selecionarCanal/pegarTodos`
+      )
+      const respostaInstituicao = await axios.get(
+        `http://localhost:8000/api/cursei/chat/recebidor/${userId}/instituicao`
+      );
+      
+
+        const novasConversas = [
+          ...resposta.data.chats.map(chat => ({ ...chat, tipo: 'chat' })),
+          ...respostaCanais.data.canais.map(canal => ({ ...canal, tipo: 'canal' })),
+          ...respostaInstituicao.data.instituicoes.map(instituicao => ({ ...instituicao, tipo: 'instituicao' })),
+        ];
+        setConversas(novasConversas);
+        setCanais(respostaCanais.data.canais);
+        setInstituicoes(respostaInstituicao.data.instituicoes)
+      console.log(respostaCanais.data.canais);
       console.log(userId);
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
     }
+   
+    
   };
 
   useEffect(() => {
@@ -55,16 +75,15 @@ export default function Mensagens() {
       const id = await AsyncStorage.getItem("idUser");
       setIdUser(id)
       if(id){
-    await listarChats(id);
-    conectarCanal(id)
+        await listarChats(id);
+        conectarCanal(id)
       }
-
     }
 
     inicializar()
     
   }, []);
-
+ 
   const conectarCanal = async (userId) => {
   const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
@@ -85,25 +104,53 @@ export default function Mensagens() {
       const novaMensagem = data.msgs[0];
       console.log(data)
 
-      setChats((prevChats) => {
-        const chatExistente = prevChats.find(
-          (c) => c.id_chat === novaMensagem.id_chat
-        );
-        if(novaMensagem.status_chat === 1){
-          setIsVisto(true)
-        }else{
-          setIsVisto(false)
-        }
-        if (chatExistente) {
-          return prevChats.map((chat) =>
-            chat.id_chat === novaMensagem.id_chat
-              ? { ...chat, ultima_mensagem: novaMensagem.ultima_mensagem }
-              : chat
-          );
-        } else {
-          return [novaMensagem, ...prevChats];
-        }
-      });
+  setChats((prevChats) => {
+    const chatExistente = prevChats.find(
+      (c) => c.id_chat === novaMensagem.id_chat
+    );
+    if (chatExistente) {
+      return prevChats.map((chat) =>
+        chat.id_chat === novaMensagem.id_chat
+          ? {
+              ...chat,
+              ultima_mensagem: novaMensagem.ultima_mensagem,
+              foto_enviada: novaMensagem.foto_enviada,
+              status_mensagem: novaMensagem.status_mensagem,
+            }
+          : chat
+      );
+    } else {
+      return [novaMensagem, ...prevChats];
+    }
+  });
+
+  setChatsPesquisados((prevPesquisados) => {
+    if (!prevPesquisados || prevPesquisados.length === 0) {
+      return prevPesquisados;
+    }
+    const chatExistente = prevPesquisados.find(
+      (c) => c.id_chat === novaMensagem.id_chat
+    );
+    if (chatExistente) {
+      return prevPesquisados.map((chat) =>
+        chat.id_chat === novaMensagem.id_chat
+          ? {
+              ...chat,
+              ultima_mensagem: novaMensagem.ultima_mensagem,
+              foto_enviada: novaMensagem.foto_enviada,
+              status_mensagem: novaMensagem.status_mensagem,
+            }
+          : chat
+      );
+    } else {
+      return [novaMensagem, ...prevPesquisados];
+    }
+  });
+  if (novaMensagem.status_chat === 1) {
+    setIsVisto(true);
+  } else {
+    setIsVisto(false);
+  }
     });
 }
 
@@ -137,7 +184,27 @@ useEffect(() => {
             setChatsPesquisados([]);
         }
     }, [query]);
+const filtrarMensagem = (mensagem) => {
+  const chat = chats?.id_chat;
+  if (!chat) return false;
 
+  if (tipoChat === 'canal') {
+    return chat.canal_id === chatId;
+  }
+
+  if (tipoChat === 'privado') {
+    return (
+      (chat.user1_id === idUser && chat.user2_id === userRecId) ||
+      (chat.user1_id === userRecId && chat.user1_id === idUser)
+    );
+  }
+
+  if (tipoChat === 'instituicao') {
+    return chat.instituicao_id === chatId;
+  }
+
+  return false;
+};
   return (
     <SafeAreaProvider>
       <PaperProvider>
@@ -225,76 +292,94 @@ useEffect(() => {
             </ScrollView>
           </View>
 
-          <FlatList
-            data={
-              query.length > 0 ? Array.isArray(chatsPesquisados)
-                ? chatsPesquisados.filter((item) => item && item.id_chat != null)
-
-                : [] : Array.isArray(chats)
-                ? chats.filter((item) => item && item.id_chat != null)
-                : []
+        <FlatList
+  data={conversas?.filter((item) => {
+    // Filtro baseado na tab selecionada
+    if (selectedTab === "todas") return true;
+    if (selectedTab === "canais") return item.tipo === 'canal';
+    if (selectedTab === "instituicoes") return item.tipo === 'instituicao';
+    return true;
+  })}
+  keyExtractor={(item, index) => {
+    if (item.tipo === 'chat') return item.id_mensagem ? item.id_mensagem.toString() : index.toString();
+    if (item.tipo === 'canal') return `canal_${item.id_canal}`; 
+    if (item.tipo === 'instituicao') return item.id_mensagem_instituicao ? item.id_mensagem_instituicao.toString() : index.toString(); 
+    return index.toString();
+  }}
+  renderItem={({ item }) => {
+    // Renderização comum para todos os tipos
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          // Navegação diferente para cada tipo
+          if (item.tipo === 'chat') {
+            navigation.navigate("Conversa", {
+              idUserLogado: idUser,
+              idEnviador: item.id_enviador,
+              imgEnviador: item.img_enviador,
+              nomeEnviador: item.nome_enviador,
+              arrobaEnviador: item.arroba_enviador,
+              idChat: item.id_chat,
+            });
+          } else if (item.tipo === 'canal') {
+            navigation.navigate("CanalConversa", {
+              idUserLogado: idUser,
+              idCanal: item.id_canal,
+              nomeCanal: item.nome_canal,
+              imgCanal: item.img_canal,
+            });
+          } else if (item.tipo === 'instituicao') {
+            navigation.navigate("InstituicaoConversa", {
+              idUserLogado: idUser,
+              idInstituicao: item.id_instituicao,
+              nomeInstituicao: item.nome_instituicao,
+              imgInstituicao: item.img_instituicao,
+            });
+          }
+        }}
+        rippleColor="rgba(0, 0, 0, .05)"
+      >
+        <View style={styles.mensagemItem}>
+          <Image
+            source={
+              item.img_enviador || item.img_canal || item.img_instituicao
+                ? { uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_enviador || item.img_canal || item.img_instituicao}` }
+                : require("../../img/metalbat.jpg")
             }
-            keyExtractor={(item, index) =>
-              item?.id_mensagem != null ? item.id_mensagem.toString() : index.toString()
-            }
-            renderItem={({ item }) =>
-              item && (
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate("Conversa", {
-                      idUserLogado: idUser,
-                      idEnviador: item.id_enviador,
-                      imgEnviador: item.img_enviador,
-                      nomeEnviador: item.nome_enviador,
-                      arrobaEnviador: item.arroba_enviador,
-                      idChat: item.id_chat,
-                    })
-                  }
-                  rippleColor="rgba(0, 0, 0, .05)"
-                >
-                  <View style={styles.mensagemItem}>
-                    <Image
-                      source={
-                        item.img_enviador === null
-                          ? require("../../img/metalbat.jpg")
-                          : {
-                              uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_enviador}`,
-                            }
-                      }
-                      style={styles.avatar}
-                    />
-                    <View style={styles.mensagemTexto}>
-                      <Text style={styles.nome} numberOfLines={1}>
-                        {item.nome_enviador}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.ultimaMensagem,
-                          item.status_mensagem === 0 && item.enviador != idUser
-                            ? { fontWeight: 500, color: "black" }
-                            : { fontWeight: "normal" },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {item.foto_enviada ? (
-                          <View style={styles.ultimaMensagemImg}> 
-                          <View style={styles.circuloImagem}>
-                          <Ionicons style={styles.imagemIcon} name="image-outline" color={colors.branco} />
-                          </View>
-                          <Text>Imagem </Text>
-                           
-                          </View>
-                        ) : (
-                          <Text>{item.ultima_mensagem}</Text>
-                        )}
-                      </Text>
-                      </View>
-                  </View>
-                </TouchableOpacity>
-              )
-            }
-            contentContainerStyle={styles.listaMensagens}
+            style={styles.avatar}
           />
+          <View style={styles.mensagemTexto}>
+            <Text style={styles.nome} numberOfLines={1}>
+              {item.nome_enviador || item.nome_canal || item.nome_instituicao}
+            </Text>
+            <Text
+              style={[
+                styles.ultimaMensagem,
+                item.status_mensagem === 0 && item.enviador !== idUser
+                  ? { fontWeight: 500, color: "black" }
+                  : { fontWeight: "normal" },
+              ]}
+              numberOfLines={1}
+            >
+              {item.foto_enviada ? (
+                <View style={styles.ultimaMensagemImg}>
+                  <View style={styles.circuloImagem}>
+                    <Ionicons style={styles.imagemIcon} name="image-outline" color={colors.branco} />
+                  </View>
+                  <Text>Imagem </Text>
+                </View>
+              ) : (
+                <Text>{item.ultima_mensagem}</Text>
+              )}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }}
+  contentContainerStyle={styles.listaMensagens}
+/>
+
 
           <StatusBar style="auto" />
         </View>
