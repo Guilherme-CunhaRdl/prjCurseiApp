@@ -83,9 +83,10 @@ export default function Login() {
       if(resposta.data.sucesso) {
         const usuario = resposta.data.usuario;
         console.log(usuario)
-        
+        console.log(resposta)
         await AsyncStorage.setItem('idUser', usuario.id);
         await AsyncStorage.setItem('logado', '1');
+        await AsyncStorage.setItem('idInstituicao', resposta.data.id_instituicao);
         await AsyncStorage.setItem('imgUser', usuario.img_user);
         await AsyncStorage.setItem('arrobaUser', usuario.arroba_user);
         navigation.navigate('Home');

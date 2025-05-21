@@ -38,12 +38,21 @@ export default function Conversa({ route }) {
   const abrirConversaInicio = async () => {
     try {
       const resposta = await axios.get(
-        `http://127.0.0.1:8000/api/cursei/chat/${idChat}`
+        `http://127.0.0.1:8000/api/cursei/chat/mensagens/${idChat}`
       );
+
+      const respostaCanal = await axios.get(
+        `http://127.0.0.1:8000/api/cursei/chat/mensagensCanal/${idEnviador}`
+      )
+      console.log(respostaCanal)
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
       }, 300);
-      setMensagens(resposta.data.chats);
+      if (resposta.data.chats && resposta.data.chats.length > 0) {
+        await setMensagens(resposta.data.chats);
+      } else if (respostaCanal.data.mensagensCanal && respostaCanal.data.mensagensCanal.length > 0) {
+        await setMensagens(respostaCanal.data.mensagensCanal);
+      }
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
     }

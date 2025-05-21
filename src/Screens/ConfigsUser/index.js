@@ -18,7 +18,7 @@ export default function ConfigsUser() {
     
     AsyncStorage.setItem('logado', 0)
     AsyncStorage.removeItem('idUser')
-
+    AsyncStorage.removeItem('idInstituicao')
     navigation.navigate('Login')
 
   }
