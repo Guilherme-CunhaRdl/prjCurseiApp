@@ -4,6 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
 import TopTabs from '../../Routes/TopTab';
 import { useNavigation, useRoute } from "@react-navigation/native";
+import ModalPostagem from '../../Components/ModalPostagem';
 
 export default function Explorar() {
     const navigation = useNavigation();
@@ -46,7 +47,10 @@ export default function Explorar() {
                         <TopTabs />
                     </View>
                 </View>
+                    
+
             </ScrollView>
+              <ModalPostagem tipo='post' />
         </SafeAreaView>
     );
 };

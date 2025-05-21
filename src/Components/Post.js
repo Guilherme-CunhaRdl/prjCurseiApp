@@ -95,17 +95,17 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
       if(pesquisa){
          url = `http://localhost:8000/api/posts/3/0/50/0/${pesquisa}`
       }
-      if(tipo|| tipo == 'instituicao'){
+      if(tipo && tipo == 'instituicao'){
         url = `http://localhost:8000/api/posts/7/${id}/50/0/0`;
       }
-      console.log("aaaa",tipo)
-   
-      console.log(tipo)
-      console.log(url)
+       if(tipo && tipo == 'maisCurtidos'){
+        url = `http://localhost:8000/api/posts/8/${id}/5/0/0`;
+      }
+  
       const response = await axios.get(url);
 
       setPosts(response.data.data)
-      console.log(posts)
+   
       setLoading(false)
     };
 
