@@ -25,6 +25,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import ModalPosts from "../PostUnico"
 import Notificacoes from "../../Components/Chat/src/screens/Notificacoes";
+
 const DATA = [
   {
     id: Math.random().toString(36).substring(2, 27),
@@ -54,6 +55,12 @@ const DATA = [
 ];
 
 export default function Home() {
+
+      const [focoIcone, setFocoIcone] = useState('posts')
+      const alterarFoco = (icone) => {
+        setFocoIcone(icone)
+        console.log(focoIcone)
+    }
   const navigation = useNavigation();
   async function verificarInteresses() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -128,15 +135,15 @@ export default function Home() {
 
             <View style={styles.infoUser}>
               <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity style={styles.imgContainer} onPress={() => navigation.navigate('user')}>
+                {/* <TouchableOpacity style={styles.imgContainer} onPress={() => navigation.navigate('user')}>
                   <Image
                     style={styles.userImg}
                     source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
                   />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
                 <View style={styles.msgUser}>
-                  <Text style={styles.textUser}>{nome}!</Text>
-                  <Text style={styles.textInicio}>@{user}</Text>
+                  <Text style={styles.textUser}>Olá ,{nome}!</Text>
+                  <Text style={styles.textInicio}>Bem Vindo de volta</Text>
                 </View>
               </View>
 
@@ -193,12 +200,26 @@ export default function Home() {
             />
           </View>
         </View>
-        <View style={styles.feedContainer}>
-          {/*Posts*/}
-          <View style={styles.postContainer}>
-            <Post />
+        <View style={styles.barraContainer}>
+                            <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                                <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
+                            </Pressable>
+        
+                            <Pressable onPress={() => alterarFoco('imagem')} style={[styles.opcao, focoIcone === 'imagem' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                                <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="school-outline" />
+                            </Pressable>
+        
+                          
+                           
           </View>
-        </View>
+         <View style={styles.feedContainer}>
+         
+          <View style={styles.postContainer}>
+          {focoIcone === 'posts' ? (
+            <Post  key="post-0" />
+          ):focoIcone === 'imagem' ?(  <Post  key="post-1" tipo="instituicao"/> ): null }
+          </View>
+        </View> 
       </View>
       {/* Send Button */}
       <ModalPostagem tipo='post' />

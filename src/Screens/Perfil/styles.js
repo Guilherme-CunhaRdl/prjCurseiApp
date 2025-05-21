@@ -145,7 +145,7 @@ export default StyleSheet.create({
         fontWeight: 700,
     },
     instIcon:{
-      fontSize: 20,
+      fontSize: 24,
       fontWeight: 700,
       color:colors.azul
   },

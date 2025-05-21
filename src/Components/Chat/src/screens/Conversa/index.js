@@ -102,6 +102,7 @@ export default function Conversa({ route }) {
           idChat: idChat,
           conteudoMensagem: mensagem,
           idEnviador: idUserLogado,
+          
         }
       );
       console.log(idUserLogado, idEnviador)

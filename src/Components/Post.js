@@ -13,6 +13,8 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/pt-br';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ModalPostagem from "./ModalPostagem";
+import colors from '../colors';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 
 export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
@@ -72,6 +74,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
           } else {
             url = `http://localhost:8000/api/posts/5/${id}/100/0/0`;
           }
+         
         } else {
           url = `http://localhost:8000/api/posts/2/${id}/100/0/0`;
         }
@@ -92,7 +95,13 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
       if(pesquisa){
          url = `http://localhost:8000/api/posts/3/0/50/0/${pesquisa}`
       }
-
+      if(tipo|| tipo == 'instituicao'){
+        url = `http://localhost:8000/api/posts/7/${id}/50/0/0`;
+      }
+      console.log("aaaa",tipo)
+   
+      console.log(tipo)
+      console.log(url)
       const response = await axios.get(url);
 
       setPosts(response.data.data)
@@ -196,6 +205,9 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Text style={styles.institutionText}>
                         {item.nome_user}
+                             {item.instituicao == 1 ? (
+                                                                <Ionicons style={styles.instIcon} name="school-outline"></Ionicons>
+                                                            ) : null}
                       </Text>
                       <Text style={styles.horaPost}>
                         ·
@@ -462,5 +474,11 @@ const styles = StyleSheet.create({
     paddingInline: 10,
 
   },
+  instIcon:{
+    fontSize: 18,
+    fontWeight: 700,
+    color:colors.azul,
+    marginLeft:8
+},
 });
 

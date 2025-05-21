@@ -211,7 +211,7 @@ export default function Perfil() {
 
                                     <Text style={styles.nomeUser}>{nome}</Text>
                                     {instituicao == 1 ? (
-                                        <Ionicons style={styles.instIcon} name="business-outline"></Ionicons>
+                                        <Ionicons style={styles.instIcon} name="school-outline"></Ionicons>
                                     ) : null}
                                 </View>
 

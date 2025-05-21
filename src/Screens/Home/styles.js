@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import colors from "../../colors";
 
 export default StyleSheet.create({
 
@@ -10,6 +11,7 @@ export default StyleSheet.create({
   },
   ContainerCont: {
     flex: 1,
+    overflow: 'scroll',
   },
   feedContainer: {
     flex: 1,
@@ -19,7 +21,7 @@ export default StyleSheet.create({
     paddingTop: 20,
   },
   postHeader: {
-    marginBottom: 8,
+    marginBottom: 4,
     flexDirection: 'row'
   },
   institutionText: {
@@ -64,9 +66,10 @@ export default StyleSheet.create({
   },
   Header: {
     flex: 0.36,
-    paddingBottom: 10,
+    paddingBottom: 0,
+    
     width: '100%',
-    borderBottomWidth: 1,
+    borderBottomWidth: 0,
     borderBottomColor: '#C5C5C5',
     justifyContent: 'center'
 
@@ -97,16 +100,19 @@ export default StyleSheet.create({
     fontSize: 17,
   },
   msgUser: {
-
+    marginLeft:10,
+    paddingTop:4
   },
   textInicio: {
     color: 'gray',
-    fontWeight: '500'
+    fontWeight: '500',
+    fontSize:14,
   },
   storysContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop:10
   },
   storys: {
     alignItems: 'center',
@@ -172,5 +178,52 @@ export default StyleSheet.create({
     color: 'white',
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  barraContainer:{
+    alignSelf: 'center',
+    flexDirection: 'row',
+    width: '97%',
+    justifyContent: 'space-around',
+    
+    // gap: 40,
+
+    paddingTop:15,
+    borderBottomWidth: 2,
+    borderBottomColor: '#F5F5F5',
+    // backgroundColor:'red'
+  },
+  opcao:{
+    paddingHorizontal: 9,
+    height: '100%',
+    width: '15%',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  opcaoIcon:{
+    fontSize: 30,
+    color: colors.cinza,
+  },
+  opcaoAtiva:{
+    fontSize: 25,
+    color: colors.preto,
+    borderBottomWidth: 2,
+    borderColor: colors.azul,
+    height: '107%',
+
+  },
+  IconeAtivo:{
+    fontSize: 25,
+    color: colors.preto,
+    borderBottomWidth: 0,
+
+  },
+  opcaoInativo:{
+    fontSize: 25,
+    color: colors.cinza,
+    borderBottomWidth: 0,
+  },
+  iconeInativo:{
+    fontSize: 25,
+    color: colors.cinza,
   },
 });

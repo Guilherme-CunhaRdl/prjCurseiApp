@@ -5,6 +5,7 @@ import User from '../../../../assets/userIMG.png';
 import Configuracoes from '../../../Components/Configurações/configuracoes';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 
 const DATA = [
@@ -17,6 +18,7 @@ const DATA = [
 
 
 export default function ParaVoce() {
+    const navigation = useNavigation();
     const [usuarios, setUsuarios] = useState()
     const [segue_usuario, Setsegue_usuario] = useState(false)
 
@@ -113,14 +115,21 @@ export default function ParaVoce() {
                             keyExtractor={item => item.id}
                             renderItem={({ item }) => (
                                 <View style={styles.userContainer}>
-                                    <View style={styles.userImgContainer}>
+                                    <Pressable style={styles.userImgContainer} onPress={() => {
+                  navigation.navigate('Perfil', {
+                    idUserPerfil: item.id,
+                    titulo: item.arroba_user});}}> 
+        
                                         <Image source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }} style={styles.imgLogo} />
-                                    </View>
+                                    </Pressable>
 
-                                    <View style={styles.containerNomeUser}>
+                                    <Pressable style={styles.containerNomeUser} onPress={() => {
+                  navigation.navigate('Perfil', {
+                    idUserPerfil: item.id,
+                    titulo: item.arroba_user});}}> 
                                         <Text style={styles.nomeUser}>{item.nome_user}</Text>
                                         <Text style={styles.arrobaUser}>@{item.arroba_user}</Text>
-                                    </View>
+                                    </Pressable>
 
                                     <View style={styles.buttonFollowContainer}>
                                         <Pressable
