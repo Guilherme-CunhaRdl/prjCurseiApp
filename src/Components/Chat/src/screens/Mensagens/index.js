@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo  } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,7 +15,6 @@ import {
   Appbar,
   IconButton,
   Provider as PaperProvider,
-  SegmentedButtons,
 } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -23,81 +22,90 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Pusher from "pusher-js/react-native";
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Ionicons from "react-native-vector-icons/Ionicons";
 import colors from "../../../../../colors";
 
 export default function Mensagens() {
   const navigation = useNavigation();
-  const [searchQuery, setSearchQuery] = useState("");
-  const onChangeSearch = (query) => setSearchQuery(query);
   const [selectedTab, setSelectedTab] = useState("todas");
-  const [conversas, setConversas] = useState([])
+  const [conversas, setConversas] = useState([]);
   const [chats, setChats] = useState([]);
-  const [canais, setCanais] = useState([])
-  const [instituicoes, setInstituicoes] = useState([])
-  const [idUser, setIdUser] = useState(null)
-  const [IsVisto, setIsVisto] = useState()
-  
+  const [idUser, setIdUser] = useState(null);
+  const [IsVisto, setIsVisto] = useState();
+  const [resultadosUsuarios, setResultadosUsuarios] = useState([]);
+  const [mostrarResultadosPesquisa, setMostrarResultadosPesquisa] = useState(false);
+const [query, setQuery] = useState("");
+  const [chatsPesquisados, setChatsPesquisados] = useState([]);
+
+
+
   const listarChats = async (userId) => {
-    console.log(userId)
+    console.log(userId);
 
     try {
-       setConversas([]);
-        setCanais([]);
-        setInstituicoes([]);
-      const resposta = await axios.get(
-        `http://localhost:8000/api/cursei/chat/recebidor/${userId}/todas`
+      const [resposta, respostaCanais, respostaInstituicao] = await Promise.all(
+        [
+          axios.get(
+            `http://localhost:8000/api/cursei/chat/recebidor/${userId}/todas`
+          ),
+          axios.get(
+            `http://localhost:8000/api/cursei/chat/selecionarCanal/pegarTodos/${userId}`
+          ),
+          axios.get(
+            `http://localhost:8000/api/cursei/chat/recebidor/${userId}/instituicao`
+          ),
+        ]
       );
-       const respostaCanais = await axios.get(
-      `http://localhost:8000/api/cursei/chat/selecionarCanal/pegarTodos/${userId}`
-      )
-      const respostaInstituicao = await axios.get(
-        `http://localhost:8000/api/cursei/chat/recebidor/${userId}/instituicao`
-      );
+
+      const conversasUnicas = new Map();
+
       
-          const conversasUnicas = new Map();
+      resposta.data.chats.forEach((chat) => {
+        const key = `chat_${chat.id_chat}_${chat.id_mensagem}`;
+        if (!conversasUnicas.has(key)) {
+          conversasUnicas.set(key, { ...chat, tipo: "chat" });
+        }
+      });
 
-        resposta.data.chats.forEach(chat => {
-      conversasUnicas.set(`chat_${chat.id_mensagem}`, { ...chat, tipo: 'chat' });
-    });
+      
+      respostaCanais.data.canais.forEach((canal) => {
+        const key = `canal_${canal.id_canal}`;
+        if (!conversasUnicas.has(key)) {
+          conversasUnicas.set(key, { ...canal, tipo: "canal" });
+        }
+      });
+      console.log(respostaCanais)
+      
+      respostaInstituicao.data.instituicoes.forEach((instituicao) => {
+        const key = `instituicao_${instituicao.id_instituicao}_${
+          instituicao.id_mensagem_instituicao || ""
+        }`;
+        if (!conversasUnicas.has(key)) {
+          conversasUnicas.set(key, { ...instituicao, tipo: "instituicao" });
+        }
+      });
 
-    // Adicionar canais
-    respostaCanais.data.canais.forEach(canal => {
-      conversasUnicas.set(`canal_${canal.id_canal}`, { ...canal, tipo: 'canal' });
-    });
-
-    // Adicionar instituições
-    respostaInstituicao.data.instituicoes.forEach(instituicao => {
-      const key = `instituicao_${instituicao.id_mensagem_instituicao || ''}`;
-      conversasUnicas.set(key, { ...instituicao, tipo: 'instituicao' });
-          console.log(key)
-    });
-    setConversas(Array.from(conversasUnicas.values()));
-    setCanais(respostaCanais.data.canais);
-    setInstituicoes(respostaInstituicao.data.instituicoes);
+      setConversas(Array.from(conversasUnicas.values()));
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
     }
-   
-    
   };
 
   useEffect(() => {
     const inicializar = async () => {
       const id = await AsyncStorage.getItem("idUser");
-      setIdUser(id)
-      if(id){
+      setIdUser(id);
+      if (id) {
         await listarChats(id);
-        conectarCanal(id)
+        conectarCanal(id);
       }
-    }
+    };
 
-    inicializar()
-    
+    inicializar();
   }, []);
- 
+
   const conectarCanal = async (userId) => {
-  const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
+    const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
       wsHost: "127.0.0.1",
       wsPort: 6001,
@@ -114,108 +122,147 @@ export default function Mensagens() {
 
     canal.bind("chats", (data) => {
       const novaMensagem = data.msgs[0];
-      console.log(data)
+      console.log(data);
 
-  setChats((prevChats) => {
-    const chatExistente = prevChats.find(
-      (c) => c.id_chat === novaMensagem.id_chat
-    );
-    if (chatExistente) {
-      return prevChats.map((chat) =>
-        chat.id_chat === novaMensagem.id_chat
-          ? {
-              ...chat,
-              ultima_mensagem: novaMensagem.ultima_mensagem,
-              foto_enviada: novaMensagem.foto_enviada,
-              status_mensagem: novaMensagem.status_mensagem,
-            }
-          : chat
-      );
-    } else {
-      return [novaMensagem, ...prevChats];
-    }
-  });
-
-  setChatsPesquisados((prevPesquisados) => {
-    if (!prevPesquisados || prevPesquisados.length === 0) {
-      return prevPesquisados;
-    }
-    const chatExistente = prevPesquisados.find(
-      (c) => c.id_chat === novaMensagem.id_chat
-    );
-    if (chatExistente) {
-      return prevPesquisados.map((chat) =>
-        chat.id_chat === novaMensagem.id_chat
-          ? {
-              ...chat,
-              ultima_mensagem: novaMensagem.ultima_mensagem,
-              foto_enviada: novaMensagem.foto_enviada,
-              status_mensagem: novaMensagem.status_mensagem,
-            }
-          : chat
-      );
-    } else {
-      return [novaMensagem, ...prevPesquisados];
-    }
-  });
-  if (novaMensagem.status_chat === 1) {
-    setIsVisto(true);
-  } else {
-    setIsVisto(false);
-  }
-    });
-}
-
-useEffect(() =>{
-  console.log(idUser)
-},[idUser])
-  
-    const [query, setQuery] = useState('');
-    const [chatsPesquisados, setChatsPesquisados] = useState([]);
-    
-    const procurarChat = async (userId) => {
-        try {
-              const response = await axios.get(`http://localhost:8000/api/cursei/chat/pesquisa/${query}/${userId}`);            
-              setChats(response.data.chats);
-              console.log(response)
-        } catch (error) {
-            console.error('Search error:', error);
-        }
-    };
-useEffect(() => {
-        if (query.length > 0) {
-            const contador = setTimeout(() => {
-              procurarChat(idUser);
-              console.log(query, idUser)
-              console.log(chatsPesquisados)
-
-            }, 500);
-            
-            return () => clearTimeout(contador);
+      setConversas((prevChats) => {
+        const chatExistente = prevChats.find(
+          (c) => c.id_chat === novaMensagem.id_chat
+        );
+        if (chatExistente) {
+          return prevChats.map((chat) =>
+            chat.id_chat === novaMensagem.id_chat
+              ? {
+                  ...chat,
+                  ultima_mensagem: novaMensagem.ultima_mensagem,
+                  foto_enviada: novaMensagem.foto_enviada,
+                  status_mensagem: novaMensagem.status_mensagem,
+                }
+              : chat
+          );
         } else {
-            setChatsPesquisados([]);
+          return [novaMensagem, ...prevChats];
         }
-    }, [query]);
-const conversasFiltradas = useMemo(() => {
-  return conversas?.filter((item) => {
-    if (selectedTab === "todas") return true;
-    if (selectedTab === "canais") return item.tipo === 'canal';
-    if (selectedTab === "instituicoes") return item.tipo === 'instituicao';
-    return true;
-  });
-}, [conversas, selectedTab]);
+      });
 
-const getImageSource = (item) => {
-  if (item.img_enviador) {
-    return { uri: `http://127.0.0.1:8000/img/user/fotoPerfil/${item.img_enviador}` };
-  } else if (item.img_canal) {
-    return { uri: `http://127.0.0.1:8000/img/chat/imgCanal/${item.img_canal}` };
-  } else if (item.img_instituicao) {
-    return { uri: `http://127.0.0.1:8000/img/instituicao/${item.img_instituicao}` };
-  } else {
-    return require('../../img/metalbat.jpg');
-  }
-};
+      setChatsPesquisados((prevPesquisados) => {
+        if (!prevPesquisados || prevPesquisados.length === 0) {
+          return prevPesquisados;
+        }
+        const chatExistente = prevPesquisados.find(
+          (c) => c.id_chat === novaMensagem.id_chat
+        );
+        if (chatExistente) {
+          return prevPesquisados.map((chat) =>
+            chat.id_chat === novaMensagem.id_chat
+              ? {
+                  ...chat,
+                  ultima_mensagem: novaMensagem.ultima_mensagem,
+                  foto_enviada: novaMensagem.foto_enviada,
+                  status_mensagem: novaMensagem.status_mensagem,
+                }
+              : chat
+          );
+        } else {
+          return [novaMensagem, ...prevPesquisados];
+        }
+      });
+      if (novaMensagem.status_chat === 1) {
+        setIsVisto(true);
+      } else {
+        setIsVisto(false);
+      }
+    });
+  };
+
+  useEffect(() => {
+    console.log(idUser);
+  }, [idUser]);
+
+  
+
+  const procurarChat = async (userId) => {
+    try {
+      if (query.trim() === "") {
+        setConversasFiltradas(conversas);
+        return;
+      }
+
+      const response = await axios.get(
+        `http://localhost:8000/api/cursei/chat/pesquisa/${query}/${userId}`
+      );
+
+      
+      const resultadosComTipo = response.data.chats.map((chat) => ({
+        ...chat,
+        tipo: "chat",
+      }));
+
+      setConversasFiltradas(resultadosComTipo);
+    } catch (error) {
+      console.error("Search error:", error);
+    }
+  };
+
+  const pesquisarUsuarios = async (query, userId) => {
+    if (query.trim() === "") {
+      setResultadosUsuarios([]);
+      setMostrarResultadosPesquisa(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/cursei/chat/pesquisa/${query}/${userId}`
+      );
+      setResultadosUsuarios(response.data.chats);
+      setMostrarResultadosPesquisa(true);
+    } catch (error) {
+      console.error("Erro ao pesquisar usuários:", error);
+      setResultadosUsuarios([]);
+    }
+  };
+
+  useEffect(() => {
+    if (query.length > 0 && idUser) {
+      const contador = setTimeout(() => {
+        procurarChat(idUser);
+        pesquisarUsuarios(query, idUser);
+      }, 500);
+
+      return () => clearTimeout(contador);
+    } else {
+      setChatsPesquisados([]);
+      setResultadosUsuarios([]);
+      setMostrarResultadosPesquisa(false);
+    }
+  }, [query, idUser]);
+
+  const conversasFiltradas = useMemo(() => {
+    return conversas?.filter((item) => {
+      if (selectedTab === "todas") return true;
+      if (selectedTab === "canais") return item.tipo === "canal";
+      if (selectedTab === "instituicoes") return item.tipo === "instituicao";
+      return true;
+    });
+  }, [conversas, selectedTab]);
+
+  const getImageSource = (item) => {
+    if (item.img_enviador) {
+      return {
+        uri: `http://127.0.0.1:8000/img/user/fotoPerfil/${item.img_enviador}`,
+      };
+    } else if (item.img_canal) {
+      return {
+        uri: `http://127.0.0.1:8000/img/chat/imgCanal/${item.img_canal}`,
+      };
+    } else if (item.img_instituicao) {
+      return {
+        uri: `http://127.0.0.1:8000/img/instituicao/${item.img_instituicao}`,
+      };
+    } else {
+      return require("../../img/metalbat.jpg");
+    }
+  };
   return (
     <SafeAreaProvider>
       <PaperProvider>
@@ -251,6 +298,7 @@ const getImageSource = (item) => {
               value={query}
               onChangeText={setQuery}
               style={styles.customSearchInput}
+              onFocus={() => query.length > 0 && setMostrarResultadosPesquisa(true)}
             />
           </View>
 
@@ -302,101 +350,188 @@ const getImageSource = (item) => {
               })}
             </ScrollView>
           </View>
-
-        <FlatList
-  data={conversas?.filter((item) => {
-
-    if (selectedTab === "todas") return true;
-    if (selectedTab === "canais") return item.tipo === 'canal';
-    if (selectedTab === "instituicoes") return item.tipo === 'instituicao';
-    return true;
-  })}
-  keyExtractor={(item, index) => {
-  if (item.tipo === 'chat') return `chat_${item.id_chat}_${item.id_mensagem || index}`;
-  if (item.tipo === 'canal') return `canal_${item.id_canal}_${index}`;
-  if (item.tipo === 'instituicao') return `instituicao_${item.id_instituicao}_${item.id_mensagem_instituicao || index}`;
-  return `item_${index}`;
-}}
-  renderItem={({ item }) => {
-    return (
-      <TouchableOpacity
-        onPress={() => {
-          // Navegação diferente para cada tipo
-          if (item.tipo === 'chat') {
-            navigation.navigate("Conversa", {
-              idUserLogado: idUser,
-              idEnviador: item.id_enviador,
-              imgEnviador: item.img_enviador,
-              nomeEnviador: item.nome_enviador,
-              arrobaEnviador: item.arroba_enviador,
-              idChat: item.id_chat,
-            });
-          } else if (item.tipo === 'canal') {
-            navigation.navigate("Conversa", {
-               idUserLogado: idUser,
-              idEnviador: item.id_enviador,
-              imgEnviador: item.img_enviador,
-              nomeEnviador: item.nome_enviador,
-              arrobaEnviador: item.arroba_enviador,
-              idChat: item.id_chat,
-            });
-          } else if (item.tipo === 'instituicao') {
-            navigation.navigate("Conversa", {
-               idUserLogado: idUser,
-              idEnviador: item.id_enviador,
-              imgEnviador: item.img_enviador,
-              nomeEnviador: item.nome_enviador,
-              arrobaEnviador: item.arroba_enviador,
-              idChat: item.id_chat,
-            });
-          }
-        }}
-        rippleColor="rgba(0, 0, 0, .05)"
-      >
-        <View style={styles.mensagemItem}>
-          <Image
-            source={getImageSource(item)}
-            style={styles.avatar}
-          />
-          <View style={styles.mensagemTexto}>
-            <Text style={styles.nome} numberOfLines={1}>
-              {item.nome_enviador || item.nome_canal || item.nome_instituicao}
-            </Text>
-            <Text
-              style={[
-                styles.ultimaMensagem,
-                item.status_mensagem === 0 && item.enviador !== idUser
-                  ? { fontWeight: 500, color: "black" }
-                  : { fontWeight: "normal" },
-              ]}
-              numberOfLines={1}
-            >
-              {item.foto_enviada ? (
-                <View style={styles.ultimaMensagemImg}>
-                  <View style={styles.circuloImagem}>
-                    <Ionicons style={styles.imagemIcon} name="image-outline" color={colors.branco} />
+          {!mostrarResultadosPesquisa && (
+            <FlatList
+              data={conversasFiltradas}
+              keyExtractor={(item) => {
+                if (item.tipo === "chat")
+                  return `chat_${item.id_chat}_${item.id_mensagem}`;
+                if (item.tipo === "canal") return `canal_${item.id_canal}`;
+                if (item.tipo === "instituicao")
+                  return `instituicao_${item.id_instituicao}_${
+                    item.id_mensagem_instituicao || ""
+                  }`;
+                return `item_${Math.random().toString(36).substr(2, 9)}`;
+              }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (item.tipo === "chat") {
+                      navigation.navigate("Conversa", {
+                        idUserLogado: idUser,
+                        idEnviador: item.id_enviador,
+                        imgEnviador: item.img_enviador,
+                        nomeEnviador: item.nome_enviador,
+                        arrobaEnviador: item.arroba_enviador,
+                        idChat: item.id_chat,
+                      });
+                    } else if (item.tipo === "canal") {
+                      navigation.navigate("Conversa", {
+                        idUserLogado: idUser,
+                        idEnviador: item.id_enviador,
+                        imgEnviador: item.img_enviador,
+                        nomeEnviador: item.nome_canal,
+                        arrobaEnviador: item.arroba_enviador,
+                        idChat: item.id_chat,
+                      });
+                    } else if (item.tipo === "instituicao") {
+                      navigation.navigate("Conversa", {
+                        idUserLogado: idUser,
+                        idEnviador: item.id_enviador,
+                        imgEnviador: item.img_enviador,
+                        nomeEnviador: item.nome_enviador,
+                        arrobaEnviador: item.arroba_enviador,
+                        idChat: item.id_chat,
+                      });
+                    }
+                  }}
+                  rippleColor="rgba(0, 0, 0, .05)"
+                >
+                  <View style={styles.mensagemItem}>
+                    <Image
+                      source={getImageSource(item)}
+                      style={styles.avatar}
+                    />
+                    <View style={styles.mensagemTexto}>
+                      <Text style={styles.nome} numberOfLines={1}>
+                        {item.nome_canal ||
+                        item.nome_enviador ||
+                          item.nome_instituicao}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.ultimaMensagem,
+                          item.status_mensagem === 0 && item.enviador !== idUser
+                            ? { fontWeight: 500, color: "black" }
+                            : { fontWeight: "normal" },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {item.foto_enviada ? (
+                          <View style={styles.ultimaMensagemImg}>
+                            <View style={styles.circuloImagem}>
+                              <Ionicons
+                                style={styles.imagemIcon}
+                                name="image-outline"
+                                color={colors.branco}
+                              />
+                            </View>
+                            <Text>Imagem</Text>
+                          </View>
+                        ) : (
+                          <Text>{item.ultima_mensagem}</Text>
+                        )}
+                      </Text>
+                    </View>
                   </View>
-                  <Text>Imagem</Text>
-                </View>
-              ) : (
-                <Text>{item.ultima_mensagem}</Text>
+                </TouchableOpacity>
               )}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  }}
-  contentContainerStyle={styles.listaMensagens}
-/>
-
+              contentContainerStyle={styles.listaMensagens}
+            />
+          )}
+          {mostrarResultadosPesquisa && resultadosUsuarios.length > 0 && (
+            <FlatList
+              data={resultadosUsuarios}
+              keyExtractor={(item) => {
+                if (item.tipo === "chat")
+                  return `chat_${item.id_chat}_${item.id_mensagem}`;
+                if (item.tipo === "canal") return `canal_${item.id_canal}`;
+                if (item.tipo === "instituicao")
+                  return `instituicao_${item.id_instituicao}_${
+                    item.id_mensagem_instituicao || ""
+                  }`;
+                return `item_${Math.random().toString(36).substr(2, 9)}`;
+              }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (item.tipo === "chat") {
+                      navigation.navigate("Conversa", {
+                        idUserLogado: idUser,
+                        idEnviador: item.id_enviador,
+                        imgEnviador: item.img_enviador,
+                        nomeEnviador: item.nome_enviador,
+                        arrobaEnviador: item.arroba_enviador,
+                        idChat: item.id_chat,
+                      });
+                    } else if (item.tipo === "canal") {
+                      navigation.navigate("Conversa", {
+                        idUserLogado: idUser,
+                        idEnviador: item.id_enviador,
+                        imgEnviador: item.img_enviador,
+                        nomeEnviador: item.nome_enviador,
+                        arrobaEnviador: item.arroba_enviador,
+                        idChat: item.id_chat,
+                      });
+                    } else if (item.tipo === "instituicao") {
+                      navigation.navigate("Conversa", {
+                        idUserLogado: idUser,
+                        idEnviador: item.id_enviador,
+                        imgEnviador: item.img_enviador,
+                        nomeEnviador: item.nome_enviador,
+                        arrobaEnviador: item.arroba_enviador,
+                        idChat: item.id_chat,
+                      });
+                    }
+                  }}
+                  rippleColor="rgba(0, 0, 0, .05)"
+                >
+                  <View style={styles.mensagemItem}>
+                    <Image
+                      source={getImageSource(item)}
+                      style={styles.avatar}
+                    />
+                    <View style={styles.mensagemTexto}>
+                      <Text style={styles.nome} numberOfLines={1}>
+                        { item.nome_canal || 
+                          item.nome_enviador ||  
+                          item.nome_instituicao}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.ultimaMensagem,
+                          item.status_mensagem === 0 && item.enviador !== idUser
+                            ? { fontWeight: 500, color: "black" }
+                            : { fontWeight: "normal" },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {item.foto_enviada ? (
+                          <View style={styles.ultimaMensagemImg}>
+                            <View style={styles.circuloImagem}>
+                              <Ionicons
+                                style={styles.imagemIcon}
+                                name="image-outline"
+                                color={colors.branco}
+                              />
+                            </View>
+                            <Text>Imagem</Text>
+                          </View>
+                        ) : (
+                          <Text>{item.ultima_mensagem}</Text>
+                        )}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={styles.listaMensagens}
+            />
+          )}
 
           <StatusBar style="auto" />
         </View>
       </PaperProvider>
-
-      
-
     </SafeAreaProvider>
   );
 }
@@ -447,30 +582,27 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     color: "#000",
   },
-  
+
   ultimaMensagem: {
     fontSize: 14,
     color: "#666",
     marginTop: 2,
-    
-   
   },
-  circuloImagem:{
-    borderRadius: '50%',
+  circuloImagem: {
+    borderRadius: "50%",
     backgroundColor: colors.azul,
-    justifyContent: 'center',
+    justifyContent: "center",
     alignItems: "center",
     width: 22,
     height: 22,
-    marginRight: 3
+    marginRight: 3,
   },
-  ultimaMensagemImg:{
-    alignItems: 'center',
-    flexDirection: 'row'
+  ultimaMensagemImg: {
+    alignItems: "center",
+    flexDirection: "row",
   },
   imagemIcon: {
     fontSize: 15,
-
   },
   listaMensagens: {
     paddingTop: 8,
