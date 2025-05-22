@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import host from '../../global';
 
 const ModalBloquear = ({ visible, onClose,arroba,userPost }) => {
   async function bloquear() {
@@ -10,7 +11,7 @@ const ModalBloquear = ({ visible, onClose,arroba,userPost }) => {
     bloqueio = new FormData();
     bloqueio.append('userPost',userPost);
     bloqueio.append('idUser',idUserSalvo);
-    url = 'http://localhost:8000/api/posts/interacoes/bloquear';
+    url = `http://${host}:8000/api/posts/interacoes/bloquear`;
     try{
       await axios.post(url,bloqueio, {
         headers: {

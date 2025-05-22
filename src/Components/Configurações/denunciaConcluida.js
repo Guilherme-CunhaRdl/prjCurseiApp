@@ -4,7 +4,7 @@ import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useNavigation } from "@react-navigation/native";
-
+import host from '../../global';
 const DenunciaConcluida = ({ visible, onClose,idPost,motivo,userPost }) => {
   const navigation = useNavigation();
 
@@ -15,7 +15,7 @@ const DenunciaConcluida = ({ visible, onClose,idPost,motivo,userPost }) => {
       navigation.navigate('Login')
     }
   
-    const url = 'http://localhost:8000/api/posts/interacoes/denunciar';
+    const url = `http://${host}:8000/api/posts/interacoes/denunciar`;
     denuncia = new  FormData();
     denuncia.append('idPost',idPost)
     denuncia.append('idUser',idUserSalvo)
