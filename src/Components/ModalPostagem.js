@@ -126,6 +126,7 @@ const ModalPostagem = forwardRef(
               },
             });
             fecharModal();
+            setDescPost('')
             // if(tela=='perfil'){
             //   navigation.replace('user');
             // }
@@ -178,6 +179,7 @@ const ModalPostagem = forwardRef(
             },
           });
           fecharModal();
+          setDescPost('')
           // if(tela=='perfil'){
           //   navigation.replace('user');
           // }

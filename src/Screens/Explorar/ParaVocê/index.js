@@ -6,14 +6,10 @@ import Configuracoes from '../../../Components/Configurações/configuracoes';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Post from '../../../Components/Post';
 
 
-const DATA = [
-    { id: '1', trendig: "#CURSEINOTA10", numPosts: "100k posts" },
-    { id: '2', trendig: "#TONACURSEI", numPosts: "200k posts" },
-    { id: '3', trendig: "#CURSODEQUALIDADE", numPosts: "100k posts" },
-    { id: '4', trendig: "#CURSODEQUALIDADE", numPosts: "100k posts" },
-];
+
 
 
 
@@ -21,6 +17,7 @@ export default function ParaVoce() {
     const navigation = useNavigation();
     const [usuarios, setUsuarios] = useState()
     const [segue_usuario, Setsegue_usuario] = useState(false)
+    const [hashtags, setHashtags] = useState()
 
 
     async function recomendarUsuarios() {
@@ -29,7 +26,12 @@ export default function ParaVoce() {
         Response = await axios.get(url)
         setUsuarios(Response.data)
     }
-
+    async function recomendarHashtags() {
+        const idUserSalvo = await AsyncStorage.getItem('idUser');
+        const url = `http://localhost:8000/api/cursei/explorar/recomendarHashtags/${idUserSalvo}`;
+        Response = await axios.get(url)
+        setHashtags(Response.data)
+    }
     async function seguir(id) {
 
         const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -47,7 +49,7 @@ export default function ParaVoce() {
 
         if (result.data == 'deseguido') {
             Setsegue_usuario(false)
-  const novosUsuarios = usuarios.map(user => {
+            const novosUsuarios = usuarios.map(user => {
                 if (user.id === id) {
                     return { ...user, seguido: false };
                 }
@@ -68,6 +70,7 @@ export default function ParaVoce() {
 
     useEffect(() => {
         recomendarUsuarios();
+        recomendarHashtags();
     }, []);
     return (
         <SafeAreaView style={styles.container}>
@@ -77,31 +80,28 @@ export default function ParaVoce() {
                     {/* Tendências */}
                     <View style={styles.containerTredings}>
                         <View style={styles.containerTitle}>
-                            <Text style={styles.title}>O que está acontecendo</Text>
+                            <Text style={styles.title}>Assuntos para você</Text>
                         </View>
 
                         <FlatList
-                            data={DATA}
+                            data={hashtags}
                             keyExtractor={item => item.id}
                             renderItem={({ item }) => (
                                 <View style={styles.trendigItem}>
-                                    <Text style={styles.subTitle}>Tendência no Cursei</Text>
+                                    <Text style={styles.subTitle}>Para você</Text>
 
                                     <View style={styles.trendigRow}>
-                                        <Text style={styles.trendigName}>{item.trendig}</Text>
+                                        <Text style={styles.trendigName}>{item.nomeHashtag}</Text>
                                         <View style={{ height: 20, alignItems: 'center', justifyContent: 'center' }}>
                                             <Configuracoes />
                                         </View>
                                     </View>
 
-                                    <Text style={styles.trendigNum}>{item.numPosts}</Text>
                                 </View>
                             )}
                         />
 
-                        <View style={styles.containerMS}>
-                            <Text style={styles.titleMS}>Mostrar Mais</Text>
-                        </View>
+
                     </View>
 
                     {/* Sugestão de usuários */}
@@ -116,17 +116,21 @@ export default function ParaVoce() {
                             renderItem={({ item }) => (
                                 <View style={styles.userContainer}>
                                     <Pressable style={styles.userImgContainer} onPress={() => {
-                  navigation.navigate('Perfil', {
-                    idUserPerfil: item.id,
-                    titulo: item.arroba_user});}}> 
-        
+                                        navigation.navigate('Perfil', {
+                                            idUserPerfil: item.id,
+                                            titulo: item.arroba_user
+                                        });
+                                    }}>
+
                                         <Image source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }} style={styles.imgLogo} />
                                     </Pressable>
 
                                     <Pressable style={styles.containerNomeUser} onPress={() => {
-                  navigation.navigate('Perfil', {
-                    idUserPerfil: item.id,
-                    titulo: item.arroba_user});}}> 
+                                        navigation.navigate('Perfil', {
+                                            idUserPerfil: item.id,
+                                            titulo: item.arroba_user
+                                        });
+                                    }}>
                                         <Text style={styles.nomeUser}>{item.nome_user}</Text>
                                         <Text style={styles.arrobaUser}>@{item.arroba_user}</Text>
                                     </Pressable>
@@ -136,7 +140,7 @@ export default function ParaVoce() {
                                             style={item.seguido ? styles.buttonFollowActive : styles.buttonFollow}
                                             onPress={() => seguir(item.id)}
                                         >
-                                            <Text style={item.seguido ? styles.titleButtonActive:styles.titleButton}>{item.seguido ?('Seguido'):'Seguir'}</Text>
+                                            <Text style={item.seguido ? styles.titleButtonActive : styles.titleButton}>{item.seguido ? ('Seguido') : 'Seguir'}</Text>
                                         </Pressable>
                                     </View>
                                 </View>
@@ -148,6 +152,16 @@ export default function ParaVoce() {
                         </View>
                     </View>
 
+
+                    <View style={styles.containerPost}>
+                        <View style={styles.containerTitlePost}>
+                            <Text style={styles.title}>Postagens para você</Text>
+                        </View>
+
+                        <Post tipo="maisCurtidos" />
+
+
+                    </View>
                 </View>
             </ScrollView>
         </SafeAreaView>

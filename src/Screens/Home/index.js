@@ -59,7 +59,7 @@ export default function Home() {
       const [focoIcone, setFocoIcone] = useState('posts')
       const alterarFoco = (icone) => {
         setFocoIcone(icone)
-        console.log(focoIcone)
+      
     }
   const navigation = useNavigation();
   async function verificarInteresses() {
@@ -205,8 +205,8 @@ export default function Home() {
                                 <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
                             </Pressable>
         
-                            <Pressable onPress={() => alterarFoco('imagem')} style={[styles.opcao, focoIcone === 'imagem' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                                <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="school-outline" />
+                            <Pressable onPress={() => alterarFoco('instituicao')} style={[styles.opcao, focoIcone === 'instituicao' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                                <Ionicons style={[styles.opcaoIcon, focoIcone === 'instituicao' ? styles.IconeAtivo : styles.iconeInativo]} name="school-outline" />
                             </Pressable>
         
                           
@@ -217,7 +217,7 @@ export default function Home() {
           <View style={styles.postContainer}>
           {focoIcone === 'posts' ? (
             <Post  key="post-0" />
-          ):focoIcone === 'imagem' ?(  <Post  key="post-1" tipo="instituicao"/> ): null }
+          ):focoIcone === 'instituicao' ?(  <Post  key="post-1" tipo="instituicao"/> ): null }
           </View>
         </View> 
       </View>

@@ -25,7 +25,11 @@ export default StyleSheet.create({
     marginBottom: 20,
   },
   containerTitle: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
+   containerTitlePost: {
+    paddingHorizontal: 5,
     marginBottom: 10,
   },
   title: {
@@ -144,5 +148,18 @@ export default StyleSheet.create({
     color: colors.preto,
     fontSize: 12,
     fontWeight: '600',
-  }
+  },
+   containerPost :{
+    width: '100%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    paddingVertical: 5,
+    marginBottom: 20,
+    paddingHorizontal:5,
+  },
+  
 });
