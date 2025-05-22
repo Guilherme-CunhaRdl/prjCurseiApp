@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { temaClaro, temaEscuro } from './themes';
 
 import TabNav from './TabNav';
 import Login from '../Screens/Login';
@@ -24,6 +25,7 @@ import TelaPesquisa from '../Screens/Explorar/TelaPesquisa/index.js';
 const Stack = createNativeStackNavigator();
 import SeguindoSeguidores from '../Screens/SeguindoSeguidores'
 export default function StackRoutes() {
+
   return (
     <Stack.Navigator
 

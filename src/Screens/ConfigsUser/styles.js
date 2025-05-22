@@ -1,75 +1,53 @@
 import { StyleSheet } from "react-native";
-import colors from "../../colors";
 
-export default StyleSheet.create({
-  
+export default function criarEstilos(tema) {
+  return StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-        overflow: 'scroll',
-        alignItems:'center',
-        
-      },
-      textoTitulo:{
-        fontSize:19,
-        fontFamily:'Arial',
-        color: '#448FFF',
-      },
-      configs:{
-        justifyContent:'space-between',
-        alignItems:'flex-start',
-        gap:35,
-        paddingTop: 40,
-        width: '90%',
-        flexDirection:'column',
-      },
-      textoDescricao:{
-        fontSize:13,
-        color:'#999999',
-        marginLeft: 45,
-      },
-      textoTituloInstitucional:{
-        fontSize:20,
-        fontFamily:'Arial',
-        color: '#F29500',
-      },
-      textoTituloLogoff:{
-        fontSize:20,
-        fontFamily:'Arial',
-        color: colors.vermelho,
-      },
-
-      modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
+      flex: 1,
+      backgroundColor: tema.fundo,
+      alignItems: 'center',
     },
-    modalContent: {
-        backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 10,
-        width: '80%',
+    configs: {
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 35,
+      paddingTop: 40,
+      width: '90%',
     },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        textAlign: 'center',
+    textoTitulo: {
+      fontSize: 19,
+      fontFamily: 'Arial',
+      color: tema.texto,
     },
-    modalMessage: {
-        fontSize: 16,
-        marginBottom: 20,
-        textAlign: 'center',
+    textoDescricao: {
+      fontSize: 13,
+      color: tema.descricao,
+      marginLeft: 35,
     },
-    modalButton: {
-        backgroundColor: '#F29500',
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center',
+    textoTituloInstitucional: {
+      fontSize: 20,
+      fontFamily: 'Arial',
+      color: tema.laranja,
     },
-    modalButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
+    textoTituloLogoff: {
+      fontSize: 20,
+      fontFamily: 'Arial',
+      color: tema.vermelho,
     },
-});
+    linhaConfig: {
+      flexDirection: "row", 
+      alignItems: "center", 
+      justifyContent: "space-between", 
+      width: "100%"
+    },
+    grupoIconeTexto: {
+      flexDirection: "row", 
+      alignItems: "center", 
+      gap: 10
+    },
+    icone: {
+      fontSize: 25,
+      color: tema.icone
+    }
+  });
+}

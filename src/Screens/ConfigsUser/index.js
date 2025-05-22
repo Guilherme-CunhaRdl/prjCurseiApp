@@ -1,36 +1,71 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
   Text,
   TouchableOpacity,
+  Switch,
 } from "react-native";
+import { temaClaro, temaEscuro } from './themes';
 import AntDesign from "react-native-vector-icons/AntDesign";
 import Feather from "react-native-vector-icons/Feather";
 import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
-import styles from "./styles";
+import criarEstilos from "./styles";
 import { useNavigation } from "@react-navigation/native";
-import colors from "../../colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 export default function ConfigsUser() {
   const navigation = useNavigation();
-  const fazerLogoff = async () => {
-    
-    AsyncStorage.setItem('logado', 0)
-    AsyncStorage.removeItem('idUser')
-    AsyncStorage.removeItem('idInstituicao')
-    navigation.navigate('Login')
+  const [modoEscuro, setModoEscuro] = useState(false);
+  const [tema, setTema] = useState(temaClaro);
+  const styles = criarEstilos(tema);
 
-  }
+  useEffect(() => {
+    const carregarTema = async () => {
+      const temaArmazenado = await AsyncStorage.getItem('modoEscuro');
+      if (temaArmazenado === 'true') {
+        setModoEscuro(true);
+        setTema(temaEscuro);
+      }
+    };
+    carregarTema();
+  }, []);
+
+  const alternarTema = async () => {
+    const novoModo = !modoEscuro;
+    setModoEscuro(novoModo);
+    setTema(novoModo ? temaEscuro : temaClaro);
+    await AsyncStorage.setItem('modoEscuro', novoModo.toString());
+  };
+
+  const fazerLogoff = async () => {
+    await AsyncStorage.clear();
+    navigation.navigate('Login');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.configs}>
+        
+        {/* Switch de Tema */}
+        <View style={styles.linhaConfig}>
+          <View style={styles.grupoIconeTexto}>
+            <Feather name="moon" style={[styles.icone, { color: tema.icone }]} />
+            <Text style={styles.textoTitulo}>Tema escuro</Text>
+          </View>
+          <Switch 
+            value={modoEscuro}
+            onValueChange={alternarTema}
+            trackColor={{ false: tema.switchTrack, true: tema.switchTrack }}
+            thumbColor={modoEscuro ? temaEscuro.switchThumbEscuro : temaClaro.switchThumbClaro}
+          />
+        </View>
 
         {/* Sua conta */}
-        <TouchableOpacity style={{gap: 2}}  onPress={()=> navigation.navigate('Informações da conta')}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap:10 }}>
-            <AntDesign name="user" style={{ color: "#448FFF", fontSize: 25, marginRight: 8 }} />
-            <Text style={styles.textoTitulo}>Sua conta</Text>
+        <TouchableOpacity style={{ gap: 2 }} onPress={() => navigation.navigate('Informações da conta')}>
+          <View style={styles.grupoIconeTexto}>
+            <AntDesign name="user" style={[styles.icone, { color: tema.azul }]} />
+            <Text style={[styles.textoTitulo, { color: tema.azul }]}>Sua conta</Text>
           </View>
           <Text style={styles.textoDescricao}>Veja e altere as informações da sua conta.</Text>
         </TouchableOpacity>
@@ -86,7 +121,7 @@ export default function ConfigsUser() {
 
         <TouchableOpacity style={{gap: 2}} onPress={() => fazerLogoff()}>
           <View style={{ flexDirection: "row", alignItems: "center", gap:10 }}>
-            <FontAwesome6 name="door-open"  style={{ color: colors.vermelho, fontSize: 25, marginRight: 8 }} />
+            <FontAwesome6 name="door-open"  style={{ color : '#E41313', fontSize: 25, marginRight: 8 }} />
             <Text style={styles.textoTituloLogoff}>Logoff</Text>
           </View>
           <Text style={styles.textoDescricao}>
