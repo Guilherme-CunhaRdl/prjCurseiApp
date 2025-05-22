@@ -374,6 +374,7 @@ const [query, setQuery] = useState("");
                         nomeEnviador: item.nome_enviador,
                         arrobaEnviador: item.arroba_enviador,
                         idChat: item.id_chat,
+                        isCanal: false
                       });
                     } else if (item.tipo === "canal") {
                       navigation.navigate("Conversa", {
@@ -383,6 +384,7 @@ const [query, setQuery] = useState("");
                         nomeEnviador: item.nome_canal,
                         arrobaEnviador: item.arroba_enviador,
                         idChat: item.id_chat,
+                        isCanal : true
                       });
                     } else if (item.tipo === "instituicao") {
                       navigation.navigate("Conversa", {
@@ -392,6 +394,8 @@ const [query, setQuery] = useState("");
                         nomeEnviador: item.nome_enviador,
                         arrobaEnviador: item.arroba_enviador,
                         idChat: item.id_chat,
+                        isCanal: false
+
                       });
                     }
                   }}

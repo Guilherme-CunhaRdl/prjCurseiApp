@@ -25,17 +25,18 @@ import colors from "../../../../../colors";
 import axios from "axios";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function AddConversa({ route }) {
   const navigation = useNavigation();
   const { idUserLogado } = route.params;
   const [seguidores, setSeguidores] = useState(null);
   const [focoInput, setFocoInput] = useState(false);
-  const [idChat, setIdChat] = useState(null);
   const [visibleCriar, setVisibleCriar] = useState(false);
   const [nomeCanal, setNomeCanal] = useState('')
   const [descricaoCanal, setDescricaoCanal] = useState('')
   const [imagemCanal, setImagemCanal] = useState(null);
+  const [idInstituicao, setIdInstituicao] = useState(null)
   const alterarFoco = (campo) => {
     setFocoInput(campo);
   };
@@ -44,6 +45,9 @@ export default function AddConversa({ route }) {
     const resposta = await axios.get(
       `http://localhost:8000/api/cursei/chat/adicionarChat/${idUserLogado}`
     );
+    const idInst = await AsyncStorage.getItem('idInstituicao');
+
+    setIdInstituicao(idInst)
     console.log(resposta);
     setSeguidores(resposta.data.seguidores);
 
@@ -185,9 +189,8 @@ const selecionarFotoCanal = async () => {
               ]}
             />
           </View>
-
+          { idUserLogado == idInstituicao && (
           <View>
-            <View></View>
             <View style={styles.containerAddGrupo}>
               <View style={styles.boxAddGrupo}>
                 <View style={styles.conteudoIcone}>
@@ -333,6 +336,127 @@ const selecionarFotoCanal = async () => {
               </View>
             </View>
           </View>
+)}
+{ idUserLogado != idInstituicao && (
+          <View>
+           
+            <View style={styles.containerAddUsuario}>
+              <View style={{ width: "100%", paddingLeft: 25 }}>
+                <Text style={{ fontWeight: 500 }}>Conexões</Text>
+              </View>
+              <FlatList
+                data={seguidores}
+                keyExtractor={(item) => item.id_seguidor}
+                style={styles.containerSeguidores}
+                renderItem={({ item }) => (
+                  <View style={styles.flatlistSeguidores}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        irParaConversa(
+                          item.id_seguidor,
+                          item.id_seguido,
+                          item.id_chat
+                        )
+                      }
+                    >
+                      <View style={styles.boxAddUsuario}>
+                        <View
+                          style={[styles.conteudoIcone, { marginRight: 8 }]}
+                        >
+                          <View style={styles.boxIcone}>
+                            <Image
+                              style={styles.imgUsuario}
+                              source={{
+                                uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_seguidor}`,
+                              }}
+                            />
+                          </View>
+                        </View>
+                        <View style={styles.conteudoTexto}>
+                          <View style={{ paddingTop: 7 }}>
+                            <Text style={{ fontWeight: 500 }}>
+                              {item.nome_seguidor}
+                            </Text>
+                          </View>
+                          <View>
+                            <Text style={{ fontSize: 12, color: colors.cinza }}>
+                              @{item.arroba_seguidor}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
+
+              <View style={{ width: "100%", paddingLeft: 25, marginTop: 20 }}>
+                <Text style={{ fontWeight: 500 }}>Sugestões</Text>
+              </View>
+              <View style={styles.boxAddUsuario}>
+                <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                  <View style={styles.boxIcone}>
+                    <Image
+                      style={styles.imgUsuario}
+                      source={require("../../../../../../assets/fabricaLogo.jpeg")}
+                    />
+                  </View>
+                </View>
+                <View style={styles.conteudoTexto}>
+                  <View style={{ paddingTop: 7 }}>
+                    <Text style={{ fontWeight: 500 }}>Sla</Text>
+                  </View>
+                  <View>
+                    <Text style={{ fontSize: 12, color: colors.cinza }}>
+                      @Sla
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.boxAddUsuario}>
+                <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                  <View style={styles.boxIcone}>
+                    <Image
+                      style={styles.imgUsuario}
+                      source={require("../../../../../../assets/itauLogo.png")}
+                    />
+                  </View>
+                </View>
+                <View style={styles.conteudoTexto}>
+                  <View style={{ paddingTop: 7 }}>
+                    <Text style={{ fontWeight: 500 }}>Itau</Text>
+                  </View>
+                  <View>
+                    <Text style={{ fontSize: 12, color: colors.cinza }}>
+                      @Itau
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.boxAddUsuario}>
+                <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                  <View style={styles.boxIcone}>
+                    <Image
+                      style={styles.imgUsuario}
+                      source={require("../../../../../../assets/etecLogo.jpg")}
+                    />
+                  </View>
+                </View>
+                <View style={styles.conteudoTexto}>
+                  <View style={{ paddingTop: 7 }}>
+                    <Text style={{ fontWeight: 500 }}>Etec</Text>
+                  </View>
+                  <View>
+                    <Text style={{ fontSize: 12, color: colors.cinza }}>
+                      @Arroba
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+)}
+
         </View>
       </PaperProvider>
       <Modal
@@ -348,7 +472,7 @@ const selecionarFotoCanal = async () => {
                 style={styles.iconSmall}
               />
             </TouchableOpacity>
-            <Text>Nova Comunidade</Text>
+            <Text style={styles.titPag}>Nova Comunidade</Text>
           </View>
           <View style={styles.containerImgCanal}>
             <View style={styles.boxImgCanal}>
@@ -363,7 +487,7 @@ const selecionarFotoCanal = async () => {
                 />
               </Pressable>
               <View>
-                <Text>Mudar Imagem</Text>
+                <Text style={styles.textMudarImg}>Mudar Imagem</Text>
               </View>
             </View>
           </View>
@@ -374,31 +498,30 @@ const selecionarFotoCanal = async () => {
                 //erroEmail ? {borderColor: '#ff4444'} : null
               ]}
             >
-              <Ionicons style={styles.inputIcon} name="mail" />
+              <Ionicons style={styles.inputIcon} name="megaphone" />
               <TextInput
                 style={[styles.input, { height: 30 }]}
                 placeholder="Digite o nome do Canal"
                  value={nomeCanal}
                  onChangeText={(texto) => {
                    setNomeCanal(texto);
-                //   setErroEmail('');
-                //   setErroGeral('');
+                
                  }}
-                // keyboardType="email-address"
                 autoCapitalize="none"
               />
             </View>
             <View
               style={[
                 styles.inputContainer,
-                { alignItems: "flex-start", height: 150 },
+                { alignItems: "flex-start", height: 80 },
               ]}
             >
-              <Ionicons style={styles.inputIcon} name="mail" />
+              <Ionicons style={styles.inputIcon} name="newspaper" />
               <TextInput
                 style={[styles.input]}
                 placeholder="Digite uma Descrição"
                  value={descricaoCanal}
+                 multiline
                  onChangeText={(texto) => {
                   setDescricaoCanal(texto);
                 //   setErroEmail('');

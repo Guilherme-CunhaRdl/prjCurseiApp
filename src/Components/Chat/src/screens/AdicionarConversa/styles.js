@@ -8,7 +8,15 @@ export default StyleSheet.create({
     },
     header: {
         backgroundColor: colors.branco,
-        elevation: 0
+        elevation: 0,
+        
+    },
+    titPag:{
+    
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: "#000",
+
     },
     iconSmall: { 
         width: 22, 
@@ -115,8 +123,9 @@ export default StyleSheet.create({
       headerModal:{
         width: '100%',
         flexDirection: 'row',
-        alignItems: 'center'
-
+        alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
       },
       containerImgCanal:{
         height: 300,
@@ -143,6 +152,11 @@ export default StyleSheet.create({
         height: '100%',
         borderRadius: 15
       },
+      textMudarImg:{
+        fontWeight: '500',
+        color: colors.azul,
+        marginBlock: 5
+      },
       boxInputs:{
         width: '100%',
         justifyContent: 'center',
@@ -168,8 +182,8 @@ export default StyleSheet.create({
       },
       input: {
         width: '100%',
-
         color: '#333',
+        height: '100%',
         fontSize: 16,
          outlineStyle: "none",        // Remove borda azul no focus
       },

@@ -26,7 +26,9 @@ export default function Conversa({ route }) {
     nomeEnviador,
     arrobaEnviador,
     idChat,
+    isCanal
   } = route.params;
+  console.log(isCanal)
   const [campoMensagem, setCampoMensagem] = useState("");
   const [campoMensagemImg, setCampoMensagemImg] = useState("");
   const navigation = useNavigation();
@@ -44,7 +46,6 @@ export default function Conversa({ route }) {
       const respostaCanal = await axios.get(
         `http://127.0.0.1:8000/api/cursei/chat/mensagensCanal/${idEnviador}`
       )
-      console.log(respostaCanal)
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
       }, 300);
@@ -52,6 +53,8 @@ export default function Conversa({ route }) {
         await setMensagens(resposta.data.chats);
       } else if (respostaCanal.data.mensagensCanal && respostaCanal.data.mensagensCanal.length > 0) {
         await setMensagens(respostaCanal.data.mensagensCanal);
+        console.log(respostaCanal.data.mensagensCanal)
+        console.log(idCriador)
       }
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
@@ -177,7 +180,6 @@ export default function Conversa({ route }) {
       const uri = resultado.assets[0].uri;
       setImagemMensagem(uri);
       console.log("URI selecionada:", imagemMensagem); // <-- use o valor diretamente
-    
       setModalFoto(true);
     }
   };
@@ -215,7 +217,7 @@ export default function Conversa({ route }) {
     }
   };
 
-
+console.log(idUserLogado)
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -278,18 +280,51 @@ export default function Conversa({ route }) {
                   resizeMode="cover"
                 />
               )}
-
+              { item.conteudo_mensagem && (
+<View style={styles.viewTextoMsg}>
               <Text style={styles.textoMensagem}>
                 {item.conteudo_mensagem}
               </Text>
+              </View>
+              )}
+              
             </View>
           )}
           contentContainerStyle={styles.chatContent}
           style={{flex: 1}}
         />
+        
+        { isCanal && idEnviador != idUserLogado && (
+          <View style={styles.inputContainer}>
+          <TouchableOpacity onPress={tirarFoto}>
+            <Image
+              source={require("../../img/Camera.png")}
+              style={styles.iconSmall}
+            />
+          </TouchableOpacity>
 
-        {/* Input de enviar mensagem */}
-        <View style={styles.inputContainer}>
+          <TouchableOpacity onPress={abrirDocumentos}>
+            <Image
+              source={require("../../img/gallery.png")}
+              style={styles.iconSmall}
+            />
+          </TouchableOpacity>
+
+          <Text
+            style={styles.input}
+            
+          >Não pode enviar mensagens</Text>
+
+          <TouchableOpacity onPress={() => enviarMensagem()}>
+            <Image
+              source={require("../../img/enviar.png")}
+              style={styles.iconSmall}
+            />
+          </TouchableOpacity>
+        </View>
+        ) }
+        { isCanal && idEnviador == idUserLogado && (
+          <View style={styles.inputContainer}>
           <TouchableOpacity onPress={tirarFoto}>
             <Image
               source={require("../../img/Camera.png")}
@@ -319,6 +354,40 @@ export default function Conversa({ route }) {
             />
           </TouchableOpacity>
         </View>
+        ) }
+        { !isCanal && (
+          <View style={styles.inputContainer}>
+          <TouchableOpacity onPress={tirarFoto}>
+            <Image
+              source={require("../../img/Camera.png")}
+              style={styles.iconSmall}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={abrirDocumentos}>
+            <Image
+              source={require("../../img/gallery.png")}
+              style={styles.iconSmall}
+            />
+          </TouchableOpacity>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Escreva sua Mensagem..."
+            placeholderTextColor="#A7A7A7"
+            value={campoMensagem}
+            onChangeText={setCampoMensagem}
+          />
+
+          <TouchableOpacity onPress={ !isCanal ?  () => enviarMensagem() : ''}>
+            <Image
+              source={require("../../img/enviar.png")}
+              style={styles.iconSmall}
+            />
+          </TouchableOpacity>
+        </View>
+        ) }
+        
         <Modal
           animationType="slide"
           transparent={true}
@@ -329,7 +398,7 @@ export default function Conversa({ route }) {
           <View style={styles.containerModalFoto}>
             <View style={styles.boxModalFoto}>
               <View style={styles.cabecalhoModalFoto}>
-                <TouchableOpacity onPress={() => setModalFoto(false)}>
+                <TouchableOpacity onPress={!isCanal ? () => setModalFoto(false) : ''}>
                   <Icon name="x" size={22} color={colors.azul} />
                 </TouchableOpacity>
                 <Text
@@ -366,14 +435,14 @@ export default function Conversa({ route }) {
                     onChangeText={setCampoMensagemImg}
                   />
 
-                  <TouchableOpacity onPress={() => enviarMensagemFoto()}>
+                  <TouchableOpacity onPress={ !isCanal ? () => enviarMensagemFoto() : ''}>
                     <Image
                       source={require("../../img/enviar.png")}
                       style={styles.iconSmall}
                     />
                   </TouchableOpacity>
                 </View>
-              </View>
+                </View>
             </View>
           </View>
         </Modal>
@@ -423,25 +492,29 @@ const styles = StyleSheet.create({
   mensagemRecebida: {
     alignSelf: "flex-start",
     backgroundColor: "#f1f1f1",
-    borderRadius: 15,
-    padding: 5,
+    borderRadius: 8,
+    padding: 4,
     marginBottom: 10,
     maxWidth: "75%",
+
   },
   mensagemEnviada: {
     alignSelf: "flex-end",
     backgroundColor: "#f1f1f1",
-    padding: 7,
-    borderRadius: 15,
+    padding: 4,
+    borderRadius: 8,
     marginBottom: 10,
     maxWidth: "75%",
   },
+  viewTextoMsg:{
+    padding: 3
+  },  
   imgMensagem: {
     width: "100%",
     aspectRatio: 3 / 4,
     height: 300,
-    borderRadius: 10,
-    marginBottom: 5,
+    borderRadius: 6,
+    marginBottom: 3,
   },
   textoMensagem: { color: "#000", fontSize: 14 },
 
@@ -470,13 +543,13 @@ const styles = StyleSheet.create({
   boxModalFoto: {
     width: "100%",
     flex: 1,
-    backgroundColor: colors.branco,
+    backgroundColor: 'rgba(0, 0, 0, 0.950)',
     shadowColor: colors.preto,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 5,
-    backgroundColor: colors.preto,
-    opacity: 0.93,
+    opacity: 1,
+    
   },
   cabecalhoModalFoto: {
     width: "100%",
