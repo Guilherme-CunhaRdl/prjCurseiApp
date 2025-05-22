@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import host from '../../global';
 
 const ModalExcluir = ({ visible, onClose,idPost }) => {
      const navigation = useNavigation();
@@ -11,7 +12,7 @@ const ModalExcluir = ({ visible, onClose,idPost }) => {
     
     post = new FormData();
     post.append('idPost',idPost);
-    url = 'http://localhost:8000/api/posts/interacoes/desativar';
+    url = `http://${host}:8000/api/posts/interacoes/desativar`;
     try{
       await axios.post(url,post, {
         headers: {

@@ -27,6 +27,7 @@ import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import colors from "../colors";
 import * as ImagePicker from "expo-image-picker";
 import dayjs from "dayjs";
+import host from "../global";
 const ModalPostagem = forwardRef(
   ({ idPostRepost, tipo, idPost, tela }, ref) => {
     const navigation = useNavigation();
@@ -118,7 +119,7 @@ const ModalPostagem = forwardRef(
           editarPost.append("descricaoPost", descPost);
 
           const idUser = await AsyncStorage.getItem("idUser");
-          url = "http://localhost:8000/api/cursei/postsUpdate/" + idPost; 
+          url = `http://${host}:8000/api/cursei/postsUpdate/` + idPost; 
           try {
             const response = await axios.post(url, editarPost, {
               headers: {
@@ -171,7 +172,7 @@ const ModalPostagem = forwardRef(
         novoPost.append("descricaoPost", descPost);
 
         const idUser = await AsyncStorage.getItem("idUser");
-        url = "http://localhost:8000/api/cursei/posts/" + idUser;
+        url = `http://${host}:8000/api/cursei/posts/` + idUser;
         try {
           const response = await axios.post(url, novoPost, {
             headers: {
@@ -200,7 +201,7 @@ const ModalPostagem = forwardRef(
     }, []);
 
     const usuario = {
-      foto: `http://localhost:8000/img/user/fotoPerfil/${imgUser}`,
+      foto: `http://${host}:8000/img/user/fotoPerfil/${imgUser}`,
       username: arroba || "você",
     };
 
@@ -212,7 +213,7 @@ const ModalPostagem = forwardRef(
       if (idPostRepost) {
         setRepost(id);
 
-        const url = `http://localhost:8000/api/posts/4/${id}/1/0/0`;
+        const url = `http://${host}:8000/api/posts/4/${id}/1/0/0`;
         response = await axios.get(url);
         data = response.data.data[0];
         console.log(data);
@@ -224,7 +225,7 @@ const ModalPostagem = forwardRef(
         setRepostConteudo(data.conteudo_post);
       }
       if (tipo == "editar") {
-        const url = `http://localhost:8000/api/posts/4/${idPost}/1/0/0`;
+        const url = `http://${host}:8000/api/posts/4/${idPost}/1/0/0`;
         response = await axios.get(url);
         data = response.data.data[0];
         console.log(data);
@@ -232,7 +233,7 @@ const ModalPostagem = forwardRef(
            setDescPost(data.descricao_post);
         }
         setImagem(
-          `http://localhost:8000/img/user/imgPosts/${data.conteudo_post}`
+          `http://${host}:8000/img/user/imgPosts/${data.conteudo_post}`
         );
         setEditar(true)
       }
@@ -297,7 +298,7 @@ const ModalPostagem = forwardRef(
                     >
                       <Image
                         source={{
-                          uri: `http://localhost:8000/img/user/fotoPerfil/${repost_img}`,
+                          uri: `http://${host}:8000/img/user/fotoPerfil/${repost_img}`,
                         }}
                         style={estilos.fotoUserRepost}
                       />
@@ -328,7 +329,7 @@ const ModalPostagem = forwardRef(
                           borderBottomRightRadius: 8,
                         }}
                         source={{
-                          uri: `http://localhost:8000/img/user/imgPosts/${repost_conteudo}`,
+                          uri: `http://${host}:8000/img/user/imgPosts/${repost_conteudo}`,
                         }}
                       />
                     </TouchableOpacity>

@@ -16,18 +16,18 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import host from '../global';
 const ModalEditarPerfil = ({ visivel, onClose, usuarioAtual, onSaveSuccess }) => {
   const [nome, setNome] = useState(usuarioAtual.nome || '');
   const [bio, setBio] = useState(usuarioAtual.bio || '');
 
 const [fotoPerfil, setFotoPerfil] = useState(usuarioAtual.foto ? 
-  `http://localhost:8000/img/user/fotoPerfil/${usuarioAtual.foto}` : 
+  `http://${host}:8000/img/user/fotoPerfil/${usuarioAtual.foto}` : 
   null
 );
 
 const [banner, setBanner] = useState(usuarioAtual.banner ? 
-  `http://localhost:8000/img/user/bannerPerfil/${usuarioAtual.banner}` : 
+  `http://${host}:8000/img/user/bannerPerfil/${usuarioAtual.banner}` : 
   null
 );
   const [loading, setLoading] = useState(false);
@@ -139,7 +139,7 @@ const salvarAlteracoes = async () => {
 
     // Configuração do axios IGUAL ao do seu amigo
     const response = await axios.post(
-      `http://localhost:8000/api/cursei/user/update-perfil/${idUser}`,
+      `http://${host}:8000/api/cursei/user/update-perfil/${idUser}`,
       formData,
       {
         headers: {
