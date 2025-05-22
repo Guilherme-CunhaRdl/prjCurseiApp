@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 import dayjs from 'dayjs';
-
+import host from '../global';
 
 export default function Comentario({ idPost }) {
 
@@ -21,7 +21,7 @@ export default function Comentario({ idPost }) {
 
   async function buscarComentarios(idPost) {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
-    url = 'http://localhost:8000/api/posts/interacoes/comentarios';
+    url = `http://${host}:8000/api/posts/interacoes/comentarios`;
     const post = {
       idPost: idPost,
       idUser: idUserSalvo
@@ -86,7 +86,7 @@ export default function Comentario({ idPost }) {
   };
 
   try {
-    await axios.post('http://127.0.0.1:8000/api/posts/interacoes/curtirComentario', NovaCurtida);
+    await axios.post(`http://${host}:8000/api/posts/interacoes/curtirComentario`, NovaCurtida);
 
     setComentarios((prevComentarios) =>
       prevComentarios.map((item) =>

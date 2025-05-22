@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ModalPostagem from "./ModalPostagem";
 import colors from '../colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import host from '../global';
 
 export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
   const navigation = useNavigation();
@@ -70,36 +70,36 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
         if (tipo) {
           if (tipo == 'normais') {
             console.log("aa")
-            url = `http://localhost:8000/api/posts/6/${id}/100/0/0`;
+            url = `http://${host}:8000/api/posts/6/${id}/100/0/0`;
           } else {
-            url = `http://localhost:8000/api/posts/5/${id}/100/0/0`;
+            url = `http://${host}:8000/api/posts/5/${id}/100/0/0`;
           }
          
         } else {
-          url = `http://localhost:8000/api/posts/2/${id}/100/0/0`;
+          url = `http://${host}:8000/api/posts/2/${id}/100/0/0`;
         }
       } else {
         if (idUserSalvo) {
           SetverificarLoginUser(true)
           id = idUserSalvo;
-          url = `http://localhost:8000/api/posts/1/${id}/50/0/0`;
+          url = `http://${host}:8000/api/posts/1/${id}/50/0/0`;
 
         } else[
           id = 0,
-          url = `http://localhost:8000/api/posts/0/${id}/50/0/0`
+          url = `http://${host}:8000/api/posts/0/${id}/50/0/0`
         ]
       }
       if (idPostUnico) {
-        url = `http://localhost:8000/api/posts/4/${idPostUnico}/1/0/0`
+        url = `http://${host}:8000/api/posts/4/${idPostUnico}/1/0/0`
       }
       if(pesquisa){
-         url = `http://localhost:8000/api/posts/3/0/50/0/${pesquisa}`
+         url = `http://${host}:8000/api/posts/3/0/50/0/${pesquisa}`
       }
       if(tipo && tipo == 'instituicao'){
-        url = `http://localhost:8000/api/posts/7/${id}/50/0/0`;
+        url = `http://${host}:8000/api/posts/7/${id}/50/0/0`;
       }
        if(tipo && tipo == 'maisCurtidos'){
-        url = `http://localhost:8000/api/posts/8/${id}/5/0/0`;
+        url = `http://${host}:8000/api/posts/8/${id}/5/0/0`;
       }
   
       const response = await axios.get(url);
@@ -122,7 +122,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
     const idUserSalvo = await verificarLogin()
     console.log(idPost, idUserSalvo)
     if (curtidos[idPost] === true || curtida_banco === 1) {
-      url = `http://localhost:8000/api/posts/interacoes/descurtir`;
+      url = `http://${host}:8000/api/posts/interacoes/descurtir`;
       const curtida = new FormData();
       curtida.append('idUser', idUserSalvo);
       curtida.append('idPost', idPost)
@@ -135,7 +135,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
       setCurtidos(prev => ({ ...prev, [idPost]: false }));
       return 1;
     } else {
-      url = `http://localhost:8000/api/posts/interacoes/curtir`;
+      url = `http://${host}:8000/api/posts/interacoes/curtir`;
       const curtida = new FormData();
       curtida.append('idUser', idUserSalvo);
       curtida.append('idPost', idPost)
@@ -198,7 +198,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
                   });
                 }}>
                   <Image
-                    source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }}
+                    source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }}
                     style={styles.fotoUser}
                   />
                   <View style={{ paddingLeft: 10 }}>
@@ -260,7 +260,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
                     <Pressable style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
                       <Image
                         style={{ width: '100%', height: '100%', borderRadius: 8 }}
-                        source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.conteudo_post}` }}
+                        source={{ uri: `http://${host}:8000/img/user/imgPosts/${item.conteudo_post}` }}
                       />
 
 
@@ -277,7 +277,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
                   <View style={styles.postHeader}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', paddingInline: 10, }}>
                       <Image
-                        source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.repost_img}` }}
+                        source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.repost_img}` }}
                         style={styles.fotoUserRepost}
                       />
                       <View style={{ paddingLeft: 10 }}>
@@ -307,7 +307,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
                       <View style={styles.postContentRepost}>
                         <Image
                           style={{ width: '100%', height: '100%', borderBottomLeftRadius: 8, borderBottomRightRadius: 8 }}
-                          source={{ uri: `http://localhost:8000/img/user/imgPosts/${item.repost_conteudo}` }}
+                          source={{ uri: `http://${host}:8000/img/user/imgPosts/${item.repost_conteudo}` }}
                         />
                       </View>
                     )

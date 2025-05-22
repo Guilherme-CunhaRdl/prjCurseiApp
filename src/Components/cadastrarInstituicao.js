@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import axios from 'axios';
-
+import host from '../global';
 export default function CadastroInstituicaoModal({ visible, onClose, onSubmit, userId }) {
   const [form, setForm] = useState({
     logradouro: '',
@@ -58,7 +58,7 @@ export default function CadastroInstituicaoModal({ visible, onClose, onSubmit, u
     };
 
     try {
-      const response = await axios.post('http://localhost:8000/api/instituicao', dadosInstituicao, {
+      const response = await axios.post(`http://${host}:8000/api/instituicao`, dadosInstituicao, {
         headers: {
           'Content-Type': 'application/json',
         },

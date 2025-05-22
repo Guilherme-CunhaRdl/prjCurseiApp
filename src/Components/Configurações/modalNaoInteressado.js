@@ -3,13 +3,14 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import host from '../../global';
 const NaoInteressado = ({ visible, onClose,arroba,idPost }) => {
   async function naointeressar() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
     data = new FormData();
     data.append('idUser',idUserSalvo)
     data.append('idPost',idPost)
-    const url = 'http://localhost:8000/api/posts/interacoes/naointeressado';
+    const url = `http://${host}:8000/api/posts/interacoes/naointeressado`;
     try{
       axios.post(url,data)
       onClose()
