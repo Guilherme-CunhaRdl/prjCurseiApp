@@ -30,48 +30,58 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function AddConversa({ route }) {
   const navigation = useNavigation();
   const { idUserLogado } = route.params;
-  const [seguidores, setSeguidores] = useState(null);
+  const [seguidores, setSeguidores] = useState([]);
+
+  const [conexoes, setConexoes] = useState([]);
   const [focoInput, setFocoInput] = useState(false);
   const [visibleCriar, setVisibleCriar] = useState(false);
-  const [nomeCanal, setNomeCanal] = useState('')
-  const [descricaoCanal, setDescricaoCanal] = useState('')
+  const [nomeCanal, setNomeCanal] = useState("");
+  const [descricaoCanal, setDescricaoCanal] = useState("");
   const [imagemCanal, setImagemCanal] = useState(null);
-  const [idInstituicao, setIdInstituicao] = useState(null)
+  const [idInstituicao, setIdInstituicao] = useState();
   const alterarFoco = (campo) => {
     setFocoInput(campo);
   };
 
-  const selecionarDados = async () => {
-    const resposta = await axios.get(
-      `http://localhost:8000/api/cursei/chat/adicionarChat/${idUserLogado}`
-    );
-    const idInst = await AsyncStorage.getItem('idInstituicao');
-
-    setIdInstituicao(idInst)
-    console.log(resposta);
-    setSeguidores(resposta.data.seguidores);
-
-    console.log(resposta);
-    console.log(idUserLogado);
-  };
-
   useEffect(() => {
+    const selecionarDados = async () => {
+      const resposta = await axios.get(
+        `http://localhost:8000/api/cursei/chat/adicionarChat/${idUserLogado}`
+      );
+      const respostaConexoes = await axios.get(
+        `http://localhost:8000/api/cursei/chat/adicionarChat/conexoes/${idUserLogado}`
+      );
+      const idInst = await AsyncStorage.getItem("idInstituicao");
+
+      setIdInstituicao(idInst);
+      console.log(resposta);
+      setSeguidores(resposta.data.seguidores);
+      setConexoes(respostaConexoes.data.conexoes);
+
+      console.log(resposta);
+      console.log(idUserLogado);
+    };
+
     selecionarDados();
   }, []);
 
-  const irParaConversa = async (idSeguidor, idSeguido) => {
+  const irParaConversa = async (idSeguidor, idSeguido, isConexao) => {
     try {
       const resposta = await axios.get(
         `http://localhost:8000/api/cursei/chat/adicionarChat/${idUserLogado}/${idSeguidor}`
       );
-      const chatExistente = resposta.data.seguidor;
+      const respostaConexoes = await axios.get(
+        `http://localhost:8000/api/cursei/chat/adicionarChat/conexoes/${idUserLogado}`
+      );
+      const chatExistente = isConexao
+        ? respostaConexoes.data.conexoes
+        : resposta.data.seguidor;
       const idChatExistente = chatExistente ? chatExistente.id_chat : null;
-
       const usuario = seguidores.find(
         (user) =>
           user.id_seguidor === idSeguidor && user.id_seguido === idSeguido
       );
-
+      console.log(chatExistente)
       const dadosChat = {
         idUser1: idSeguido,
         idUser2: idSeguidor,
@@ -91,10 +101,10 @@ export default function AddConversa({ route }) {
       navigation.navigate("Conversa", {
         idUserLogado: idUserLogado,
         idEnviador: idSeguido,
-        imgEnviador: usuario.img_seguidor,
-        nomeEnviador: usuario.nome_seguidor,
-        arrobaEnviador: usuario.arroba_seguidor,
-        idChat: idChatFinal,
+        imgEnviador: chatExistente.img_seguidor,
+        nomeEnviador: chatExistente.nome_seguidor,
+        arrobaEnviador: chatExistente.arroba_seguidor,
+        idChat: idChatFinal
       });
     } catch (error) {
       console.log("Erro ao iniciar conversa:", error);
@@ -104,28 +114,26 @@ export default function AddConversa({ route }) {
   const modalCriacaoCanal = async () => {
     setVisibleCriar(true);
   };
-const criarCanal = async () => {
+  const criarCanal = async () => {
+    const canal = new FormData();
 
-  const canal = new FormData();
+    if (imagemCanal.startsWith("data:image")) {
+      const resposta = await fetch(imagemCanal);
+      const blob = await resposta.blob();
 
-  if(imagemCanal.startsWith('data:image')){
-    const resposta = await fetch(imagemCanal);
-    const blob = await resposta.blob();
+      const nomeArquivo = `image_${Date.now()}.jpg`;
 
-    const nomeArquivo = `image_${Date.now()}.jpg`;
+      const arquivo = new File([blob], nomeArquivo, { type: blob.type });
 
-    const arquivo = new File([blob], nomeArquivo, {type: blob.type});
+      canal.append("imgCanal", arquivo);
+    }
 
-    canal.append('imgCanal', arquivo);
+    const url = `http://127.0.0.1:8000/api/cursei/chat/criarCanal`;
 
-  }
-
-  const url = `http://127.0.0.1:8000/api/cursei/chat/criarCanal`;
-
-  canal.append('nomeCanal', nomeCanal);
-  canal.append('descricaoCanal', descricaoCanal);
-  canal.append('userCriador', idUserLogado);
-  try {
+    canal.append("nomeCanal", nomeCanal);
+    canal.append("descricaoCanal", descricaoCanal);
+    canal.append("userCriador", idUserLogado);
+    try {
       const resposta = await axios.post(url, canal, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -136,11 +144,9 @@ const criarCanal = async () => {
     } catch (e) {
       console.error(e);
     }
-    
-    
-}
+  };
 
-const selecionarFotoCanal = async () => {
+  const selecionarFotoCanal = async () => {
     const resultado = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -189,274 +195,276 @@ const selecionarFotoCanal = async () => {
               ]}
             />
           </View>
-          { idUserLogado == idInstituicao && (
-          <View>
-            <View style={styles.containerAddGrupo}>
-              <View style={styles.boxAddGrupo}>
-                <View style={styles.conteudoIcone}>
-                  <View style={styles.boxIcone}>
-                    <Icon style={styles.iconeAdd} name="chat-plus-outline" />
+          {idUserLogado == idInstituicao && (
+            <View>
+              <View style={styles.containerAddGrupo}>
+                <View style={styles.boxAddGrupo}>
+                  <View style={styles.conteudoIcone}>
+                    <View style={styles.boxIcone}>
+                      <Icon style={styles.iconeAdd} name="chat-plus-outline" />
+                    </View>
                   </View>
-                </View>
-                <View style={styles.conteudoTexto}>
-                  <TouchableOpacity
-                    style={{ paddingTop: 7 }}
-                    onPress={() => modalCriacaoCanal()}
-                  >
-                    <Text style={{ fontWeight: 500 }}>
-                      Adicionar Novo Canal
-                    </Text>
-                  </TouchableOpacity>
-                  <View>
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        color: colors.cinza,
-                        paddingRight: 30,
-                      }}
-                    >
-                      Adicione uma nova conversa ao seu Bate Papo!
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-            <View style={styles.containerAddUsuario}>
-              <View style={{ width: "100%", paddingLeft: 25 }}>
-                <Text style={{ fontWeight: 500 }}>Seguidores</Text>
-              </View>
-              <FlatList
-                data={seguidores}
-                keyExtractor={(item) => item.id_seguidor}
-                style={styles.containerSeguidores}
-                renderItem={({ item }) => (
-                  <View style={styles.flatlistSeguidores}>
+                  <View style={styles.conteudoTexto}>
                     <TouchableOpacity
-                      onPress={() =>
-                        irParaConversa(
-                          item.id_seguidor,
-                          item.id_seguido,
-                          item.id_chat
-                        )
-                      }
+                      style={{ paddingTop: 7 }}
+                      onPress={() => modalCriacaoCanal()}
                     >
-                      <View style={styles.boxAddUsuario}>
-                        <View
-                          style={[styles.conteudoIcone, { marginRight: 8 }]}
-                        >
-                          <View style={styles.boxIcone}>
-                            <Image
-                              style={styles.imgUsuario}
-                              source={{
-                                uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_seguidor}`,
-                              }}
-                            />
-                          </View>
-                        </View>
-                        <View style={styles.conteudoTexto}>
-                          <View style={{ paddingTop: 7 }}>
-                            <Text style={{ fontWeight: 500 }}>
-                              {item.nome_seguidor}
-                            </Text>
-                          </View>
-                          <View>
-                            <Text style={{ fontSize: 12, color: colors.cinza }}>
-                              @{item.arroba_seguidor}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
+                      <Text style={{ fontWeight: 500 }}>
+                        Adicionar Novo Canal
+                      </Text>
                     </TouchableOpacity>
+                    <View>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: colors.cinza,
+                          paddingRight: 30,
+                        }}
+                      >
+                        Adicione uma nova conversa ao seu Bate Papo!
+                      </Text>
+                    </View>
                   </View>
-                )}
-              />
+                </View>
+              </View>
+              <View style={styles.containerAddUsuario}>
+                <View style={{ width: "100%", paddingLeft: 25 }}>
+                  <Text style={{ fontWeight: 500 }}>Seguidores</Text>
+                </View>
+                <FlatList
+                  data={seguidores}
+                  keyExtractor={(item) => item.id_seguidor}
+                  style={styles.containerSeguidores}
+                  renderItem={({ item }) => (
+                    <View style={styles.flatlistSeguidores}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          irParaConversa(
+                            item.id_seguidor,
+                            item.id_seguido,
+                            false
+                          )
+                        }
+                      >
+                        <View style={styles.boxAddUsuario}>
+                          <View
+                            style={[styles.conteudoIcone, { marginRight: 8 }]}
+                          >
+                            <View style={styles.boxIcone}>
+                              <Image
+                                style={styles.imgUsuario}
+                                source={{
+                                  uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_seguidor}`,
+                                }}
+                              />
+                            </View>
+                          </View>
+                          <View style={styles.conteudoTexto}>
+                            <View style={{ paddingTop: 7 }}>
+                              <Text style={{ fontWeight: 500 }}>
+                                {item.nome_seguidor}
+                              </Text>
+                            </View>
+                            <View>
+                              <Text
+                                style={{ fontSize: 12, color: colors.cinza }}
+                              >
+                                @{item.arroba_seguidor}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                />
 
-              <View style={{ width: "100%", paddingLeft: 25, marginTop: 20 }}>
-                <Text style={{ fontWeight: 500 }}>Sugestões</Text>
-              </View>
-              <View style={styles.boxAddUsuario}>
-                <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                  <View style={styles.boxIcone}>
-                    <Image
-                      style={styles.imgUsuario}
-                      source={require("../../../../../../assets/fabricaLogo.jpeg")}
-                    />
+                <View style={{ width: "100%", paddingLeft: 25, marginTop: 20 }}>
+                  <Text style={{ fontWeight: 500 }}>Sugestões</Text>
+                </View>
+                <View style={styles.boxAddUsuario}>
+                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                    <View style={styles.boxIcone}>
+                      <Image
+                        style={styles.imgUsuario}
+                        source={require("../../../../../../assets/fabricaLogo.jpeg")}
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.conteudoTexto}>
+                    <View style={{ paddingTop: 7 }}>
+                      <Text style={{ fontWeight: 500 }}>Sla</Text>
+                    </View>
+                    <View>
+                      <Text style={{ fontSize: 12, color: colors.cinza }}>
+                        @Sla
+                      </Text>
+                    </View>
                   </View>
                 </View>
-                <View style={styles.conteudoTexto}>
-                  <View style={{ paddingTop: 7 }}>
-                    <Text style={{ fontWeight: 500 }}>Sla</Text>
+                <View style={styles.boxAddUsuario}>
+                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                    <View style={styles.boxIcone}>
+                      <Image
+                        style={styles.imgUsuario}
+                        source={require("../../../../../../assets/itauLogo.png")}
+                      />
+                    </View>
                   </View>
-                  <View>
-                    <Text style={{ fontSize: 12, color: colors.cinza }}>
-                      @Sla
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.boxAddUsuario}>
-                <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                  <View style={styles.boxIcone}>
-                    <Image
-                      style={styles.imgUsuario}
-                      source={require("../../../../../../assets/itauLogo.png")}
-                    />
-                  </View>
-                </View>
-                <View style={styles.conteudoTexto}>
-                  <View style={{ paddingTop: 7 }}>
-                    <Text style={{ fontWeight: 500 }}>Itau</Text>
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 12, color: colors.cinza }}>
-                      @Itau
-                    </Text>
+                  <View style={styles.conteudoTexto}>
+                    <View style={{ paddingTop: 7 }}>
+                      <Text style={{ fontWeight: 500 }}>Itau</Text>
+                    </View>
+                    <View>
+                      <Text style={{ fontSize: 12, color: colors.cinza }}>
+                        @Itau
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-              <View style={styles.boxAddUsuario}>
-                <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                  <View style={styles.boxIcone}>
-                    <Image
-                      style={styles.imgUsuario}
-                      source={require("../../../../../../assets/etecLogo.jpg")}
-                    />
+                <View style={styles.boxAddUsuario}>
+                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                    <View style={styles.boxIcone}>
+                      <Image
+                        style={styles.imgUsuario}
+                        source={require("../../../../../../assets/etecLogo.jpg")}
+                      />
+                    </View>
                   </View>
-                </View>
-                <View style={styles.conteudoTexto}>
-                  <View style={{ paddingTop: 7 }}>
-                    <Text style={{ fontWeight: 500 }}>Etec</Text>
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 12, color: colors.cinza }}>
-                      @Arroba
-                    </Text>
+                  <View style={styles.conteudoTexto}>
+                    <View style={{ paddingTop: 7 }}>
+                      <Text style={{ fontWeight: 500 }}>Etec</Text>
+                    </View>
+                    <View>
+                      <Text style={{ fontSize: 12, color: colors.cinza }}>
+                        @Arroba
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
-          </View>
-)}
-{ idUserLogado != idInstituicao && (
-          <View>
-           
-            <View style={styles.containerAddUsuario}>
-              <View style={{ width: "100%", paddingLeft: 25 }}>
-                <Text style={{ fontWeight: 500 }}>Conexões</Text>
-              </View>
-              <FlatList
-                data={seguidores}
-                keyExtractor={(item) => item.id_seguidor}
-                style={styles.containerSeguidores}
-                renderItem={({ item }) => (
-                  <View style={styles.flatlistSeguidores}>
-                    <TouchableOpacity
-                      onPress={() =>
-                        irParaConversa(
-                          item.id_seguidor,
-                          item.id_seguido,
-                          item.id_chat
-                        )
-                      }
-                    >
-                      <View style={styles.boxAddUsuario}>
-                        <View
-                          style={[styles.conteudoIcone, { marginRight: 8 }]}
-                        >
-                          <View style={styles.boxIcone}>
-                            <Image
-                              style={styles.imgUsuario}
-                              source={{
-                                uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_seguidor}`,
-                              }}
-                            />
+          )}
+          {idUserLogado != idInstituicao && (
+            <View>
+              <View style={styles.containerAddUsuario}>
+                <View style={{ width: "100%", paddingLeft: 25 }}>
+                  <Text style={{ fontWeight: 500 }}>Conexões</Text>
+                </View>
+                <FlatList
+                  data={conexoes}
+                  keyExtractor={(item) => item.id_seguidor}
+                  style={styles.containerSeguidores}
+                  renderItem={({ item }) => (
+                    <View style={styles.flatlistSeguidores}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          irParaConversa(
+                            item.id_seguidor,
+                            item.id_seguido,
+                            
+                          )
+                        }
+                      >
+                        <View style={styles.boxAddUsuario}>
+                          <View
+                            style={[styles.conteudoIcone, { marginRight: 8 }]}
+                          >
+                            <View style={styles.boxIcone}>
+                              <Image
+                                style={styles.imgUsuario}
+                                source={{
+                                  uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_seguidor}`,
+                                }}
+                              />
+                            </View>
+                          </View>
+                          <View style={styles.conteudoTexto}>
+                            <View style={{ paddingTop: 7 }}>
+                              <Text style={{ fontWeight: 500 }}>
+                                {item.nome_seguidor}
+                              </Text>
+                            </View>
+                            <View>
+                              <Text
+                                style={{ fontSize: 12, color: colors.cinza }}
+                              >
+                                @{item.arroba_seguidor}
+                              </Text>
+                            </View>
                           </View>
                         </View>
-                        <View style={styles.conteudoTexto}>
-                          <View style={{ paddingTop: 7 }}>
-                            <Text style={{ fontWeight: 500 }}>
-                              {item.nome_seguidor}
-                            </Text>
-                          </View>
-                          <View>
-                            <Text style={{ fontSize: 12, color: colors.cinza }}>
-                              @{item.arroba_seguidor}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                />
 
-              <View style={{ width: "100%", paddingLeft: 25, marginTop: 20 }}>
-                <Text style={{ fontWeight: 500 }}>Sugestões</Text>
-              </View>
-              <View style={styles.boxAddUsuario}>
-                <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                  <View style={styles.boxIcone}>
-                    <Image
-                      style={styles.imgUsuario}
-                      source={require("../../../../../../assets/fabricaLogo.jpeg")}
-                    />
+                <View style={{ width: "100%", paddingLeft: 25, marginTop: 20 }}>
+                  <Text style={{ fontWeight: 500 }}>Sugestões</Text>
+                </View>
+                <View style={styles.boxAddUsuario}>
+                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                    <View style={styles.boxIcone}>
+                      <Image
+                        style={styles.imgUsuario}
+                        source={require("../../../../../../assets/fabricaLogo.jpeg")}
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.conteudoTexto}>
+                    <View style={{ paddingTop: 7 }}>
+                      <Text style={{ fontWeight: 500 }}>Sla</Text>
+                    </View>
+                    <View>
+                      <Text style={{ fontSize: 12, color: colors.cinza }}>
+                        @Sla
+                      </Text>
+                    </View>
                   </View>
                 </View>
-                <View style={styles.conteudoTexto}>
-                  <View style={{ paddingTop: 7 }}>
-                    <Text style={{ fontWeight: 500 }}>Sla</Text>
+                <View style={styles.boxAddUsuario}>
+                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                    <View style={styles.boxIcone}>
+                      <Image
+                        style={styles.imgUsuario}
+                        source={require("../../../../../../assets/itauLogo.png")}
+                      />
+                    </View>
                   </View>
-                  <View>
-                    <Text style={{ fontSize: 12, color: colors.cinza }}>
-                      @Sla
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.boxAddUsuario}>
-                <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                  <View style={styles.boxIcone}>
-                    <Image
-                      style={styles.imgUsuario}
-                      source={require("../../../../../../assets/itauLogo.png")}
-                    />
-                  </View>
-                </View>
-                <View style={styles.conteudoTexto}>
-                  <View style={{ paddingTop: 7 }}>
-                    <Text style={{ fontWeight: 500 }}>Itau</Text>
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 12, color: colors.cinza }}>
-                      @Itau
-                    </Text>
+                  <View style={styles.conteudoTexto}>
+                    <View style={{ paddingTop: 7 }}>
+                      <Text style={{ fontWeight: 500 }}>Itau</Text>
+                    </View>
+                    <View>
+                      <Text style={{ fontSize: 12, color: colors.cinza }}>
+                        @Itau
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-              <View style={styles.boxAddUsuario}>
-                <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                  <View style={styles.boxIcone}>
-                    <Image
-                      style={styles.imgUsuario}
-                      source={require("../../../../../../assets/etecLogo.jpg")}
-                    />
+                <View style={styles.boxAddUsuario}>
+                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                    <View style={styles.boxIcone}>
+                      <Image
+                        style={styles.imgUsuario}
+                        source={require("../../../../../../assets/etecLogo.jpg")}
+                      />
+                    </View>
                   </View>
-                </View>
-                <View style={styles.conteudoTexto}>
-                  <View style={{ paddingTop: 7 }}>
-                    <Text style={{ fontWeight: 500 }}>Etec</Text>
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 12, color: colors.cinza }}>
-                      @Arroba
-                    </Text>
+                  <View style={styles.conteudoTexto}>
+                    <View style={{ paddingTop: 7 }}>
+                      <Text style={{ fontWeight: 500 }}>Etec</Text>
+                    </View>
+                    <View>
+                      <Text style={{ fontSize: 12, color: colors.cinza }}>
+                        @Arroba
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
-          </View>
-)}
-
+          )}
         </View>
       </PaperProvider>
       <Modal
@@ -472,18 +480,22 @@ const selecionarFotoCanal = async () => {
                 style={styles.iconSmall}
               />
             </TouchableOpacity>
-            <Text style={styles.titPag}>Nova Comunidade</Text>
+            <Text style={styles.titPag}>Novo Canal</Text>
           </View>
           <View style={styles.containerImgCanal}>
             <View style={styles.boxImgCanal}>
-              <Pressable style={styles.viewFotoCanal} onPress={() => selecionarFotoCanal()}>
+              <Pressable
+                style={styles.viewFotoCanal}
+                onPress={() => selecionarFotoCanal()}
+              >
                 <Image
                   style={styles.imgCanal}
                   resizeMode="cover"
                   source={
-                    imagemCanal ?
-                    {uri: imagemCanal} : 
-                    require("../../../../../../assets/jovem.jpeg")}
+                    imagemCanal
+                      ? { uri: imagemCanal }
+                      : require("../../../../../../assets/jovem.jpeg")
+                  }
                 />
               </Pressable>
               <View>
@@ -495,18 +507,16 @@ const selecionarFotoCanal = async () => {
             <View
               style={[
                 styles.inputContainer,
-                //erroEmail ? {borderColor: '#ff4444'} : null
               ]}
             >
               <Ionicons style={styles.inputIcon} name="megaphone" />
               <TextInput
                 style={[styles.input, { height: 30 }]}
                 placeholder="Digite o nome do Canal"
-                 value={nomeCanal}
-                 onChangeText={(texto) => {
-                   setNomeCanal(texto);
-                
-                 }}
+                value={nomeCanal}
+                onChangeText={(texto) => {
+                  setNomeCanal(texto);
+                }}
                 autoCapitalize="none"
               />
             </View>
@@ -520,18 +530,18 @@ const selecionarFotoCanal = async () => {
               <TextInput
                 style={[styles.input]}
                 placeholder="Digite uma Descrição"
-                 value={descricaoCanal}
-                 multiline
-                 onChangeText={(texto) => {
+                value={descricaoCanal}
+                multiline
+                onChangeText={(texto) => {
                   setDescricaoCanal(texto);
-                //   setErroEmail('');
-                //   setErroGeral('');
-                 }}
-                // keyboardType="email-address"
+                }}
                 autoCapitalize="none"
               />
             </View>
-            <TouchableOpacity style={styles.botaoCriarCanal} onPress={() => criarCanal()}>
+            <TouchableOpacity
+              style={styles.botaoCriarCanal}
+              onPress={() => criarCanal()}
+            >
               <Text style={styles.botaoCriarCanalText}>Criar Canal</Text>
             </TouchableOpacity>
           </View>
