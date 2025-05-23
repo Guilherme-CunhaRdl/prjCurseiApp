@@ -4,7 +4,8 @@ export default StyleSheet.create({
 
     container:{
         flex: 1,
-        backgroundColor: colors.branco
+        backgroundColor: colors.branco,
+        
     },
     header: {
         backgroundColor: colors.branco,

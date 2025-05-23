@@ -30,6 +30,7 @@ export default function Mensagens() {
   const [selectedTab, setSelectedTab] = useState("todas");
   const [conversas, setConversas] = useState([]);
   const [chats, setChats] = useState([]);
+  const [idChat,setIdChat] = useState()
   const [idUser, setIdUser] = useState(null);
   const [IsVisto, setIsVisto] = useState();
   const [resultadosUsuarios, setResultadosUsuarios] = useState([]);
@@ -58,8 +59,7 @@ const [query, setQuery] = useState("");
       );
 
       const conversasUnicas = new Map();
-
-      
+     
       resposta.data.chats.forEach((chat) => {
         const key = `chat_${chat.id_chat}_${chat.id_mensagem}`;
         if (!conversasUnicas.has(key)) {
@@ -84,8 +84,9 @@ const [query, setQuery] = useState("");
           conversasUnicas.set(key, { ...instituicao, tipo: "instituicao" });
         }
       });
-
-      setConversas(Array.from(conversasUnicas.values()));
+      const conversasFinal =  Array.from(conversasUnicas.values());
+      setConversas(conversasFinal);
+      return conversasFinal;
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
     }
@@ -96,15 +97,17 @@ const [query, setQuery] = useState("");
       const id = await AsyncStorage.getItem("idUser");
       setIdUser(id);
       if (id) {
-        await listarChats(id);
-        conectarCanal(id);
+        
+        const chats = await listarChats(id);
+        conectarCanal(chats);
       }
     };
 
     inicializar();
   }, []);
 
-  const conectarCanal = async (userId) => {
+
+  const conectarCanal = async (chats) => {
     const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
       wsHost: "127.0.0.1",
@@ -118,7 +121,9 @@ const [query, setQuery] = useState("");
         },
       },
     });
-    const canal = pusher.subscribe(`trazer_chats`);
+    console.log(chats)
+      chats.forEach((chat) =>{
+    const canal = pusher.subscribe(`trazer_chats.${chat.id_chat}`);
 
     canal.bind("chats", (data) => {
       const novaMensagem = data.msgs[0];
@@ -163,6 +168,7 @@ const [query, setQuery] = useState("");
               : chat
           );
         } else {
+           assinarCanal(novaMensagem.id_chat);
           return [novaMensagem, ...prevPesquisados];
         }
       });
@@ -172,14 +178,21 @@ const [query, setQuery] = useState("");
         setIsVisto(false);
       }
     });
-  };
+  })
+   const assinarCanal = (id_chat) => {
+  const canal = pusher.subscribe(`trazer_chats.${id_chat}`);
+  canal.bind("chats");
+};
 
-  useEffect(() => {
-    console.log(idUser);
-  }, [idUser]);
+// Quando iniciar a tela, assina todos os canais dos chats já existentes
+chats.forEach((chat) => {
+  assinarCanal(chat.id_chat);
+}) 
+  
+};
 
   
-
+  
   const procurarChat = async (userId) => {
     try {
       if (query.trim() === "") {

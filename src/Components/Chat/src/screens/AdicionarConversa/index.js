@@ -39,6 +39,7 @@ export default function AddConversa({ route }) {
   const [descricaoCanal, setDescricaoCanal] = useState("");
   const [imagemCanal, setImagemCanal] = useState(null);
   const [idInstituicao, setIdInstituicao] = useState();
+  const [sugestoes, setSugestoes] = useState([]);
   const alterarFoco = (campo) => {
     setFocoInput(campo);
   };
@@ -51,15 +52,18 @@ export default function AddConversa({ route }) {
       const respostaConexoes = await axios.get(
         `http://localhost:8000/api/cursei/chat/adicionarChat/conexoes/${idUserLogado}`
       );
+      const respostaSugestoes = await axios.get(
+        `http://localhost:8000/api/cursei/chat/adicionarChat/sugestoes/${idUserLogado}`
+      );
       const idInst = await AsyncStorage.getItem("idInstituicao");
 
       setIdInstituicao(idInst);
       console.log(resposta);
       setSeguidores(resposta.data.seguidores);
       setConexoes(respostaConexoes.data.conexoes);
+      setSugestoes(respostaSugestoes.data.sugestoes)
+      console.log(respostaSugestoes)
 
-      console.log(resposta);
-      console.log(idUserLogado);
     };
 
     selecionarDados();
@@ -73,8 +77,11 @@ export default function AddConversa({ route }) {
       const respostaConexoes = await axios.get(
         `http://localhost:8000/api/cursei/chat/adicionarChat/conexoes/${idUserLogado}`
       );
+      const respostaSugestoes = await axios.get(
+        `http://localhost:8000/api/cursei/chat/adicionarChat/sugestoes/${idUserLogado}`
+      );
       const chatExistente = isConexao
-        ? respostaConexoes.data.conexoes
+        ? conexoes
         : resposta.data.seguidor;
       const idChatExistente = chatExistente ? chatExistente.id_chat : null;
       const usuario = seguidores.find(
@@ -104,7 +111,47 @@ export default function AddConversa({ route }) {
         imgEnviador: chatExistente.img_seguidor,
         nomeEnviador: chatExistente.nome_seguidor,
         arrobaEnviador: chatExistente.arroba_seguidor,
-        idChat: idChatFinal
+        idChat: idChatFinal,
+        isCanal:false
+      });
+    } catch (error) {
+      console.log("Erro ao iniciar conversa:", error);
+    }
+  };
+
+  
+  const irParaConversaSugestoes = async (idUserSugerido, isConexao) => {
+    try {
+      const usuario = sugestoes.find(
+        (user) =>
+          user.id === idUserSugerido
+      );
+      console.log(usuario)
+      const dadosChat = {
+        idUser1: idUserLogado,
+        idUser2: idUserSugerido,
+      };
+      const idChatExistente = usuario ? usuario.id_chat : null;
+
+      let idChatFinal = idChatExistente;
+
+      if (!usuario.id_chat) {
+        const inserirDados = await axios.post(
+          `http://localhost:8000/api/cursei/chat/adicionarChat/`,
+          dadosChat
+        );
+        idChatFinal = inserirDados.data.id_chat;
+      }
+      console.log(idUserLogado);
+
+      navigation.navigate("Conversa", {
+        idUserLogado: idUserLogado,
+        idEnviador: idUserLogado,
+        imgEnviador: usuario.img_seguidor,
+        nomeEnviador: usuario.nome_seguidor,
+        arrobaEnviador: usuario.arroba_seguidor,
+        idChat: idChatFinal,
+        isCanal: false
       });
     } catch (error) {
       console.log("Erro ao iniciar conversa:", error);
@@ -196,7 +243,7 @@ export default function AddConversa({ route }) {
             />
           </View>
           {idUserLogado == idInstituicao && (
-            <View>
+            <ScrollView>
               <View style={styles.containerAddGrupo}>
                 <View style={styles.boxAddGrupo}>
                   <View style={styles.conteudoIcone}>
@@ -279,71 +326,59 @@ export default function AddConversa({ route }) {
                   )}
                 />
 
-                <View style={{ width: "100%", paddingLeft: 25, marginTop: 20 }}>
+                <View style={styles.containerAddUsuario}>
+                <View style={{ width: "100%", paddingLeft: 25 }}>
                   <Text style={{ fontWeight: 500 }}>Sugestões</Text>
                 </View>
-                <View style={styles.boxAddUsuario}>
-                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                    <View style={styles.boxIcone}>
-                      <Image
-                        style={styles.imgUsuario}
-                        source={require("../../../../../../assets/fabricaLogo.jpeg")}
-                      />
+                <FlatList
+                  data={sugestoes}
+                  keyExtractor={(item) => item.id_seguidor ? item.id_seguidor : item.id}
+                  style={styles.containerSeguidores}
+                  renderItem={({ item }) => (
+                    <View style={styles.flatlistSeguidores}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          irParaConversaSugestoes(
+                            item.id,
+                            false
+                          )
+                        }
+                      >
+                        <View style={styles.boxAddUsuario}>
+                          <View
+                            style={[styles.conteudoIcone, { marginRight: 8 }]}
+                          >
+                            <View style={styles.boxIcone}>
+                              <Image
+                                style={styles.imgUsuario}
+                                source={{
+                                  uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_seguidor}`,
+                                }}
+                              />
+                            </View>
+                          </View>
+                          <View style={styles.conteudoTexto}>
+                            <View style={{ paddingTop: 7 }}>
+                              <Text style={{ fontWeight: 500 }}>
+                                {item.nome_seguidor}
+                              </Text>
+                            </View>
+                            <View>
+                              <Text
+                                style={{ fontSize: 12, color: colors.cinza }}
+                              >
+                                @{item.arroba_seguidor}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
                     </View>
-                  </View>
-                  <View style={styles.conteudoTexto}>
-                    <View style={{ paddingTop: 7 }}>
-                      <Text style={{ fontWeight: 500 }}>Sla</Text>
-                    </View>
-                    <View>
-                      <Text style={{ fontSize: 12, color: colors.cinza }}>
-                        @Sla
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.boxAddUsuario}>
-                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                    <View style={styles.boxIcone}>
-                      <Image
-                        style={styles.imgUsuario}
-                        source={require("../../../../../../assets/itauLogo.png")}
-                      />
-                    </View>
-                  </View>
-                  <View style={styles.conteudoTexto}>
-                    <View style={{ paddingTop: 7 }}>
-                      <Text style={{ fontWeight: 500 }}>Itau</Text>
-                    </View>
-                    <View>
-                      <Text style={{ fontSize: 12, color: colors.cinza }}>
-                        @Itau
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.boxAddUsuario}>
-                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                    <View style={styles.boxIcone}>
-                      <Image
-                        style={styles.imgUsuario}
-                        source={require("../../../../../../assets/etecLogo.jpg")}
-                      />
-                    </View>
-                  </View>
-                  <View style={styles.conteudoTexto}>
-                    <View style={{ paddingTop: 7 }}>
-                      <Text style={{ fontWeight: 500 }}>Etec</Text>
-                    </View>
-                    <View>
-                      <Text style={{ fontSize: 12, color: colors.cinza }}>
-                        @Arroba
-                      </Text>
-                    </View>
-                  </View>
+                  )}
+                />
                 </View>
               </View>
-            </View>
+            </ScrollView>
           )}
           {idUserLogado != idInstituicao && (
             <View>
@@ -353,6 +388,57 @@ export default function AddConversa({ route }) {
                 </View>
                 <FlatList
                   data={conexoes}
+                  keyExtractor={(item) => item.id_seguidor ? item.id_seguidor : item.id}
+                  style={styles.containerSeguidores}
+                  renderItem={({ item }) => (
+                    <View style={styles.flatlistSeguidores}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          irParaConversaSugestoes(
+                            item.id,
+                            false
+                            
+                          )
+                        }
+                      >
+                        <View style={styles.boxAddUsuario}>
+                          <View
+                            style={[styles.conteudoIcone, { marginRight: 8 }]}
+                          >
+                            <View style={styles.boxIcone}>
+                              <Image
+                                style={styles.imgUsuario}
+                                source={{
+                                  uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_seguidor}`,
+                                }}
+                              />
+                            </View>
+                          </View>
+                          <View style={styles.conteudoTexto}>
+                            <View style={{ paddingTop: 7 }}>
+                              <Text style={{ fontWeight: 500 }}>
+                                {item.nome_seguidor}
+                              </Text>
+                            </View>
+                            <View>
+                              <Text
+                                style={{ fontSize: 12, color: colors.cinza }}
+                              >
+                                @{item.arroba_seguidor}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                />
+
+                 <View style={{ width: "100%", paddingLeft: 25 }}>
+                  <Text style={{ fontWeight: 500 }}>Sugestões</Text>
+                </View>
+                <FlatList
+                  data={sugestoes}
                   keyExtractor={(item) => item.id_seguidor}
                   style={styles.containerSeguidores}
                   renderItem={({ item }) => (
@@ -398,70 +484,6 @@ export default function AddConversa({ route }) {
                     </View>
                   )}
                 />
-
-                <View style={{ width: "100%", paddingLeft: 25, marginTop: 20 }}>
-                  <Text style={{ fontWeight: 500 }}>Sugestões</Text>
-                </View>
-                <View style={styles.boxAddUsuario}>
-                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                    <View style={styles.boxIcone}>
-                      <Image
-                        style={styles.imgUsuario}
-                        source={require("../../../../../../assets/fabricaLogo.jpeg")}
-                      />
-                    </View>
-                  </View>
-                  <View style={styles.conteudoTexto}>
-                    <View style={{ paddingTop: 7 }}>
-                      <Text style={{ fontWeight: 500 }}>Sla</Text>
-                    </View>
-                    <View>
-                      <Text style={{ fontSize: 12, color: colors.cinza }}>
-                        @Sla
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.boxAddUsuario}>
-                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                    <View style={styles.boxIcone}>
-                      <Image
-                        style={styles.imgUsuario}
-                        source={require("../../../../../../assets/itauLogo.png")}
-                      />
-                    </View>
-                  </View>
-                  <View style={styles.conteudoTexto}>
-                    <View style={{ paddingTop: 7 }}>
-                      <Text style={{ fontWeight: 500 }}>Itau</Text>
-                    </View>
-                    <View>
-                      <Text style={{ fontSize: 12, color: colors.cinza }}>
-                        @Itau
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.boxAddUsuario}>
-                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                    <View style={styles.boxIcone}>
-                      <Image
-                        style={styles.imgUsuario}
-                        source={require("../../../../../../assets/etecLogo.jpg")}
-                      />
-                    </View>
-                  </View>
-                  <View style={styles.conteudoTexto}>
-                    <View style={{ paddingTop: 7 }}>
-                      <Text style={{ fontWeight: 500 }}>Etec</Text>
-                    </View>
-                    <View>
-                      <Text style={{ fontSize: 12, color: colors.cinza }}>
-                        @Arroba
-                      </Text>
-                    </View>
-                  </View>
-                </View>
               </View>
             </View>
           )}

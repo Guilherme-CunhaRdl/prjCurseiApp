@@ -49,9 +49,9 @@ export default function Conversa({ route }) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
       }, 300);
-      if (resposta.data.chats && resposta.data.chats.length > 0) {
+      if (resposta.data.chats && resposta.data.chats.length > 0 && !isCanal) {
         await setMensagens(resposta.data.chats);
-      } else if (respostaCanal.data.mensagensCanal && respostaCanal.data.mensagensCanal.length > 0) {
+      } else if (respostaCanal.data.mensagensCanal && respostaCanal.data.mensagensCanal.length > 0 && isCanal) {
         await setMensagens(respostaCanal.data.mensagensCanal);
         console.log(respostaCanal.data.mensagensCanal)
         console.log(idCriador)
@@ -97,7 +97,7 @@ export default function Conversa({ route }) {
     if (!mensagem) return;
 
     setCampoMensagem("");
-
+    console.log(idChat)
     try {
       const resposta = await axios.post(
         `http://127.0.0.1:8000/api/cursei/chat/enviarMensagem/semImagem`,
