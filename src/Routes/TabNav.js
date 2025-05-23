@@ -16,7 +16,7 @@ import Configuracoes from '../Components/Configurações/configuracoes'
 import DenunciaConcluida from '../Components/Configurações/denunciaConcluida';
 import Conversa from '../Components/Chat/src/screens/Conversa';
 import Mensagens from '../Components/Chat/src/screens/Mensagens';
-
+import host from '../global';
 
 const Tab = createBottomTabNavigator();
 
@@ -60,7 +60,7 @@ const TabNav = () => {
           } else if (route.name === 'user') {
             return (
               <Image
-                source={imgPefil !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${imgPefil}` } : require('../../assets/userDeslogado.png')} 
+                source={imgPefil !== null ? { uri: `http://${host}:8000/img/user/fotoPerfil/${imgPefil}` } : require('../../assets/userDeslogado.png')} 
                 style={{
                   marginTop:3,
                   width: 30,

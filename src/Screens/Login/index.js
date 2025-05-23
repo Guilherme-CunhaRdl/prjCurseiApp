@@ -15,7 +15,7 @@ import styles from './styles';
 import { useNavigation } from "@react-navigation/native";
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import host from '../../global';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -75,7 +75,7 @@ export default function Login() {
     setCarregando(true);
 
     try {
-      const resposta = await axios.post(`http://localhost:8000/api/cursei/user/logar`, {
+      const resposta = await axios.post(`http://${host}:8000/api/cursei/user/logar`, {
         emailDigitado: email,
         senhaDigitada: senha
       });
@@ -84,9 +84,9 @@ export default function Login() {
         const usuario = resposta.data.usuario;
         console.log(usuario)
         console.log(resposta)
-        await AsyncStorage.setItem('idUser', usuario.id);
+        await AsyncStorage.setItem('idUser', String(usuario.id));
         await AsyncStorage.setItem('logado', '1');
-        await AsyncStorage.setItem('idInstituicao', resposta.data.id_instituicao);
+        
         await AsyncStorage.setItem('imgUser', usuario.img_user);
         await AsyncStorage.setItem('arrobaUser', usuario.arroba_user);
         navigation.navigate('Home');

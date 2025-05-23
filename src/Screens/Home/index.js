@@ -25,6 +25,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import ModalPosts from "../PostUnico"
 import Notificacoes from "../../Components/Chat/src/screens/Notificacoes";
+import host from "../../global";
 
 const DATA = [
   {
@@ -56,15 +57,15 @@ const DATA = [
 
 export default function Home() {
 
-      const [focoIcone, setFocoIcone] = useState('posts')
-      const alterarFoco = (icone) => {
-        setFocoIcone(icone)
-      
-    }
+  const [focoIcone, setFocoIcone] = useState('posts')
+  const alterarFoco = (icone) => {
+    setFocoIcone(icone)
+
+  }
   const navigation = useNavigation();
   async function verificarInteresses() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
-    Response = await axios.get(`http://localhost:8000/api/user/verificarInteresses/${idUserSalvo}`)
+    Response = await axios.get(`http://${host}:8000/api/user/verificarInteresses/${idUserSalvo}`)
     if (!Response.data.resultado) {
       navigation.navigate('Interesse')
     }
@@ -84,7 +85,7 @@ export default function Home() {
   const [idUser, setIdUser] = useState();
   const [loading, setLoading] = useState(true);
   const [perfilProprio, setPerfilProprio] = useState(false)
-  const [countNotificacoes ,setCountNotificacoes]= useState(0);
+  const [countNotificacoes, setCountNotificacoes] = useState(0);
   async function carregarPerfil() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
 
@@ -96,7 +97,7 @@ export default function Home() {
     try {
 
       setIdUser(idPerfil);
-      const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idPerfil}`);
+      const resultados = await axios.get(`http://${host}:8000/api/cursei/user/${idPerfil}`);
       var data = resultados.data;
 
       setNome(data.User.nome_user);
@@ -106,11 +107,11 @@ export default function Home() {
       if (idUserSalvo == idPerfil) {
         setPerfilProprio(true);
       }
-      var segue = await axios.get(`http://localhost:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
+      var segue = await axios.get(`http://${host}:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
       if (segue.data.data) {
         Setsegue_usuario(true)
       }
-      const notificacoes = await axios.get(`http://localhost:8000/api/cursei/user/notificacao/${idUserSalvo}/count`)
+      const notificacoes = await axios.get(`http://${host}:8000/api/cursei/user/notificacao/${idUserSalvo}/count`)
       setCountNotificacoes(notificacoes.data)
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
@@ -125,7 +126,9 @@ export default function Home() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+
+    <View style={styles.container}>
+      <StatusBar style="auto" />
       {/* Feed Content */}
       <View style={styles.ContainerCont}>
         {/*Header*/}
@@ -138,7 +141,7 @@ export default function Home() {
                 {/* <TouchableOpacity style={styles.imgContainer} onPress={() => navigation.navigate('user')}>
                   <Image
                     style={styles.userImg}
-                    source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
+                    source={userImg !== null ? { uri: `http://${host}:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
                   />
                 </TouchableOpacity> */}
                 <View style={styles.msgUser}>
@@ -201,32 +204,32 @@ export default function Home() {
           </View>
         </View>
         <View style={styles.barraContainer}>
-                            <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                                <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
-                            </Pressable>
-        
-                            <Pressable onPress={() => alterarFoco('instituicao')} style={[styles.opcao, focoIcone === 'instituicao' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                                <Ionicons style={[styles.opcaoIcon, focoIcone === 'instituicao' ? styles.IconeAtivo : styles.iconeInativo]} name="school-outline" />
-                            </Pressable>
-        
-                          
-                           
-          </View>
-         <View style={styles.feedContainer}>
-         
+          <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+            <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
+          </Pressable>
+
+          <Pressable onPress={() => alterarFoco('instituicao')} style={[styles.opcao, focoIcone === 'instituicao' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+            <Ionicons style={[styles.opcaoIcon, focoIcone === 'instituicao' ? styles.IconeAtivo : styles.iconeInativo]} name="school-outline" />
+          </Pressable>
+
+
+
+        </View>
+        <View style={styles.feedContainer}>
+
           <View style={styles.postContainer}>
-          {focoIcone === 'posts' ? (
-            <Post  key="post-0" />
-          ):focoIcone === 'instituicao' ?(  <Post  key="post-1" tipo="instituicao"/> ): null }
+            {focoIcone === 'posts' ? (
+              <Post key="post-0" />
+            ) : focoIcone === 'instituicao' ? (<Post key="post-1" tipo="instituicao" />) : null}
           </View>
-        </View> 
+        </View>
       </View>
       {/* Send Button */}
       <ModalPostagem tipo='post' />
-    
 
 
-    </SafeAreaView>
+
+    </View>
 
 
   );

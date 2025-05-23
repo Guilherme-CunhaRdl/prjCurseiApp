@@ -21,7 +21,12 @@ const DenunciaConcluida = ({ visible, onClose,idPost,motivo,userPost }) => {
     denuncia.append('idUser',idUserSalvo)
     denuncia.append('motivo',motivo)
     denuncia.append('denunciado',userPost)
-    axios.post(url,denuncia)
+    console.log(denuncia)
+    axios.post(url,denuncia, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+        },
+      })
     onClose()
   }
   return (

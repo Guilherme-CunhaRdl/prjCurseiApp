@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ActivityIndicator, FlatList, Image, TouchableOpacity, Pressable } from 'react-native';
-import { useState, useEffect, useRef, modalRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Configuracoes from './Configurações/configuracoes';
 import Comentario from './Comentario';
 import Compartilhar from '../Components/Compartilhar';
@@ -31,9 +31,9 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
       console.log("modalRef ainda não está disponível.");
     }
   };
-  function abrirPost(id) {
-    navigation
-  }
+ function abrirPost(id) {
+  navigation.navigate('PostUnico', { idPost: id });
+}
   function fecharModalPost(id) {
     modalPostRef.current.fecharModalPost(id)
   }
@@ -50,7 +50,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
 
   const [mostrarCoracao, setMostrarCoracao] = useState({});
 
-  const [posts, setPosts] = useState();
+  const [posts, setPosts] = useState([]);
   const [verificarLoginUser, SetverificarLoginUser] = useState(false);
   const [teste, setteste] = useState(false);
 
@@ -84,10 +84,10 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
           id = idUserSalvo;
           url = `http://${host}:8000/api/posts/1/${id}/50/0/0`;
 
-        } else[
+        } else{
           id = 0,
           url = `http://${host}:8000/api/posts/0/${id}/50/0/0`
-        ]
+        }
       }
       if (idPostUnico) {
         url = `http://${host}:8000/api/posts/4/${idPostUnico}/1/0/0`
@@ -110,6 +110,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
     };
 
     fetchPosts();
+    console.log(posts)
   }, []);
   const formatarTempoInsercao = (seconds) => {
     return dayjs().subtract(seconds, 'seconds').fromNow();
@@ -150,8 +151,8 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
 
 
   return (
-    <View style={styles.container}>
-      {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '50%', backgroundColor: 'transparency' }}>
+<View style={[styles.container]}>
+      {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'absolute', zIndex: 99, width: '100%', height: '50%', backgroundColor: 'transparent' }}>
         <ActivityIndicator size="large" color="#3498db" />
       </View>
       ) : null}
@@ -327,7 +328,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
 
                   <View style={styles.actionButton}>
                     <Comentario idPost={item.id_post} />
-                    <Text style={styles.QuantidadeAction}>{item.comentarios}</Text>
+                    <Text style={styles.QuantidadeAction}>   {item.comentarios}</Text>
                   </View>
 
                 ) : null}
@@ -359,9 +360,11 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    
     backgroundColor: '#fff',
     width: '100%',
+    height:'auto',
+    flexGrow: 1
 
   },
   postContainer: {

@@ -16,7 +16,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-
+import host from '../../global';
 export default function AlterarUser() {
   const [userData, setUserData] = useState({
     nome: '',
@@ -40,7 +40,7 @@ export default function AlterarUser() {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
         if (idUserSalvo) {
           setUserId(idUserSalvo);
-          const response = await axios.get(`http://localhost:8000/api/cursei/user/${idUserSalvo}`);
+          const response = await axios.get(`http://${host}:8000/api/cursei/user/${idUserSalvo}`);
           const data = response.data.User;
           setUserData({
             nome: data.nome_user,
@@ -62,7 +62,7 @@ export default function AlterarUser() {
 
   const handleSaveNome = async () => {
     try {
-      await axios.post(`http://localhost:8000/api/cursei/user/${userId}`, {
+      await axios.post(`http://${host}:8000/api/cursei/user/${userId}`, {
         nome_user: nomeValue,
       });
       setUserData(prev => ({ ...prev, nome: nomeValue }));
@@ -74,7 +74,7 @@ export default function AlterarUser() {
 
   const handleSaveArroba = async () => {
     try {
-      await axios.post(`http://localhost:8000/api/cursei/user/${userId}`, {
+      await axios.post(`http://${host}:8000/api/cursei/user/${userId}`, {
         arroba_user: arrobaValue,
       });
       setUserData(prev => ({ ...prev, arroba: arrobaValue }));
@@ -86,7 +86,7 @@ export default function AlterarUser() {
 
   const handleSaveEmail = async () => {
     try {
-      await axios.post(`http://localhost:8000/api/cursei/user/${userId}`, {
+      await axios.post(`http://${host}:8000/api/cursei/user/${userId}`, {
         email_user: emailValue,
       });
       setUserData(prev => ({ ...prev, email: emailValue }));

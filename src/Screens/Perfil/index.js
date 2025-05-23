@@ -3,7 +3,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
-import { FlatList } from 'react-native-web';
+import { FlatList } from 'react-native';
 import Post from "../../Components/Post";
 import blackStory from '../../../assets/blackStory.png'
 import React, { useState, useEffect } from 'react';
@@ -14,6 +14,7 @@ import Configuracoes from '../../Components/Configurações/configuracoes'
 import colors from '../../colors';
 import ModalPostagem from "../../Components/ModalPostagem";
 import ModalEditarPerfil from '../../Components/modalEditarPerfil';
+import host from '../../global';
 const DATA = [
     {
         id: Math.random().toString(36).substring(2, 27),
@@ -75,7 +76,7 @@ export default function Perfil() {
         try {
 
             setIdUser(idPerfil);
-            const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idPerfil}`);
+            const resultados = await axios.get(`http://${host}:8000/api/cursei/user/${idPerfil}`);
             var data = resultados.data;
 
             setNome(data.User.nome_user);
@@ -92,7 +93,7 @@ export default function Perfil() {
             if (idUserSalvo == idPerfil) {
                 setPerfilProprio(true);
             }
-            var segue = await axios.get(`http://localhost:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
+            var segue = await axios.get(`http://${host}:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
             if  (segue.data.data)  {
                 Setsegue_usuario(true)
             }
@@ -106,18 +107,22 @@ export default function Perfil() {
     }
 
     async function seguir() {
-
+        
         const idUserSalvo = await AsyncStorage.getItem('idUser');
         if (!idUserSalvo) {
             navigation.navigate('Login')
         }
 
-        const url = 'http://localhost:8000/api/posts/interacoes/seguir';
+        const url = `http://${host}:8000/api/posts/interacoes/seguir`;
         var seguidor = new FormData();
         seguidor.append('idUser', idUserSalvo)
         seguidor.append('userPost', idUser)
-        var result = await axios.post(url, seguidor)
-
+        const result = await axios.post(url, seguidor, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+        console.log(segue_usuario)
         const seguidoresAtual = parseInt(seguidores)
 
         if  (result.data ==  'deseguido')  {
@@ -136,7 +141,7 @@ export default function Perfil() {
             let idChatFinal;
             const idUserLogado = await AsyncStorage.getItem('idUser');
             try {
-                    const resposta = await axios.get(`http://localhost:8000/api/cursei/chat/adicionarChat/${idUserLogado}/${idUser}`);
+                    const resposta = await axios.get(`http://${host}:8000/api/cursei/chat/adicionarChat/${idUserLogado}/${idUser}`);
                     const chatExistente = resposta.data.seguidor; 
                     const idChatExistente = chatExistente ? chatExistente.id_chat : null;
                 
@@ -148,7 +153,7 @@ export default function Perfil() {
                     
                     idChatFinal = idChatExistente
                     if (!idChatExistente) {
-                        const inserirDados = await axios.post(`http://localhost:8000/api/cursei/chat/adicionarChat/`, dadosChat);
+                        const inserirDados = await axios.post(`http://${host}:8000/api/cursei/chat/adicionarChat/`, dadosChat);
                         idChatFinal = inserirDados.data.id_chat; 
                     }
                     
@@ -189,7 +194,7 @@ export default function Perfil() {
                 <View style={styles.header}>
                     <Image
                         style={styles.banner}
-                        source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/backGroundDeslogado.jpg')}
+                        source={banner !== null ? { uri: `http://${host}:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/backGroundDeslogado.jpg')}
                     />
                 </View>
                 {/*Container do Perfil */}
@@ -199,7 +204,7 @@ export default function Perfil() {
                         <View style={styles.imgContainer}>
                             <Image
                                 style={styles.userImg}
-                                source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
+                                source={userImg !== null ? { uri: `http://${host}:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
                             />
                         </View>
 
@@ -287,7 +292,7 @@ export default function Perfil() {
                                     <Text style={{ color: '#00000' }}>Seguindo</Text>
                                 </Pressable>
                             ) :
-                                <Pressable style={styles.buttonCompleto} onPress={() => seguir()} >
+                                <Pressable style={styles.buttonCompleto} onPress={seguir} >
                                     <Text style={{ color: '#fff' }}>Seguir</Text>
                                 </Pressable>
                             }
@@ -317,7 +322,7 @@ export default function Perfil() {
                                     <View
                                         style={[styles.imgLogo]}
                                     >
-                                        <Image style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%' }} source={item.photoURL} />
+                                        <Image style={{ width: '100%', height: '100%', resizeMode: 'contain', borderRadius: 100 }} source={item.photoURL} />
                                     </View>
                                 </Pressable>
 

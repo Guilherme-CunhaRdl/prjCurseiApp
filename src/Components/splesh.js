@@ -3,7 +3,7 @@ import { View, StyleSheet, StatusBar } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import host from '../global';
 export default function Splash() {
   const animacaoRef = useRef(null);
   const navigation = useNavigation();

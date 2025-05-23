@@ -15,7 +15,7 @@ import styles from './styles';
 import { useNavigation } from "@react-navigation/native";
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import host from '../../global';
 export default function VirarInstituicao() {
     const [userId, setUserId] = useState(null);
     const [passo, setPasso] = useState(0);
@@ -96,7 +96,7 @@ export default function VirarInstituicao() {
         };
 
         try {
-            const response = await axios.post('http://localhost:8000/api/instituicao', dadosInstituicao, {
+            const response = await axios.post(`http://${host}:8000/api/instituicao`, dadosInstituicao, {
                 headers: {
                     'Content-Type': 'application/json',
                 },

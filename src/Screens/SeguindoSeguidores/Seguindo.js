@@ -4,7 +4,7 @@ import styles from './styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import host from '../../global';
 import axios from 'axios';
 
 
@@ -16,7 +16,7 @@ export default function Seguindo({ idPerfil, arroba }) {
   const [pesquisa, setPesquisa] = useState('')
   async function desseguir(idUserPerfil) {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
-    result = await axios.get(`http://localhost:8000/api/cursei/user/deseguirOuTirarSeguidor/${idUserSalvo}/${idUserPerfil}/desseguir`)
+    result = await axios.get(`http://${host}:8000/api/cursei/user/deseguirOuTirarSeguidor/${idUserSalvo}/${idUserPerfil}/desseguir`)
     if (result.data.sucesso) {
       const removerUser = usuarios.filter(item => item.id !== idUserPerfil);
       setUsuarios(removerUser)
@@ -28,7 +28,7 @@ export default function Seguindo({ idPerfil, arroba }) {
         const buscarUsuarios = async () => {
                     setLoading(true)
 
-      url = `http://localhost:8000/api/cursei/user/seguidoresSeguindo/${idPerfil}/seguindo`
+      url = `http://${host}:8000/api/cursei/user/seguidoresSeguindo/${idPerfil}/seguindo`
       response = await axios.get(url)
       setUsuarios(response.data)
       setLoading(false)
@@ -53,7 +53,7 @@ export default function Seguindo({ idPerfil, arroba }) {
     async function pesquisar(text) {
       
       setLoading(true)
-      response = await axios.get(`http://localhost:8000/api/cursei/user/deseguirOuTirarSeguidor/${text}/${idPerfil}/pesquisarSeguindo`)
+      response = await axios.get(`http://${host}:8000/api/cursei/user/deseguirOuTirarSeguidor/${text}/${idPerfil}/pesquisarSeguindo`)
       setLoading(false)
       setUsuarios(response.data.data)
     }
@@ -103,7 +103,7 @@ export default function Seguindo({ idPerfil, arroba }) {
                       titulo: item.arroba_user
                     })
                   }}>
-                    <Image source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }} style={styles.fotoUsuario} />
+                    <Image source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }} style={styles.fotoUsuario} />
                     <View style={styles.infoUser}>
                       <Text style={styles.nomeUser}>{item.nome_user}</Text>
                       <Text style={styles.arroba}>@{item.arroba_user}</Text>

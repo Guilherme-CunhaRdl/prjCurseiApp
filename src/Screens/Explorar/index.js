@@ -5,7 +5,7 @@ import styles from './styles';
 import TopTabs from '../../Routes/TopTab';
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ModalPostagem from '../../Components/ModalPostagem';
-
+import host from '../../global';
 export default function Explorar() {
     const navigation = useNavigation();
 

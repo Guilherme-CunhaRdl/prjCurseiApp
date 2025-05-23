@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { TouchableOpacity, Share, Alert, Modal, StyleSheet, Text, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
-
+import host from '../global';
 
 //conteudo seria o post
 export default function Compartilhar({ conteudo }) {

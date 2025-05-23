@@ -7,7 +7,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Post from '../../../Components/Post';
-
+import host from '../../../global';
 
 
 
@@ -22,13 +22,13 @@ export default function ParaVoce() {
 
     async function recomendarUsuarios() {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
-        const url = `http://localhost:8000/api/cursei/user/sugerirUsuario/${idUserSalvo}/5`;
+        const url = `http://${host}:8000/api/cursei/user/sugerirUsuario/${idUserSalvo}/5`;
         Response = await axios.get(url)
         setUsuarios(Response.data)
     }
     async function recomendarHashtags() {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
-        const url = `http://localhost:8000/api/cursei/explorar/recomendarHashtags/${idUserSalvo}`;
+        const url = `http://${host}:8000/api/cursei/explorar/recomendarHashtags/${idUserSalvo}`;
         Response = await axios.get(url)
         setHashtags(Response.data)
     }
@@ -39,7 +39,7 @@ export default function ParaVoce() {
             navigation.navigate('Login')
         }
 
-        const url = 'http://localhost:8000/api/posts/interacoes/seguir';
+        const url = `http://${host}:8000/api/posts/interacoes/seguir`;
         var seguidor = new FormData();
         seguidor.append('idUser', idUserSalvo)
         seguidor.append('userPost', id)
@@ -122,7 +122,7 @@ export default function ParaVoce() {
                                         });
                                     }}>
 
-                                        <Image source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}` }} style={styles.imgLogo} />
+                                        <Image source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }} style={styles.imgLogo} />
                                     </Pressable>
 
                                     <Pressable style={styles.containerNomeUser} onPress={() => {

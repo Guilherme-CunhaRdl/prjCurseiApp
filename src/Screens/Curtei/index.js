@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text, TouchableOpacity, Image, FlatList, StyleSheet
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-
+import host from '../../global';
 const { height } = Dimensions.get('window');
 const ITEM_HEIGHT = height; // Altura total da tela para cada item
 const SNAP_INTERVAL = ITEM_HEIGHT; // Intervalo de snap igual à altura do item
