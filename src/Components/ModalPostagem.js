@@ -85,7 +85,7 @@ const ModalPostagem = forwardRef(
     };
     let lastTap = null;
     async function postar() {
-  
+
       if (editar) {
         const editarPost = new FormData();
         if (imagem !== null) {
@@ -119,15 +119,17 @@ const ModalPostagem = forwardRef(
           editarPost.append("descricaoPost", descPost);
 
           const idUser = await AsyncStorage.getItem("idUser");
-          url = `http://${host}:8000/api/cursei/postsUpdate/` + idPost; 
+          url = `http://${host}:8000/api/cursei/postsUpdate/` + idPost;
           try {
             const response = await axios.post(url, editarPost, {
               headers: {
                 "Content-Type": "multipart/form-data",
               },
             });
+
             fecharModal();
             setDescPost('')
+            setImagem()
             // if(tela=='perfil'){
             //   navigation.replace('user');
             // }
@@ -209,21 +211,28 @@ const ModalPostagem = forwardRef(
       setModalVisivel(false);
     };
     async function abrirModal(id) {
-      console.log(id);
-      if (idPostRepost) {
-        setRepost(id);
+ 
 
+      if (id) { // Se receber um ID, é repost
+        console.log(id)
+        setRepost(true);
         const url = `http://${host}:8000/api/posts/4/${id}/1/0/0`;
-        response = await axios.get(url);
-        data = response.data.data[0];
-        console.log(data);
-        setRepostImg(data.img_user);
-        setRepostAutor(data.repost_autor);
-        setTempoRepostado(data.tempo_insercao);
-        setRepostArroba(data.arroba_user);
-        setRepostDescricao(data.descricao_post);
-        setRepostConteudo(data.conteudo_post);
+        try {
+          const response = await axios.get(url);
+          const data = response.data.data[0];
+          setRepostImg(data.img_user);
+          setRepostAutor(data.repost_autor);
+          setTempoRepostado(data.tempo_insercao);
+          setRepostArroba(data.arroba_user);
+          setRepostDescricao(data.descricao_post);
+          setRepostConteudo(data.conteudo_post);
+        } catch (error) {
+          console.error("Erro ao carregar repost:", error);
+        }
+      }else{
+        setRepost(false)
       }
+
       if (tipo == "editar") {
         const url = `http://${host}:8000/api/posts/4/${idPost}/1/0/0`;
         response = await axios.get(url);
@@ -237,6 +246,7 @@ const ModalPostagem = forwardRef(
         );
         setEditar(true)
       }
+
       setModalVisivel(true);
     }
     useImperativeHandle(ref, () => ({
@@ -245,10 +255,10 @@ const ModalPostagem = forwardRef(
     }));
 
     return (
-      <View>
+      <View style={{ flex: 0, backgroundColor: 'red' }}>
         {tipo == "post" ? (
-          <TouchableOpacity style={estilos.sendButton} onPress={abrirModal}>
-             <Image source={require('../../assets/LogoBranca.png')} style={{width:38,height:37,resizeMode:'contain'}} />
+          <TouchableOpacity style={estilos.sendButton} onPress={() => abrirModal(false)}>
+            <Image source={require('../../assets/LogoBranca.png')} style={{ width: 38, height: 37, resizeMode: 'contain' }} />
           </TouchableOpacity>
         ) : null}
 
@@ -444,9 +454,9 @@ const estilos = StyleSheet.create({
     borderRadius: 8,
   },
   sendButton: {
-    position: "fixed",
-    right: 20,
-    bottom: 70,
+    position: "absolute",
+    right: 30,
+    bottom: 50,
     width: 60,
     height: 60,
     borderRadius: 60,
@@ -454,6 +464,7 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,
+
   },
   containerRepost: {
     paddingTop: 10,

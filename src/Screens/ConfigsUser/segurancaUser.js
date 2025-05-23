@@ -4,9 +4,9 @@ import { Switch } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import host from '../../global';
 
-
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = `http://${host}:8000`;
 
 export default function SegurancaUser() {
   const [userId, setUserId] = useState(null);

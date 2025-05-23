@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Icon from "react-native-vector-icons/Feather";
-   
+import host from '../../../../../global';
 
 
 export default function Notificacoes() {
@@ -20,7 +20,7 @@ export default function Notificacoes() {
   useEffect(() => {
     async function buscarNotificacoes() {
       const idUserSalvo = await AsyncStorage.getItem('idUser');
-      Response = await axios.get(`http://localhost:8000/api/cursei/user/notificacao/${idUserSalvo}/0`)
+      Response = await axios.get(`http://${host}:8000/api/cursei/user/notificacao/${idUserSalvo}/0`)
       setNotificacoes({
         recentes: (Response.data.ultimos_7_dias),
         antigas: (Response.data.ultimos_30_dias),
@@ -46,7 +46,7 @@ export default function Notificacoes() {
   const navigation = useNavigation();
   const renderItem = ({ item }) => (
     <View style={styles.notificacao} key={item.id}>
-      <Image source={{ uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_user}`}} style={styles.avatar} />
+      <Image source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}`}} style={styles.avatar} />
       <View style={styles.textoContainer}>
         <Text style={styles.nome}>
           {item.usuario} 

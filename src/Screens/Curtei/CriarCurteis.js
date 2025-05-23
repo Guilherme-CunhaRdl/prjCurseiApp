@@ -19,7 +19,7 @@ import Video from 'react-native-video';
 import { launchImageLibrary } from 'react-native-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import host from '../../global';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Calculate 9:16 aspect ratio dimensions
@@ -146,7 +146,7 @@ const CriarCurtei = () => {
       formData.append('legenda_curtei', caption);
       formData.append('id_user', idUser);
 
-      const response = await axios.post('http://localhost:8000/api/curtei/upload', formData, {
+      const response = await axios.post(`http://${host}:8000/api/curtei/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json',

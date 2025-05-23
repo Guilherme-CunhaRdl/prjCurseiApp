@@ -18,7 +18,7 @@ import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import Login from '../Login';
 import CadastroInstituicaoModal from '../../Components/cadastrarInstituicao';
-
+import host from '../../global';
 export default function Cadastro() {
   const [showPassword, setShowPassword] = useState(false);
   const [banner, setBanner] = useState('');
@@ -42,7 +42,7 @@ export default function Cadastro() {
   // Função para verificar email existente
   async function verificarEmailExistente(email) {
     try {
-      const resposta = await axios.get(`http://localhost:8000/api/verificar-email?email=${email}`);
+      const resposta = await axios.get(`http://${host}:8000/api/verificar-email?email=${email}`);
       return resposta.data.existe;
     } catch (erro) {
       console.error('Erro ao verificar email:', erro);
@@ -53,7 +53,7 @@ export default function Cadastro() {
   // Verifica se usuário já existe
   async function verificarUsuarioExistente(usuario) {
     try {
-      const resposta = await axios.get(`http://localhost:8000/api/verificar-usuario?usuario=${usuario}`);
+      const resposta = await axios.get(`http://${host}:8000/api/verificar-usuario?usuario=${usuario}`);
       return resposta.data.existe;
     } catch (erro) {
       console.error('Erro ao verificar usuário:', erro);
@@ -233,7 +233,7 @@ export default function Cadastro() {
     console.log('userImg:', userImg);
     console.log('banner:', banner);
     
-    const url = 'http://localhost:8000/api/cursei/user';
+    const url = `http://${host}:8000/api/cursei/user`;
     
     try {
       // Requisição POST com tratamento de erro aprimorado

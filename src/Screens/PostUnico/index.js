@@ -10,7 +10,7 @@ import Icon from "react-native-vector-icons/Feather";
 import Post from '../../Components/Post';
 import colors from '../../colors';
 import dayjs from 'dayjs';
-
+import host from '../../global';
 export default function PostUnico() {
     const route = useRoute();
     const rotavalores = route.params;
@@ -34,7 +34,7 @@ export default function PostUnico() {
 
   async function buscarComentarios(idPost) {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
-    url = 'http://localhost:8000/api/posts/interacoes/comentarios';
+    url = `http://${host}:8000/api/posts/interacoes/comentarios`;
     const post = {
       idPost: idPost,
       idUser: idUserSalvo
@@ -58,7 +58,7 @@ export default function PostUnico() {
         curtido: comentario.curtiu == 1 ? true : false,
 
         foto: usuario.img_user
-          ? `http://localhost:8000/img/user/fotoPerfil/${usuario.img_user}`
+          ? `http://${host}:8000/img/user/fotoPerfil/${usuario.img_user}`
           : 'https://via.placeholder.com/150', // imagem padrão
       };
     });
@@ -135,7 +135,7 @@ export default function PostUnico() {
         curtidas: 0,
         curtido: false,
 
-        foto: `http://localhost:8000/img/user/fotoPerfil/${comentar.data.usuario[0].img_user}`
+        foto: `http://${host}:8000/img/user/fotoPerfil/${comentar.data.usuario[0].img_user}`
       };
       
       setComentarios([novoComentario, ...comentarios]);

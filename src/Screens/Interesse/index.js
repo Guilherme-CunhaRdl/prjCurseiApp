@@ -15,7 +15,7 @@ import styles from './styles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useNavigation } from "@react-navigation/native";
-
+import host from '../../global';
 export default function Interesse() {
   const [interessesSelecionados, setInteressesSelecionados] = useState([]);
   const [banner, setBanner] = useState('');
@@ -41,7 +41,7 @@ export default function Interesse() {
       idUser : idUserSalvo,
       escolhas :interessesSelecionados
     }
-    Response = await axios.post('http://localhost:8000/api/user/escolherInteresesses',InteressesUser)
+    Response = await axios.post(`http://${host}:8000/api/user/escolherInteresesses`,InteressesUser)
     if(Response.data.sucesso){
       navigation.navigate('Home')
     }
@@ -49,7 +49,7 @@ export default function Interesse() {
   async function buscarUser() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
 
-    const resultados = await axios.get(`http://localhost:8000/api/cursei/user/${idUserSalvo}`);
+    const resultados = await axios.get(`http://${host}:8000/api/cursei/user/${idUserSalvo}`);
     var data = resultados.data;
     setUserImg(data.User.img_user);
     setBanner(data.User.banner_user);
@@ -67,14 +67,14 @@ export default function Interesse() {
       <View style={styles.capa}>
         <Image
           style={styles.banner}
-          source={banner !== null ? { uri: `http://localhost:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/itauLogo.png')}
+          source={banner !== null ? { uri: `http://${host}:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/itauLogo.png')}
         />
       </View>
 
       <View >
         <Image style={styles.user}
 
-          source={userImg !== null ? { uri: `http://localhost:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/jovem.jpeg')}
+          source={userImg !== null ? { uri: `http://${host}:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/jovem.jpeg')}
         />
       </View>
 

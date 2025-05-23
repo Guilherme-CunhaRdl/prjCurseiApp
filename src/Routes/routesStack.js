@@ -21,7 +21,7 @@ import DoisFatores from '../Screens/Login/doisfatores.js';
 import CriarCurteis from '../Screens/Curtei/CriarCurteis.js';
 import postUnico from '../Screens/PostUnico';
 import TelaPesquisa from '../Screens/Explorar/TelaPesquisa/index.js';
-
+import host from '../global.js';
 const Stack = createNativeStackNavigator();
 import SeguindoSeguidores from '../Screens/SeguindoSeguidores'
 export default function StackRoutes() {

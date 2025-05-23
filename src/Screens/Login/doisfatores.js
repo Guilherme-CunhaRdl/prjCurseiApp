@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-
+import host from '../../global';
 export default function DoisFatores({ route, navigation }) {
   const { userId } = route.params;
   const [codigo, setCodigo] = useState('');
 
   const verificarCodigo = async () => {
     try {
-      const response = await axios.post(`http://localhost:8000/api/cursei/user/verificar-codigo/${userId}`, {
+      const response = await axios.post(`http://${host}:8000/api/cursei/user/verificar-codigo/${userId}`, {
         codigo,
       });
 

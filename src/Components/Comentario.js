@@ -45,14 +45,14 @@ export default function Comentario({ idPost }) {
         curtido: comentario.curtiu == 1 ? true : false,
 
         foto: usuario.img_user
-          ? `http://localhost:8000/img/user/fotoPerfil/${usuario.img_user}`
+          ? `http://${host}:8000/img/user/fotoPerfil/${usuario.img_user}`
           : 'https://via.placeholder.com/150', // imagem padrão
       };
     });
 
     setComentarios(listaComentarios);
     setLoading(false)
-   
+
   }
 
   const formatarTempoInsercao = (seconds) => {
@@ -67,47 +67,49 @@ export default function Comentario({ idPost }) {
 
   const fecharModal = () => {
     refConteudoModal.current.slideOutDown(300).then(() => setModalVisivel(false));
+    
+
   };
 
   const curtirComentario = async (id) => {
-    
-  if (curtidasEmProcesso.includes(id)) {
-    return; 
-  }
 
-  setCurtidasEmProcesso((prev) => [...prev, id]); 
-  const comentarioCurtido = comentarios.find((item) => item.id === id);
-  const idUserSalvo = await AsyncStorage.getItem('idUser');
+    if (curtidasEmProcesso.includes(id)) {
+      return;
+    }
 
-  const NovaCurtida = {
-    idComentario: id,
-    idUser: idUserSalvo,
-    acao: comentarioCurtido.curtido ? 'descurtir' : 'curtir',
-  };
+    setCurtidasEmProcesso((prev) => [...prev, id]);
+    const comentarioCurtido = comentarios.find((item) => item.id === id);
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
 
-  try {
-    await axios.post(`http://${host}:8000/api/posts/interacoes/curtirComentario`, NovaCurtida);
+    const NovaCurtida = {
+      idComentario: id,
+      idUser: idUserSalvo,
+      acao: comentarioCurtido.curtido ? 'descurtir' : 'curtir',
+    };
 
-    setComentarios((prevComentarios) =>
-      prevComentarios.map((item) =>
-        item.id === id
-          ? {
+    try {
+      await axios.post(`http://${host}:8000/api/posts/interacoes/curtirComentario`, NovaCurtida);
+
+      setComentarios((prevComentarios) =>
+        prevComentarios.map((item) =>
+          item.id === id
+            ? {
               ...item,
               curtido: !comentarioCurtido.curtido,
               curtidas: comentarioCurtido.curtido
                 ? item.curtidas - 1
                 : item.curtidas + 1,
             }
-          : item
-      )
-    );
-  } catch (error) {
-    console.error('Erro ao curtir/descurtir:', error);
-  } finally {
-    
-    setCurtidasEmProcesso((prev) => prev.filter((itemId) => itemId !== id));
-  }
-};
+            : item
+        )
+      );
+    } catch (error) {
+      console.error('Erro ao curtir/descurtir:', error);
+    } finally {
+
+      setCurtidasEmProcesso((prev) => prev.filter((itemId) => itemId !== id));
+    }
+  };
 
   const adicionarComentario = async () => {
     if (comentario.trim() === '') return;
@@ -115,13 +117,14 @@ export default function Comentario({ idPost }) {
     if (!idUserSalvo) {
       fecharModal();
       navigation.navigate('Login')
+      return;
     } else {
       const Createcomentario = {
         idPost: idPost,
         idUser: idUserSalvo,
         comentario: comentario
       }
-      const comentar = await axios.post('http://127.0.0.1:8000/api/posts/interacoes/comentar', Createcomentario)
+      const comentar = await axios.post(`http://${host}:8000/api/posts/interacoes/comentar`, Createcomentario)
       const novoComentario = {
         id: comentar.data.comentario.id,
         usuario: comentar.data.usuario[0].arroba_user,
@@ -131,9 +134,9 @@ export default function Comentario({ idPost }) {
         curtidas: 0,
         curtido: false,
 
-        foto: `http://localhost:8000/img/user/fotoPerfil/${comentar.data.usuario[0].img_user}`
+        foto: `http://${host}:8000/img/user/fotoPerfil/${comentar.data.usuario[0].img_user}`
       };
-      
+
       setComentarios([novoComentario, ...comentarios]);
       setComentario('');
     }
@@ -179,7 +182,7 @@ export default function Comentario({ idPost }) {
               {curtidas}
             </Text>
           </Pressable>
-         
+
         </View>
       </View>
     );
@@ -187,7 +190,7 @@ export default function Comentario({ idPost }) {
   return (
     <View style={styles.container}>
       <TouchableOpacity
-
+        style={{flexGrow:1,width:20}}
         onPress={abrirModal}
       >
         <Icon name="message-circle" size={20} color="#666" />
@@ -205,8 +208,8 @@ export default function Comentario({ idPost }) {
 
 
           <KeyboardAvoidingView
-
             style={styles.containerTeclado}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Adicione isso
           >
             <Animatable.View
               ref={refConteudoModal}
@@ -227,7 +230,7 @@ export default function Comentario({ idPost }) {
                 <View style={styles.espacadorCabecalho} />
               </View>
 
-              {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 99, width: '100%', height: '100%', backgroundColor: 'rtransparencyed' }}>
+              {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 99, width: '100%', height: '100%', backgroundColor: 'transparent' }}>
                 <ActivityIndicator size="large" color="#3498db" />
               </View>
               ) : (!loading && comentarios?.length === 0 ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 99, width: '100%', height: '100%', backgroundColor: 'transparency' }}>

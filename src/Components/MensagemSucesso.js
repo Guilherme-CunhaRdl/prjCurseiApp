@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Modal from 'react-native-modal';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesign from '@expo/vector-icons/AntDesign';
-
+import host from '../global';
 const motivosDenuncia = [
   { value: '1', label: 'Conteúdo ofensivo', icon: 'warning' },
   { value: '2', label: 'Spam ou conteúdo enganoso', icon: 'disconnect' },

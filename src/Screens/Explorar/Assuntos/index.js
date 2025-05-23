@@ -3,6 +3,7 @@ import { SafeAreaView, View, Text, ScrollView, FlatList, TouchableOpacity } from
 import styles from './styles';
 import Configuracoes from '../../../Components/Configurações/configuracoes';
 import axios from 'axios';
+import host from '../../../global';
 
 export default function Assuntos() {
   const [interesses, setInteresses] = useState([]);
@@ -10,7 +11,7 @@ export default function Assuntos() {
   useEffect(() => {
     const fetchAssuntos = async () => {
       try {
-        const url = 'http://127.0.0.1:8000/api/cursei/explorar/assuntosMomento';
+        const url = `http://${host}:8000/api/cursei/explorar/assuntosMomento`;
         const response = await axios.get(url);
         console.log(response.data);
         setInteresses(response.data);

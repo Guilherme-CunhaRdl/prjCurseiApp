@@ -13,7 +13,7 @@ import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 import criarEstilos from "./styles";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import host from "../../global";
 export default function ConfigsUser() {
   const navigation = useNavigation();
   const [modoEscuro, setModoEscuro] = useState(false);

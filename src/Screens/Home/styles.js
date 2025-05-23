@@ -7,7 +7,7 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     overflow: 'scroll',
-
+    paddingTop:25,
   },
   ContainerCont: {
     flex: 1,
@@ -19,6 +19,8 @@ export default StyleSheet.create({
   },
   postContainer: {
     paddingTop: 20,
+    flexGrow:1,
+    
   },
   postHeader: {
     marginBottom: 4,
@@ -167,17 +169,21 @@ export default StyleSheet.create({
     right: -2,
     backgroundColor: 'red',
     borderRadius: 10,
-    padding: 7,
+    padding: 0,
     width: 15,
     height: 15,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
+    
   },
   badgeText: {
     color: 'white',
     fontSize: 10,
     fontWeight: 'bold',
+    zIndex:2,
+    flex:1
+    
   },
   barraContainer:{
     alignSelf: 'center',
