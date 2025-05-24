@@ -19,6 +19,7 @@ const TopTabs = () => {
                 name="Assuntos do Momento"
                 component={Assuntos}
             />
+            
         </Top.Navigator>
     )
 }

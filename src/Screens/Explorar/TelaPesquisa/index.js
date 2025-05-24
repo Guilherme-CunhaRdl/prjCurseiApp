@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { ScrollView, View, Text, TextInput, Pressable, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -5,6 +6,7 @@ import axios from 'axios';
 import Post from '../../../Components/Post';
 import styles from './styles';
 import { Ionicons } from '@expo/vector-icons';
+import TopTabs from './TopTabPesquisa';
 
 export default function TelaPesquisa() {
     const route = useRoute();
@@ -13,7 +15,7 @@ export default function TelaPesquisa() {
 
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
-    
+
     // riannnnnnnnnnnnnnnnnnnnnnnnnnnnn
     // mn eu conseguir fazer funfa ,fiz rapidinho só pra testar mas acho que dá pra fazer algo bem mais foda ,tipo o do insta que tem o pra você que é users e post ,contas,reels,post, etc tlg 
     // tudo isso baseado no que o user pesquisou ,acho que essa é a call ,isso é algo que pode dá um b.osinho posso te ajudar se quiser
@@ -59,18 +61,14 @@ export default function TelaPesquisa() {
                         </View>
                     </View>
                 </View>
-                
-                
+
+
             </View>
-            <ScrollView  style={styles.containerPost}>
-                  {loading ? (
-                    <ActivityIndicator size="large" color="#000" />
-                ) : (
-                
-                        <Post pesquisa ={termoPesquisado}/>
-                    
-                )}
-                </ScrollView>
+
+            <View style={{ flex: 1 }}>
+                    <TopTabs />
+            </View>
+
         </View>
     );
 }

@@ -83,5 +83,67 @@ export default StyleSheet.create({
       containerPost:{
        backgroundColor:colors.branco,
        paddingHorizontal:15
-      }
+      },
+
+      userContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: "#D2D2D2",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  userImgContainer: {
+    marginRight: 10,
+  },
+  imgLogo: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  containerNomeUser: {
+    flex: 1,
+  },
+  nomeUser: {
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  arrobaUser: {
+    fontWeight: '500',
+    fontSize: 12,
+    color: '#818181',
+    marginTop: 2,
+  },
+  buttonFollowContainer: {
+    marginLeft: 10,
+  },
+  buttonFollow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 87,
+    height: 28,
+    borderRadius: 5,
+    backgroundColor: '#448FFF',
+  },
+  buttonFollowActive:{
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 87,
+    height: 28,
+    borderRadius: 5,
+    borderWidth:1,
+    borderColor:colors.preto,
+    backgroundColor: 'transparency',
+  },
+  titleButton: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  titleButtonActive:{
+    color: colors.preto,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
 })
