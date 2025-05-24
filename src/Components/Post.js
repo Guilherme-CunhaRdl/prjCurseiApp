@@ -82,7 +82,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
         if (idUserSalvo) {
           SetverificarLoginUser(true)
           id = idUserSalvo;
-          url = `http://${host}:8000/api/posts/1/${id}/50/0/0`;
+          url = `http://${host}:8000/api/posts/1/${id}/30/0/0`;
 
         } else{
           id = 0,
@@ -151,53 +151,68 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
 
 
   return (
-<View style={[styles.container]}>
-      {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'absolute', zIndex: 99, width: '100%', height: '50%', backgroundColor: 'transparent' }}>
-        <ActivityIndicator size="large" color="#3498db" />
-      </View>
-      ) : null}
-      <StatusBar style="auto" />
+    <View style={[styles.container]}>
       <FlatList
         data={posts}
+        scrollEnabled={false}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id_post.toString()}
+        contentContainerStyle={{ paddingBottom: 30 }}
+        ListHeaderComponent={
+          <>
+            <StatusBar style="auto" />
+            {loading && (
+              <View style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                position: 'relative',
+                zIndex: 99,
+                width: '100%',
+                height: 100,
+              }}>
+                <ActivityIndicator size="large" color="#3498db" />
+              </View>
+            )}
+          </>
+        }
         renderItem={({ item }) => {
           async function verificarCurtida(idPost) {
             const resposta = await curtirposts(idPost, item.curtiu_post);
             if (resposta === 1) {
               item.curtiu_post = 0;
-              item.curtidas = item.curtidas - 1
+              item.curtidas -= 1;
             } else {
-              item.curtidas = item.curtidas + 1
+              item.curtidas += 1;
               setMostrarCoracao(prev => ({ ...prev, [idPost]: true }));
-              // Oculta o coração após 800ms
               setTimeout(() => {
                 setMostrarCoracao(prev => ({ ...prev, [idPost]: false }));
               }, 500);
             }
           }
+
           function doiscliques(idPost) {
             const now = Date.now();
-            const DOUBLE_PRESS_DELAY = 300; // milissegundos
-
+            const DOUBLE_PRESS_DELAY = 300;
             if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
-              verificarCurtida(idPost); // Executa a função no segundo clique rápido
-
+              verificarCurtida(idPost);
             }
-
             lastTap = now;
           }
-          const id = item.id_post
+
           const curtido = item.curtiu_post === 1 || curtidos[item.id_post] === true;
+
           return (
             <View style={styles.postContainer}>
               <View style={styles.postHeader}>
-                <Pressable style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => {
-                  navigation.navigate('Perfil', {
-                    idUserPerfil: item.id_user,
-                    titulo: item.arroba_user
-                  });
-                }}>
+                <Pressable
+                  style={{ flexDirection: 'row', alignItems: 'center' }}
+                  onPress={() => {
+                    navigation.navigate('Perfil', {
+                      idUserPerfil: item.id_user,
+                      titulo: item.arroba_user
+                    });
+                  }}>
                   <Image
                     source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }}
                     style={styles.fotoUser}
@@ -206,22 +221,19 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Text style={styles.institutionText}>
                         {item.nome_user}
-                             {item.instituicao == 1 ? (
-                                                                <Ionicons style={styles.instIcon} name="school-outline"></Ionicons>
-                                                            ) : null}
+                        {item.instituicao == 1 && (
+                          <Ionicons style={styles.instIcon} name="school-outline" />
+                        )}
                       </Text>
-                      <Text style={styles.horaPost}>
-                        ·
-                      </Text>
+                      <Text style={styles.horaPost}> · </Text>
                       <Text style={styles.horaPost}>
                         {formatarTempoInsercao(item.tempo_insercao)}
                       </Text>
                     </View>
-                    <Text style={styles.arrobaUser}>
-                      @{item.arroba_user}
-                    </Text>
+                    <Text style={styles.arrobaUser}>@{item.arroba_user}</Text>
                   </View>
                 </Pressable>
+
                 {idUser ? (
                   perfilProprio ? (
                     <Configuracoes
@@ -229,7 +241,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
                       idPost={item.id_post}
                       userPost={item.id_user}
                       segueUsuario={item.segue_usuario}
-                      tipo='postProprio'
+                      tipo="postProprio"
                     />
                   ) : (
                     <Configuracoes
@@ -237,7 +249,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
                       idPost={item.id_post}
                       userPost={item.id_user}
                       segueUsuario={item.segue_usuario}
-                      tipo='postPerfil'
+                      tipo="postPerfil"
                     />
                   )
                 ) : (
@@ -246,75 +258,62 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
                     idPost={item.id_post}
                     userPost={item.id_user}
                     segueUsuario={item.segue_usuario}
-                    tipo='post'
+                    tipo="post"
                   />
                 )}
               </View>
 
-
               <View style={styles.containerConteudo}>
-                <Text style={styles.postText}>
-                  {item.descricao_post}
-                </Text>
-                {item.conteudo_post
-                  ? (
-                    <Pressable style={styles.postContent} onPress={() => doiscliques(item.id_post)}>
-                      <Image
-                        style={{ width: '100%', height: '100%', borderRadius: 8 }}
-                        source={{ uri: `http://${host}:8000/img/user/imgPosts/${item.conteudo_post}` }}
-                      />
-
-
-                    </Pressable>
-                  )
-                  : null}
+                <Text style={styles.postText}>{item.descricao_post}</Text>
+                {item.conteudo_post && (
+                  <Pressable
+                    style={styles.postContent}
+                    onPress={() => doiscliques(item.id_post)}>
+                    <Image
+                      style={{ width: '100%', height: '100%', borderRadius: 8 }}
+                      source={{ uri: `http://${host}:8000/img/user/imgPosts/${item.conteudo_post}` }}
+                    />
+                  </Pressable>
+                )}
               </View>
 
               {item.repost_id != null && (
-                <Pressable style={styles.containerRepost} onPress={() =>  navigation.navigate('PostUnico', {
+                <Pressable
+                  style={styles.containerRepost}
+                  onPress={() => navigation.navigate('PostUnico', {
                     idPost: item.repost_id,
                     titulo: item.repost_arroba
                   })}>
                   <View style={styles.postHeader}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', paddingInline: 10, }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
                       <Image
                         source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.repost_img}` }}
                         style={styles.fotoUserRepost}
                       />
                       <View style={{ paddingLeft: 10 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <Text style={styles.institutionTextRepost}>
-                            {item.repost_autor}
-                          </Text>
-                          <Text style={styles.horaPost}>
-                            ·
-                          </Text>
+                          <Text style={styles.institutionTextRepost}>{item.repost_autor}</Text>
+                          <Text style={styles.horaPost}> · </Text>
                           <Text style={styles.horaPost}>
                             {formatarTempoInsercao(item.tempo_repostado)}
                           </Text>
                         </View>
-                        <Text style={styles.arrobaUser}>
-                          @{item.repost_arroba}
-                        </Text>
+                        <Text style={styles.arrobaUser}>@{item.repost_arroba}</Text>
                       </View>
                     </View>
-
                   </View>
-                  <Text style={styles.postTextRepost}>
-                    {item.repost_descricao}
-                  </Text>
-                  {item.repost_conteudo
-                    ? (
-                      <View style={styles.postContentRepost}>
-                        <Image
-                          style={{ width: '100%', height: '100%', borderBottomLeftRadius: 8, borderBottomRightRadius: 8 }}
-                          source={{ uri: `http://${host}:8000/img/user/imgPosts/${item.repost_conteudo}` }}
-                        />
-                      </View>
-                    )
-                    : null}
+                  <Text style={styles.postTextRepost}>{item.repost_descricao}</Text>
+                  {item.repost_conteudo && (
+                    <View style={styles.postContentRepost}>
+                      <Image
+                        style={{ width: '100%', height: '100%', borderBottomLeftRadius: 8, borderBottomRightRadius: 8 }}
+                        source={{ uri: `http://${host}:8000/img/user/imgPosts/${item.repost_conteudo}` }}
+                      />
+                    </View>
+                  )}
                 </Pressable>
               )}
+
               <View style={styles.postActions}>
                 <TouchableOpacity style={styles.actionButton} onPress={() => verificarCurtida(item.id_post)}>
                   <MaterialIcons
@@ -324,37 +323,31 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
                   />
                   <Text style={styles.QuantidadeAction}>{item.curtidas}</Text>
                 </TouchableOpacity>
-                {!idPostUnico ? (
 
+                {!idPostUnico && (
                   <View style={styles.actionButton}>
                     <Comentario idPost={item.id_post} />
                     <Text style={styles.QuantidadeAction}>   {item.comentarios}</Text>
                   </View>
+                )}
 
-                ) : null}
-
-                <TouchableOpacity style={styles.actionButton} onPress={() => handleOpenModal(item.id_post,)}>
+                <TouchableOpacity style={styles.actionButton} onPress={() => handleOpenModal(item.id_post)}>
                   <Icon name="repeat" size={19} color="#666" />
                   <Text style={styles.QuantidadeAction}>{item.total_reposts}</Text>
                 </TouchableOpacity>
 
-
                 <View style={styles.containerShare}>
                   <Compartilhar />
-
                 </View>
 
                 <ModalPostagem ref={modalRef} idPostRepost={true} />
-
               </View>
-
-
             </View>
-          )
+          );
         }}
       />
-
     </View>
+
   );
 }
 

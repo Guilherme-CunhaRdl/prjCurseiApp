@@ -37,6 +37,7 @@ const ModalPostagem = forwardRef(
     const [arroba, SetArrobaUser] = useState("");
     const [descPost, setDescPost] = useState("");
     const [repost, setRepost] = useState(false);
+    const [idrepost, setIdepost] = useState(false);
     const [repost_img, setRepostImg] = useState("");
     const [repost_autor, setRepostAutor] = useState("");
     const [tempo_repostado, setTempoRepostado] = useState(0);
@@ -129,7 +130,7 @@ const ModalPostagem = forwardRef(
 
             fecharModal();
             setDescPost('')
-            setImagem()
+            setImagem('')
             // if(tela=='perfil'){
             //   navigation.replace('user');
             // }
@@ -169,12 +170,13 @@ const ModalPostagem = forwardRef(
           }
         }
         if (repost) {
-          novoPost.append("repost", repost);
+          novoPost.append("repost", idrepost);
         }
         novoPost.append("descricaoPost", descPost);
 
         const idUser = await AsyncStorage.getItem("idUser");
         url = `http://${host}:8000/api/cursei/posts/` + idUser;
+         console.log(novoPost,url)
         try {
           const response = await axios.post(url, novoPost, {
             headers: {
@@ -188,6 +190,7 @@ const ModalPostagem = forwardRef(
           // }
         } catch {
           console.log("erro ao fazer a postagem");
+          console.log(novoPost)
         }
       }
     }
@@ -213,9 +216,10 @@ const ModalPostagem = forwardRef(
     async function abrirModal(id) {
  
 
-      if (id) { // Se receber um ID, é repost
+      if (id && tipo != 'editar') { 
         console.log(id)
         setRepost(true);
+        setIdepost(id)
         const url = `http://${host}:8000/api/posts/4/${id}/1/0/0`;
         try {
           const response = await axios.get(url);
@@ -235,9 +239,17 @@ const ModalPostagem = forwardRef(
 
       if (tipo == "editar") {
         const url = `http://${host}:8000/api/posts/4/${idPost}/1/0/0`;
-        response = await axios.get(url);
-        data = response.data.data[0];
-        console.log(data);
+        let response
+       try{
+         response = await axios.get(url);
+       }
+       catch(error){
+            console.error("Erro ao carregar post:", error,url);
+       }
+
+        
+        const data = response.data.data[0];
+
         if(data.descricao_post){
            setDescPost(data.descricao_post);
         }

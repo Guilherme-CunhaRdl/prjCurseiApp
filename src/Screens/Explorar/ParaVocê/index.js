@@ -74,7 +74,7 @@ export default function ParaVoce() {
     }, []);
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView style={styles.ScrollCont}>
+            <View style={styles.ScrollCont}>
                 <View style={styles.contentContainer}>
 
                     {/* Tendências */}
@@ -84,6 +84,7 @@ export default function ParaVoce() {
                         </View>
 
                         <FlatList
+                            nestedScrollEnabled
                             data={hashtags}
                             keyExtractor={item => item.id}
                             renderItem={({ item }) => (
@@ -111,6 +112,7 @@ export default function ParaVoce() {
                         </View>
 
                         <FlatList
+                            nestedScrollEnabled
                             data={usuarios}
                             keyExtractor={item => item.id}
                             renderItem={({ item }) => (
@@ -163,7 +165,7 @@ export default function ParaVoce() {
 
                     </View>
                 </View>
-            </ScrollView>
+            </View>
         </SafeAreaView>
     );
 };

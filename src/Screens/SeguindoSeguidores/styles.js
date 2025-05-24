@@ -26,7 +26,7 @@ export default StyleSheet.create({
       },
       input: {
         flex: 1,
-        height: 35,
+        height: 50,
         color: '#666',
         fontSize: 16,
         fontWeight:500

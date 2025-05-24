@@ -21,7 +21,10 @@ export default function Explorar() {
     return (
         <SafeAreaView style={styles.container}>
             {/* Feed Content */}
-            <ScrollView style={styles.ScrollCont}>
+            <ScrollView style={styles.ScrollCont}
+                contentContainerStyle={{ flexGrow: 1 }}
+                keyboardShouldPersistTaps="handled"
+            >
                 {/*Header*/}
                 <View style={styles.Header}>
                     <View style={styles.explorarContainer}>
@@ -47,10 +50,10 @@ export default function Explorar() {
                         <TopTabs />
                     </View>
                 </View>
-                    
+
 
             </ScrollView>
-              <ModalPostagem tipo='post' />
+            <ModalPostagem tipo='post' />
         </SafeAreaView>
     );
 };

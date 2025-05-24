@@ -69,7 +69,7 @@ export default function Seguindo({ idPerfil, arroba }) {
 
 
   return (
-    <ScrollView style={styles.container} horizontal={false}>
+    <View style={styles.container} horizontal={false}>
 
       <View style={styles.barraContainer}>
         <View style={styles.barraPesquisa}>
@@ -104,7 +104,7 @@ export default function Seguindo({ idPerfil, arroba }) {
             renderItem={({ item }) => {
               return (
                 <View style={styles.conta}>
-                  <Pressable style={styles.contaDireita} onPress={() => {
+                  <TouchableOpacity style={styles.contaDireita} onPress={() => {
                     navigation.navigate('Perfil', {
                       idUserPerfil: item.id,
                       titulo: item.arroba_user
@@ -115,11 +115,11 @@ export default function Seguindo({ idPerfil, arroba }) {
                       <Text style={styles.nomeUser}>{item.nome_user}</Text>
                       <Text style={styles.arroba}>@{item.arroba_user}</Text>
                     </View>
-                  </Pressable>
+                  </TouchableOpacity>
                   {perfilProprio ? (
-                    <Pressable style={styles.btnX} onPress={() => removerSeguidor(item.id)}>
+                    <TouchableOpacity style={styles.btnX} onPress={() => removerSeguidor(item.id)}>
                       <Ionicons style={styles.btnXicon} name="close-outline"></Ionicons>
-                    </Pressable>
+                    </TouchableOpacity>
 
                   ) : null}
                 </View>
@@ -128,6 +128,6 @@ export default function Seguindo({ idPerfil, arroba }) {
         </View>
       </View>
 
-    </ScrollView>
+    </View>
   );
 }

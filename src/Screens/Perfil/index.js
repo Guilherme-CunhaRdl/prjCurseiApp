@@ -1,4 +1,4 @@
-import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -15,6 +15,7 @@ import colors from '../../colors';
 import ModalPostagem from "../../Components/ModalPostagem";
 import ModalEditarPerfil from '../../Components/modalEditarPerfil';
 import host from '../../global';
+import { SafeAreaView } from 'react-native-safe-area-context';
 const DATA = [
     {
         id: Math.random().toString(36).substring(2, 27),
@@ -94,7 +95,7 @@ export default function Perfil() {
                 setPerfilProprio(true);
             }
             var segue = await axios.get(`http://${host}:8000/api/cursei/user/verificarSeSegue/${idUserSalvo}/${idPerfil}`)
-            if  (segue.data.data)  {
+            if (segue.data.data) {
                 Setsegue_usuario(true)
             }
         } catch (error) {
@@ -107,7 +108,7 @@ export default function Perfil() {
     }
 
     async function seguir() {
-        
+
         const idUserSalvo = await AsyncStorage.getItem('idUser');
         if (!idUserSalvo) {
             navigation.navigate('Login')
@@ -118,14 +119,14 @@ export default function Perfil() {
         seguidor.append('idUser', idUserSalvo)
         seguidor.append('userPost', idUser)
         const result = await axios.post(url, seguidor, {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-        },
-      })
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        })
         console.log(segue_usuario)
         const seguidoresAtual = parseInt(seguidores)
 
-        if  (result.data ==  'deseguido')  {
+        if (result.data == 'deseguido') {
             Setsegue_usuario(false)
             setSeguidores(seguidores - 1)
         } else {
@@ -137,42 +138,42 @@ export default function Perfil() {
     }
 
 
-    const irParaChat = async  () => {
-            let idChatFinal;
-            const idUserLogado = await AsyncStorage.getItem('idUser');
-            try {
-                    const resposta = await axios.get(`http://${host}:8000/api/cursei/chat/adicionarChat/${idUserLogado}/${idUser}`);
-                    const chatExistente = resposta.data.seguidor; 
-                    const idChatExistente = chatExistente ? chatExistente.id_chat : null;
-                
-                    const dadosChat = {
-                        idUser1: idUserLogado,
-                        idUser2: idUser
-                    };
-                
-                    
-                    idChatFinal = idChatExistente
-                    if (!idChatExistente) {
-                        const inserirDados = await axios.post(`http://${host}:8000/api/cursei/chat/adicionarChat/`, dadosChat);
-                        idChatFinal = inserirDados.data.id_chat; 
-                    }
-                    
-                    console.log(idChatFinal)
+    const irParaChat = async () => {
+        let idChatFinal;
+        const idUserLogado = await AsyncStorage.getItem('idUser');
+        try {
+            const resposta = await axios.get(`http://${host}:8000/api/cursei/chat/adicionarChat/${idUserLogado}/${idUser}`);
+            const chatExistente = resposta.data.seguidor;
+            const idChatExistente = chatExistente ? chatExistente.id_chat : null;
 
-                }
-    catch(e) {
+            const dadosChat = {
+                idUser1: idUserLogado,
+                idUser2: idUser
+            };
+
+
+            idChatFinal = idChatExistente
+            if (!idChatExistente) {
+                const inserirDados = await axios.post(`http://${host}:8000/api/cursei/chat/adicionarChat/`, dadosChat);
+                idChatFinal = inserirDados.data.id_chat;
+            }
+
+            console.log(idChatFinal)
+
+        }
+        catch (e) {
             console.log(e)
-          }finally{
+        } finally {
             navigation.navigate("Conversa", {
-            idUserLogado: idUserLogado,
-            idEnviador: idUserLogado,
-            imgEnviador: userImg,
-            nomeEnviador: nome,
-            arrobaEnviador: user,
-            idChat: idChatFinal,
-        })
-          }
-    
+                idUserLogado: idUserLogado,
+                idEnviador: idUserLogado,
+                imgEnviador: userImg,
+                nomeEnviador: nome,
+                arrobaEnviador: user,
+                idChat: idChatFinal,
+            })
+        }
+
     }
     useEffect(() => {
 
@@ -183,13 +184,19 @@ export default function Perfil() {
     if (loading) {
         return (
             <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff" }}>
-                      <ActivityIndicator size="large" color="#3498db" />
+                <ActivityIndicator size="large" color="#3498db" />
             </SafeAreaView>
         );
     }
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView style={styles.containerCont}>
+            <StatusBar style="dark" backgroundColor="#fff" />
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                nestedScrollEnabled={true}
+                contentContainerStyle={{ paddingBottom: 100 }}
+                style={styles.containerCont}
+            >
                 {/*Container da Imagem de Fundo do Header */}
                 <View style={styles.header}>
                     <Image
@@ -271,7 +278,7 @@ export default function Perfil() {
                     <View style={styles.editarContainer}>
                         <View style={[styles.buttonContainer, { gap: 0 }]}>
                             <Pressable style={styles.editarButton}
-                            onPress={() => setModalEditarVisivel(true)}>
+                                onPress={() => setModalEditarVisivel(true)}>
                                 <Text style={styles.textEditarPerf}>Editar Perfil</Text>
                             </Pressable>
 
@@ -303,7 +310,7 @@ export default function Perfil() {
 
                             <Configuracoes
                                 arroba={user}
-                                userPerfil={idUser}
+                                userPost={idUser}
                                 tipo='perfil'
                             />
                         </View>
@@ -349,9 +356,9 @@ export default function Perfil() {
                     </Pressable>
                     {instituicao == 1 ? (
 
-                    <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao, focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline" />
-                    </Pressable>
+                        <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao, focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                            <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline" />
+                        </Pressable>
                     ) : null}
                 </View>
                 {/*Posts*/}
@@ -359,13 +366,13 @@ export default function Perfil() {
                     <View style={styles.postContainer}>
                         <Post key="post-1" idUser={idUser} tipo="reposts" />
                     </View>
-                ) : focoIcone =='imagem'?(
-                <View style={styles.postContainer}>
-                    <Post key="post-2" idUser={idUser} tipo="normais"/>
-                </View>
-                ): <View style={styles.postContainer}>
-                        <Post key="post-3" idUser={idUser} />
-                    </View>}
+                ) : focoIcone == 'imagem' ? (
+                    <View style={styles.postContainer}>
+                        <Post key="post-2" idUser={idUser} tipo="normais" />
+                    </View>
+                ) : <View style={styles.postContainer}>
+                    <Post key="post-3" idUser={idUser} />
+                </View>}
 
 
 
@@ -373,22 +380,22 @@ export default function Perfil() {
             </ScrollView>
             <ModalPostagem tipo='post' tela='perfil' />
 
-<ModalEditarPerfil
-  visivel={modalEditarVisivel}
-  onClose={() => setModalEditarVisivel(false)}
-  usuarioAtual={{
-    nome: nome,
-    bio: bio,
-    banner: banner,
-    foto: userImg
-  }}
-  onSaveSuccess={(dadosAtualizados) => {
-    setNome(dadosAtualizados.nome);
-    setBio(dadosAtualizados.bio);
-    if (dadosAtualizados.foto) setUserImg(dadosAtualizados.foto);
-    if (dadosAtualizados.banner) setBanner(dadosAtualizados.banner);
-  }}
-/>
+            <ModalEditarPerfil
+                visivel={modalEditarVisivel}
+                onClose={() => setModalEditarVisivel(false)}
+                usuarioAtual={{
+                    nome: nome,
+                    bio: bio,
+                    banner: banner,
+                    foto: userImg
+                }}
+                onSaveSuccess={(dadosAtualizados) => {
+                    setNome(dadosAtualizados.nome);
+                    setBio(dadosAtualizados.bio);
+                    if (dadosAtualizados.foto) setUserImg(dadosAtualizados.foto);
+                    if (dadosAtualizados.banner) setBanner(dadosAtualizados.banner);
+                }}
+            />
         </SafeAreaView>
     )
 };

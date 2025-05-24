@@ -62,9 +62,8 @@ export default function Seguindo({ idPerfil, arroba }) {
     console.log("Estado atualizado:", usuarios);
   }, [usuarios]);
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1 }}
-      horizontal={false}
-      showsHorizontalScrollIndicator={false}>
+    <View style={styles.container} contentContainerStyle={{ flexGrow: 1 }}
+      >
 
       <View style={styles.barraContainer}>
         <View style={styles.barraPesquisa}>
@@ -97,7 +96,7 @@ export default function Seguindo({ idPerfil, arroba }) {
             renderItem={({ item }) => {
               return (
                 <View style={styles.conta}>
-                  <Pressable style={styles.contaDireita} onPress={() => {
+                  <TouchableOpacity style={styles.contaDireita} onPress={() => {
                     navigation.navigate('Perfil', {
                       idUserPerfil: item.id,
                       titulo: item.arroba_user
@@ -108,11 +107,11 @@ export default function Seguindo({ idPerfil, arroba }) {
                       <Text style={styles.nomeUser}>{item.nome_user}</Text>
                       <Text style={styles.arroba}>@{item.arroba_user}</Text>
                     </View>
-                  </Pressable>
+                  </TouchableOpacity>
                   {perfilProprio ? (
-                    <Pressable style={styles.btnX} onPress={() => desseguir(item.id)}>
+                    <TouchableOpacity style={styles.btnX} onPress={() => desseguir(item.id)}>
                       <Ionicons style={styles.btnXicon} name="close-outline"></Ionicons>
-                    </Pressable>
+                    </TouchableOpacity>
 
                   ) : null}
                 </View>
@@ -121,6 +120,6 @@ export default function Seguindo({ idPerfil, arroba }) {
         </View>
       </View>
 
-    </ScrollView>
+    </View>
   );
 }

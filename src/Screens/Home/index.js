@@ -1,7 +1,6 @@
 // App.js
 import React, { useState, useEffect } from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   ScrollView,
@@ -26,6 +25,9 @@ import axios from "axios";
 import ModalPosts from "../PostUnico"
 import Notificacoes from "../../Components/Chat/src/screens/Notificacoes";
 import host from "../../global";
+import { Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 const DATA = [
   {
@@ -86,9 +88,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [perfilProprio, setPerfilProprio] = useState(false)
   const [countNotificacoes, setCountNotificacoes] = useState(0);
+  const [rodandoApp, setRodandoApp] = useState(false)
   async function carregarPerfil() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
-
+    if (Platform.OS != 'web') {
+      setRodandoApp(true)
+    }
     if (rotavalores) {
       var idPerfil = rotavalores.idUserPerfil;
     } else {
@@ -125,111 +130,130 @@ export default function Home() {
     carregarPerfil()
   }, []);
 
-  return (
 
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-      {/* Feed Content */}
-      <View style={styles.ContainerCont}>
-        {/*Header*/}
-        <View style={styles.Header}>
-          {/*View informações user*/}
-          <View style={styles.userContainer}>
+  const conteudo = (
+<View style={styles.ContainerCont}>
+          {/*Header*/}
+          <View style={styles.Header}>
+            {/*View informações user*/}
+            <View style={styles.userContainer}>
 
-            <View style={styles.infoUser}>
-              <View style={{ flexDirection: 'row' }}>
-                {/* <TouchableOpacity style={styles.imgContainer} onPress={() => navigation.navigate('user')}>
+              <View style={styles.infoUser}>
+                <View style={{ flexDirection: 'row' }}>
+                  {/* <TouchableOpacity style={styles.imgContainer} onPress={() => navigation.navigate('user')}>
                   <Image
                     style={styles.userImg}
                     source={userImg !== null ? { uri: `http://${host}:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
                   />
                 </TouchableOpacity> */}
-                <View style={styles.msgUser}>
-                  <Text style={styles.textUser}>Olá ,{nome}!</Text>
-                  <Text style={styles.textInicio}>Bem Vindo de volta</Text>
-                </View>
-              </View>
-
-
-              <View style={styles.notifyContainer}>
-                <Pressable style={styles.notifyUser}
-                  onPress={() => navigation.navigate('Notificacoes')}>
-                  <Ionicons
-                    style={styles.notifyIcon}
-                    name="notifications-outline"
-                  ></Ionicons>
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{countNotificacoes}</Text>
+                  <View style={styles.msgUser}>
+                    <Text style={styles.textUser}>Olá ,{nome}!</Text>
+                    <Text style={styles.textInicio}>Bem Vindo de volta</Text>
                   </View>
-                </Pressable>
-                <View style={styles.logoCursei}>
-                  <Image
-                    style={styles.curseiIcon}
-                    source={require("../../../assets/curseiLogo.png")}
-                  />
+                </View>
+
+
+                <View style={styles.notifyContainer}>
+                  <Pressable style={styles.notifyUser}
+                    onPress={() => navigation.navigate('Notificacoes')}>
+                    <Ionicons
+                      style={styles.notifyIcon}
+                      name="notifications-outline"
+                    ></Ionicons>
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{countNotificacoes}</Text>
+                    </View>
+                  </Pressable>
+                  <View style={styles.logoCursei}>
+                    <Image
+                      style={styles.curseiIcon}
+                      source={require("../../../assets/curseiLogo.png")}
+                    />
+                  </View>
                 </View>
               </View>
+
             </View>
-
-          </View>
-          {/*View Storys*/}
-          <View style={styles.storysContainer}>
-            <FlatList
-              horizontal={true}
-              data={DATA}
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id}
-              ListHeaderComponent={
-                <View style={styles.storys}>
-                  <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('CriarCurteis')}>
-                    <Image style={styles.imgLogo} source={adicionarLogo} />
-                  </Pressable>
-                  <View>
-                    <Text style={styles.nomeStorys}>Seu Story</Text>
+            {/*View Storys*/}
+            <View style={styles.storysContainer}>
+              <FlatList
+                horizontal={true}
+                data={DATA}
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item) => item.id}
+                ListHeaderComponent={
+                  <View style={styles.storys}>
+                    <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('CriarCurteis')}>
+                      <Image style={styles.imgLogo} source={adicionarLogo} />
+                    </Pressable>
+                    <View>
+                      <Text style={styles.nomeStorys}>Seu Story</Text>
+                    </View>
                   </View>
-                </View>
-              }
-              renderItem={({ item }) => (
-                <View style={styles.storys}>
-                  <Pressable style={styles.circuloStorys}>
-                    <Image style={styles.imgLogo} source={item.photoURL} />
-                  </Pressable>
-                  <View>
-                    <Text style={styles.nomeStorys}>{item.nome}</Text>
+                }
+                renderItem={({ item }) => (
+                  <View style={styles.storys}>
+                    <Pressable style={styles.circuloStorys}>
+                      <Image style={styles.imgLogo} source={item.photoURL} />
+                    </Pressable>
+                    <View>
+                      <Text style={styles.nomeStorys}>{item.nome}</Text>
+                    </View>
                   </View>
-                </View>
-              )}
-              contentContainerStyle={styles.flatListContent}
-            />
+                )}
+                contentContainerStyle={styles.flatListContent}
+              />
+            </View>
+          </View>
+          <View style={styles.barraContainer}>
+            <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+              <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
+            </Pressable>
+
+            <Pressable onPress={() => alterarFoco('instituicao')} style={[styles.opcao, focoIcone === 'instituicao' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+              <Ionicons style={[styles.opcaoIcon, focoIcone === 'instituicao' ? styles.IconeAtivo : styles.iconeInativo]} name="school-outline" />
+            </Pressable>
+
+
+
+          </View>
+          <View style={styles.feedContainer}>
+
+            <View style={styles.postContainer}>
+              {focoIcone === 'posts' ? (
+                <Post key="post-0" />
+              ) : focoIcone === 'instituicao' ? (<Post key="post-1" tipo="instituicao" />) : null}
+            </View>
           </View>
         </View>
-        <View style={styles.barraContainer}>
-          <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-            <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
-          </Pressable>
 
-          <Pressable onPress={() => alterarFoco('instituicao')} style={[styles.opcao, focoIcone === 'instituicao' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-            <Ionicons style={[styles.opcaoIcon, focoIcone === 'instituicao' ? styles.IconeAtivo : styles.iconeInativo]} name="school-outline" />
-          </Pressable>
+  )
 
 
+  return (
 
-        </View>
-        <View style={styles.feedContainer}>
+    <SafeAreaView style={styles.container}>
+      
+      {rodandoApp ?(
 
-          <View style={styles.postContainer}>
-            {focoIcone === 'posts' ? (
-              <Post key="post-0" />
-            ) : focoIcone === 'instituicao' ? (<Post key="post-1" tipo="instituicao" />) : null}
-          </View>
-        </View>
-      </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        {conteudo}
+      </ScrollView>
+      ):conteudo}
+       
+        
+        
+      
       {/* Send Button */}
       <ModalPostagem tipo='post' />
 
 
 
-    </View>
+    </SafeAreaView>
 
 
   );

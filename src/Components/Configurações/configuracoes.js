@@ -16,7 +16,7 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo }) => {
 
   const handleOpenModal = (tipo,idPost) => {
     if (modalRef.current) {
-      modalRef.current.abrirModal(null,tipo,idPost);
+      modalRef.current.abrirModal(id);
     } else {
       console.log("modalRef ainda não está disponível.");
     }
@@ -96,7 +96,7 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo }) => {
         setModalReportarVisible(true);
         break;
       case 'Editar':
-      handleOpenModal('editar', idPost);
+      handleOpenModal();
       break;
        case 'Excluir':
         setModalExcluirVisible(true);

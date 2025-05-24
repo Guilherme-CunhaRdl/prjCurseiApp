@@ -25,7 +25,7 @@ export default function Assuntos() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.ScrollCont}>
+      <View style={styles.ScrollCont}>
         <View style={styles.contentContainer}>
           <View style={styles.containerTradings}>
             <View style={styles.containerTitle}>
@@ -34,6 +34,7 @@ export default function Assuntos() {
             <View style={styles.separator} />
             <FlatList
               data={interesses}
+              nestedScrollEnabled
               keyExtractor={(item, index) => index.toString()}
               ItemSeparatorComponent={() => <View style={styles.separator} />}
               renderItem={({ item }) => (
@@ -56,8 +57,7 @@ export default function Assuntos() {
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
-  

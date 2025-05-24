@@ -210,7 +210,6 @@ export default StyleSheet.create({
         paddingHorizontal: 9,
         height: '110%',
         width: '15%',
-        justifyContent: 'center',
         alignItems: 'center'
       },
       opcaoIcon:{
@@ -247,8 +246,9 @@ export default StyleSheet.create({
       postContainer: {
         paddingTop: 20,
         marginBottom: 20,
-        minHeight:500,
+        minHeight:600,
         paddingHorizontal: 10,
+        flexGrow:1,
       },
       postHeader: {
         marginBottom: 8,
