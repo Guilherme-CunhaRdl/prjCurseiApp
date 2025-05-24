@@ -24,7 +24,9 @@ export default StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
+    elevation:3,
     paddingBottom: 10,
+    marginBottom:20,
   },
   containerTitle: {
     paddingVertical: 10,

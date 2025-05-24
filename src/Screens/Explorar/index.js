@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { SafeAreaView, View, Text, ScrollView, TextInput } from 'react-native';
+import {View, Text, ScrollView, TextInput } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
 import TopTabs from '../../Routes/TopTab';
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ModalPostagem from '../../Components/ModalPostagem';
 import host from '../../global';
+import { SafeAreaView } from 'react-native-safe-area-context';
 export default function Explorar() {
     const navigation = useNavigation();
 
@@ -21,10 +22,7 @@ export default function Explorar() {
     return (
         <SafeAreaView style={styles.container}>
             {/* Feed Content */}
-            <ScrollView style={styles.ScrollCont}
-                contentContainerStyle={{ flexGrow: 1 }}
-                keyboardShouldPersistTaps="handled"
-            >
+            
                 {/*Header*/}
                 <View style={styles.Header}>
                     <View style={styles.explorarContainer}>
@@ -52,7 +50,7 @@ export default function Explorar() {
                 </View>
 
 
-            </ScrollView>
+          
             <ModalPostagem tipo='post' />
         </SafeAreaView>
     );

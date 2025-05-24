@@ -1,5 +1,5 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import TabNav from "./TabNav";
+
 import Home from "../Screens/Home";
 import Login from "../Screens/Login";
 import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable } from 'react-native';
@@ -10,7 +10,16 @@ const Top = createMaterialTopTabNavigator();
 
 const TopTabs = () => {
     return (
-        <Top.Navigator>
+        <Top.Navigator
+            screenOptions={{
+                
+                tabBarLabelStyle: {
+                    fontSize: 14,
+                    fontWeight: '600',
+                    textTransform: 'none', 
+                },
+            }}
+        >
             <Top.Screen
                 name="Para Você"
                 component={ParaVoce}

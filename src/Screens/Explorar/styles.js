@@ -4,9 +4,11 @@ export default StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F9FBFF',
+        
       },
       ScrollCont:{
         flex: 1,
+
       },
       Header:{
         flex: 2,
@@ -25,7 +27,7 @@ export default StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderRadius: 8,
-        marginBottom: 16,
+        marginBottom: 10,
         paddingHorizontal: 15,
         height: 45,
         width: '100%',
@@ -46,6 +48,7 @@ export default StyleSheet.create({
         fontSize: 16,
       },
       opcoesContainer:{
+        flex:1,
       },
       opcaoText:{
         fontSize: 18,
