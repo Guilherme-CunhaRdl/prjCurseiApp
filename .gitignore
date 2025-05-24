@@ -35,4 +35,4 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-/src/global.js/
+/src/global.js
