@@ -140,12 +140,6 @@ export default function Home() {
 
               <View style={styles.infoUser}>
                 <View style={{ flexDirection: 'row' }}>
-                  {/* <TouchableOpacity style={styles.imgContainer} onPress={() => navigation.navigate('user')}>
-                  <Image
-                    style={styles.userImg}
-                    source={userImg !== null ? { uri: `http://${host}:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
-                  />
-                </TouchableOpacity> */}
                   <View style={styles.msgUser}>
                     <Text style={styles.textUser}>Olá ,{nome}!</Text>
                     <Text style={styles.textInicio}>Bem Vindo de volta</Text>
@@ -183,7 +177,7 @@ export default function Home() {
                 keyExtractor={(item) => item.id}
                 ListHeaderComponent={
                   <View style={styles.storys}>
-                    <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('CriarCurteis')}>
+                    <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('Story')}>
                       <Image style={styles.imgLogo} source={adicionarLogo} />
                     </Pressable>
                     <View>

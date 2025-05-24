@@ -58,6 +58,7 @@ const storiesData = [
 ];
 
 export default function Curtei() {
+  const navigation = useNavigation();
   const isFocused = useIsFocused();
   const videoRefs = useRef([]);
   const flatListRef = useRef(null);
