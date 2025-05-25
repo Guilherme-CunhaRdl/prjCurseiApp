@@ -10,10 +10,10 @@ export default StyleSheet.create({
 
   },
   Header: {
-    paddingTop: 10, // Reduzido para ficar mais justo no topo
+    paddingTop: 10, 
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-    paddingBottom: 10 // Adicionado para equilíbrio
+    paddingBottom: 10 
   },
   explorarContainer: {
     paddingTop: 10,
@@ -23,11 +23,11 @@ export default StyleSheet.create({
   explorarTitle: {
     fontWeight: 'bold',
     fontSize: 20,
-    marginTop: 10 // Espaço extra apenas para pesquisa
+    marginTop: 10 /
   },
   barraContainer: {
     paddingHorizontal: 16,
-    marginTop: 10 // Espaço entre título e barra
+    marginTop: 10
   },
   barraPesquisa: {
     flexDirection: 'row',
