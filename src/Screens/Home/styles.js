@@ -113,7 +113,8 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop:10
+    marginTop:10,
+    marginLeft:20,
   },
   storys: {
     alignItems: 'center',

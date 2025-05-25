@@ -5,14 +5,27 @@ export default StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
+       
       },
     containerCont:{
         flex: 1,
+       
+    },
+      headerTopo: {
+        backgroundColor: colors.branco,
+        elevation: 0,
+        flexDirection:'row',
+        alignItems:'center',
+        justifyContent:'flex-start',
+        gap:10,
+        height:50,
+        paddingInline:15
     },
     header:{
         width: "100%",
         height: 200,
         backgroundColor: '#E3E3E3',
+        
     },
     banner:{
       width:'100%',

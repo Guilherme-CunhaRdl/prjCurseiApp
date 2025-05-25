@@ -24,6 +24,8 @@ import TelaPesquisa from '../Screens/Explorar/TelaPesquisa/index.js';
 import host from '../global.js';
 const Stack = createNativeStackNavigator();
 import SeguindoSeguidores from '../Screens/SeguindoSeguidores'
+import Story from '../Screens/Story/index.js'
+
 export default function StackRoutes() {
 
   return (
@@ -75,7 +77,7 @@ export default function StackRoutes() {
         component={Perfil}
         options={({ route }) => ({
           title: route.params?.titulo || "Perfil",
-          headerShown: true,
+          headerShown: false,
         })}
       />
 
@@ -154,6 +156,14 @@ export default function StackRoutes() {
           headerTitleAlign: 'center',
         }}
 
+      />
+
+      <Stack.Screen
+        name="Story"
+        component={Story}
+        options={{
+          headerShown: false,
+        }}
       />
 
 
