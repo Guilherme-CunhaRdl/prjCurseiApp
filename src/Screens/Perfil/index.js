@@ -17,10 +17,10 @@ import ModalEditarPerfil from '../../Components/modalEditarPerfil';
 import host from '../../global';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  Appbar,
-  IconButton,
-  Provider as PaperProvider,
-  SegmentedButtons,
+    Appbar,
+    IconButton,
+    Provider as PaperProvider,
+    SegmentedButtons,
 } from "react-native-paper";
 const DATA = [
     {
@@ -65,6 +65,8 @@ export default function Perfil() {
     const [loading, setLoading] = useState(true);
     const [focoIcone, setFocoIcone] = useState('posts')
     const [perfilProprio, setPerfilProprio] = useState(false)
+    const [perfilBloqueado, setPerfilBloqueado] = useState(false)
+    const [userBloqueado, setUserBloqueado] = useState(false)
     const [segue_usuario, Setsegue_usuario] = useState(false)
     const [modalEditarVisivel, setModalEditarVisivel] = useState(false);
     const [postsCount, setPostsCount] = useState('')
@@ -83,9 +85,9 @@ export default function Perfil() {
         try {
 
             setIdUser(idPerfil);
-            const resultados = await axios.get(`http://${host}:8000/api/cursei/user/${idPerfil}`);
+            const resultados = await axios.get(`http://${host}:8000/api/cursei/user/${idPerfil}/${idUserSalvo}`);
             var data = resultados.data;
-
+            console.log(data)
             setNome(data.User.nome_user);
             setUser(data.User.arroba_user);
             setEmail(data.User.email_user);
@@ -97,6 +99,8 @@ export default function Perfil() {
             setSeguindo(data.User.seguindo_count)
             setPostsCount(data.User.posts_count)
             setInstituicao(data.User.instituicao)
+            setPerfilBloqueado(data.User.bloqueando)
+            setUserBloqueado(data.User.bloqueado)
             if (idUserSalvo == idPerfil) {
                 setPerfilProprio(true);
             }
@@ -112,7 +116,18 @@ export default function Perfil() {
             }, 1500)
         }
     }
-
+    async function desbloquear() {
+        const idUserSalvo = await AsyncStorage.getItem('idUser');
+        const url = `http://${host}:8000/api/cursei/user/desbloquear/${idUser}/${idUserSalvo}`
+        try {
+            const response = await axios.get(url)
+            if (response.data.sucesso) {
+                setPerfilBloqueado(0)
+            }
+        } catch (error) {
+            alert(error)
+        }
+    }
     async function seguir() {
 
         const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -196,11 +211,11 @@ export default function Perfil() {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.headerTopo}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-               <Ionicons size={22} name='arrow-back-outline' color={colors.azul}/>
-            </TouchableOpacity>
-           <Text style={{ color: "black", fontWeight: 600, fontSize: 20 }}>@{user}</Text>
-          </View>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Ionicons size={22} name='arrow-back-outline' color={colors.azul} />
+                </TouchableOpacity>
+                <Text style={{ color: "black", fontWeight: 600, fontSize: 20 }}>@{user}</Text>
+            </View>
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 nestedScrollEnabled={true}
@@ -304,20 +319,30 @@ export default function Perfil() {
                 ) :
                     <View style={styles.editarContainer}>
                         <View style={styles.buttonContainer}>
-                            {segue_usuario ? (
-                                <Pressable style={styles.buttonVazado} onPress={seguir}>
-                                    <Text style={{ color: '#00000' }}>Seguindo</Text>
+                            {perfilBloqueado == 1 ? (
+                                <Pressable style={styles.buttonDesbloquear} onPress={desbloquear}>
+                                    <Text style={{ color: '#fff', fontWeight: 500 }}>Desbloquear</Text>
                                 </Pressable>
-                            ) :
-                                <Pressable style={styles.buttonCompleto} onPress={seguir} >
-                                    <Text style={{ color: '#fff' }}>Seguir</Text>
-                                </Pressable>
+                            )
+                                :
+                                segue_usuario ? (
+                                    <Pressable style={styles.buttonVazado} onPress={seguir}>
+                                        <Text style={{ color: '#00000', fontWeight: 500 }}>Seguindo</Text>
+                                    </Pressable>
+                                ) :
+                                    <Pressable style={styles.buttonCompleto} onPress={seguir} >
+                                        <Text style={{ color: '#fff', fontWeight: 500 }}>Seguir</Text>
+                                    </Pressable>
+
+
                             }
-                            <Pressable style={styles.buttonVazado} onPress={() => irParaChat()}>
-                                <Text>Mensagem</Text>
 
-                            </Pressable>
+                            {perfilBloqueado ?
+                                (null) :
+                                <Pressable style={styles.buttonVazado} onPress={() => irParaChat()}>
+                                    <Text style={{ fontWeight: 500 }}>Mensagem</Text>
 
+                                </Pressable>}
                             <Configuracoes
                                 arroba={user}
                                 userPost={idUser}
@@ -327,63 +352,73 @@ export default function Perfil() {
                     </View>
                 }
                 {/*View Storys*/}
-                <View style={styles.storysContainer}>
-                    <FlatList
-                        horizontal={true}
-                        data={DATA}
-                        keyExtractor={(item) => item.id}
-                        showsHorizontalScrollIndicator={false}
-                        renderItem={({ item }) => (
-                            <View style={styles.storys}>
-                                <Pressable style={styles.circuloStorys}>
-                                    <View
-                                        style={[styles.imgLogo]}
-                                    >
-                                        <Image style={{ width: '100%', height: '100%', resizeMode: 'contain', borderRadius: 100 }} source={item.photoURL} />
+                {perfilBloqueado == 1 ? (null) :
+
+
+                    <View style={styles.storysContainer}>
+                        <FlatList
+                            horizontal={true}
+                            data={DATA}
+                            keyExtractor={(item) => item.id}
+                            showsHorizontalScrollIndicator={false}
+                            renderItem={({ item }) => (
+                                <View style={styles.storys}>
+                                    <Pressable style={styles.circuloStorys}>
+                                        <View
+                                            style={[styles.imgLogo]}
+                                        >
+                                            <Image style={{ width: '100%', height: '100%', resizeMode: 'contain', borderRadius: 100 }} source={item.photoURL} />
+                                        </View>
+                                    </Pressable>
+
+                                    <View style={styles.nomeStorys}>
+                                        <Text style={styles.textStorys}>{item.nome}</Text>
                                     </View>
-                                </Pressable>
-
-                                <View style={styles.nomeStorys}>
-                                    <Text style={styles.textStorys}>{item.nome}</Text>
                                 </View>
-                            </View>
-                        )}
-                    />
-                </View>
-
+                            )}
+                        />
+                    </View>
+                }
                 {/*Barra de Navegação*/}
-                <View style={styles.barraContainer}>
-                    <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
-                    </Pressable>
-
-                    <Pressable onPress={() => alterarFoco('imagem')} style={[styles.opcao, focoIcone === 'imagem' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="image-outline" />
-                    </Pressable>
-
-                    <Pressable onPress={() => alterarFoco('reposts')} style={[styles.opcao, focoIcone === 'reposts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                        <Ionicons style={[styles.opcaoIcon, focoIcone === 'reposts' ? styles.IconeAtivo : styles.iconeInativo]} name="repeat-outline" />
-                    </Pressable>
-                    {instituicao == 1 ? (
-
-                        <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao, focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                            <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline" />
+                {perfilBloqueado == 1 ? (null) :
+                    <View style={styles.barraContainer}>
+                        <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                            <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
                         </Pressable>
-                    ) : null}
-                </View>
-                {/*Posts*/}
-                {focoIcone === 'reposts' ? (
-                    <View style={styles.postContainer}>
-                        <Post key="post-1" idUser={idUser} tipo="reposts" />
-                    </View>
-                ) : focoIcone == 'imagem' ? (
-                    <View style={styles.postContainer}>
-                        <Post key="post-2" idUser={idUser} tipo="normais" />
-                    </View>
-                ) : <View style={styles.postContainer}>
-                    <Post key="post-3" idUser={idUser} />
-                </View>}
 
+                        <Pressable onPress={() => alterarFoco('imagem')} style={[styles.opcao, focoIcone === 'imagem' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                            <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="image-outline" />
+                        </Pressable>
+
+                        <Pressable onPress={() => alterarFoco('reposts')} style={[styles.opcao, focoIcone === 'reposts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                            <Ionicons style={[styles.opcaoIcon, focoIcone === 'reposts' ? styles.IconeAtivo : styles.iconeInativo]} name="repeat-outline" />
+                        </Pressable>
+                        {instituicao == 1 ? (
+
+                            <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao, focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
+                                <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline" />
+                            </Pressable>
+                        ) : null}
+                    </View>
+                }
+                {/*Posts*/}
+                {
+                    perfilBloqueado == 1 ? null : (
+                        focoIcone === 'reposts' ? (
+                            <View style={styles.postContainer}>
+                                <Post key="post-1" idUser={idUser} tipo="reposts" />
+                            </View>
+                        ) : focoIcone === 'imagem' ? (
+                            <View style={styles.postContainer}>
+                                <Post key="post-2" idUser={idUser} tipo="normais" />
+                            </View>
+                        ) : (
+                            <View style={styles.postContainer}>
+                                <Post key="post-3" idUser={idUser} />
+                            </View>
+                        )
+                    )
+                }
 
 
 

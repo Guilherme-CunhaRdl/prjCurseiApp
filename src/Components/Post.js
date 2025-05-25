@@ -97,11 +97,11 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
         url = `http://${host}:8000/api/posts/4/${idPostUnico}/1/0/0`
       }
       if(pesquisa){
-         url = `http://${host}:8000/api/posts/3/0/50/0/${pesquisa}`
+         url = `http://${host}:8000/api/posts/3/0/50/0/${encodeURIComponent(pesquisa)}`
       }
       //DUDU eu fiz gambiarra aqui pra poder trazer os mais recentes, dps da uma olhada e ve se ta ok pra ti.
       if(pesquisaMaisRecente){
-         url = `http://${host}:8000/api/posts/9/0/50/0/${pesquisaMaisRecente}`
+         url = `http://${host}:8000/api/posts/9/0/50/0/${encodeURIComponent(pesquisaMaisRecente)}`
       }
       if(tipo && tipo == 'instituicao'){
         url = `http://${host}:8000/api/posts/7/${id}/50/0/0`;
@@ -157,7 +157,35 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
     }
   }
 
+  const renderHashtagText = (texto, onHashtagPress) => {
+  const regex = /(#\w+)/g;
+  const partes = texto.split(regex);
 
+  return partes.map((parte, index) => {
+    if (parte.match(regex)) {
+      return (
+       <Text
+          key={`hashtag-${index}`}
+          style={{ color: colors.azul}}
+          onPress={() => onHashtagPress(parte)}
+        >
+          {parte}
+        </Text>
+      );
+    } else {
+      return (
+       
+        <Text key={`text-${index}`} style={{ color: 'black' }}>
+          {parte}
+        </Text>
+        
+      );
+    }
+  });
+};
+  const handleHashtagPress = (hashtag) => {
+   navigation.navigate('Pesquisar', { termoPesquisado:hashtag })
+  };
   return (
     <View style={[styles.container]}>
       <FlatList
@@ -272,7 +300,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
               </View>
 
               <View style={styles.containerConteudo}>
-                <Text style={styles.postText}>{item.descricao_post}</Text>
+                <Text style={styles.postText}>  {renderHashtagText(item.descricao_post, handleHashtagPress)}</Text>
                 {item.conteudo_post && (
                   <Pressable
                     style={styles.postContent}
@@ -310,7 +338,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
                       </View>
                     </View>
                   </View>
-                  <Text style={styles.postTextRepost}>{item.repost_descricao}</Text>
+                  <Text style={styles.postTextRepost}>{renderHashtagText(item.repost_descricao, handleHashtagPress)}</Text>
                   {item.repost_conteudo && (
                     <View style={styles.postContentRepost}>
                       <Image

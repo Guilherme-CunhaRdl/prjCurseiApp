@@ -102,7 +102,7 @@ export default function Home() {
     try {
 
       setIdUser(idPerfil);
-      const resultados = await axios.get(`http://${host}:8000/api/cursei/user/${idPerfil}`);
+      const resultados = await axios.get(`http://${host}:8000/api/cursei/user/${idPerfil}/0`);
       var data = resultados.data;
 
       setNome(data.User.nome_user);

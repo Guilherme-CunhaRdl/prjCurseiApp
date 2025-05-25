@@ -64,7 +64,9 @@ const TopTabs = ({ termoPesquisado }) => {
 
     async function procurarUsuarios(navigation) {
         try {
-            const url = `http://${host}:8000/api/cursei/user/procurarUsuario/${termoPesquisado}`;
+            const idUserSalvo = await AsyncStorage.getItem('idUser');
+            const url = `http://${host}:8000/api/cursei/user/procurarUsuario/${encodeURIComponent(termoPesquisado)}/${idUserSalvo}`;
+            console.log(url)
             const response = await axios.get(url);
            // console.log("Resposta completa:", response.data);
 
@@ -78,7 +80,7 @@ const TopTabs = ({ termoPesquisado }) => {
     }
     async function procurarInstituicoes(navigation) {
         try {
-            const url = `http://${host}:8000/api/cursei/instituicao/procurarInstituicao/${termoPesquisado}`;
+            const url = `http://${host}:8000/api/cursei/instituicao/procurarInstituicao/${encodeURIComponent(termoPesquisado)}`;
             const response = await axios.get(url);
            // console.log("Resposta completa:", response.data);
 

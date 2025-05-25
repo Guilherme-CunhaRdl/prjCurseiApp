@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, Text, ScrollView, FlatList, TouchableOpacity } from 'react-native';
+import { SafeAreaView, View, Text, ScrollView, FlatList, TouchableOpacity,Pressable } from 'react-native';
 import styles from './styles';
 import Configuracoes from '../../../Components/Configurações/configuracoes';
 import axios from 'axios';
 import host from '../../../global';
-
+import { useNavigation } from '@react-navigation/native';
 export default function Assuntos() {
   const [interesses, setInteresses] = useState([]);
-
+    const navigation = useNavigation();
   useEffect(() => {
     const fetchAssuntos = async () => {
       try {
@@ -37,7 +37,7 @@ export default function Assuntos() {
       <View style={styles.separator} />
 
       {interesses?.map((item, index) => (
-        <View key={index}>
+        <Pressable onPress={() => navigation.navigate('Pesquisar', { termoPesquisado: item.hashtag })} key={index}>
           <View style={styles.trendig}>
             <View style={styles.trendigHeader}>
               <Text style={styles.subTitle}>Tendência no Cursei</Text>
@@ -52,7 +52,7 @@ export default function Assuntos() {
 
         
           <View style={styles.separator} />
-        </View>
+        </Pressable>
       ))}
     </View>
   </ScrollView>
