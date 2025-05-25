@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, Text, ScrollView, FlatList, TouchableOpacity, Pressable, Image } from 'react-native';
+import { View, Text, ScrollView, FlatList, TouchableOpacity, Pressable, Image } from 'react-native';
 import styles from './styles';
 import User from '../../../../assets/userIMG.png';
 import Configuracoes from '../../../Components/Configurações/configuracoes';
@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Post from '../../../Components/Post';
 import host from '../../../global';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 
@@ -23,13 +23,13 @@ export default function ParaVoce() {
     async function recomendarUsuarios() {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
         const url = `http://${host}:8000/api/cursei/user/sugerirUsuario/${idUserSalvo}/5`;
-        Response = await axios.get(url)
+        const Response = await axios.get(url)
         setUsuarios(Response.data)
     }
     async function recomendarHashtags() {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
         const url = `http://${host}:8000/api/cursei/explorar/recomendarHashtags/${idUserSalvo}`;
-        Response = await axios.get(url)
+        const Response = await axios.get(url)
         setHashtags(Response.data)
     }
     async function seguir(id) {
@@ -40,31 +40,39 @@ export default function ParaVoce() {
         }
 
         const url = `http://${host}:8000/api/posts/interacoes/seguir`;
-        var seguidor = new FormData();
+        const seguidor = new FormData();
         seguidor.append('idUser', idUserSalvo)
         seguidor.append('userPost', id)
-        var result = await axios.post(url, seguidor)
+        
+        try {
+            const result = await axios.post(url, seguidor, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
+           
 
-
-
-        if (result.data == 'deseguido') {
-            Setsegue_usuario(false)
-            const novosUsuarios = usuarios.map(user => {
-                if (user.id === id) {
-                    return { ...user, seguido: false };
-                }
-                return user;
-            });
-            setUsuarios(novosUsuarios);
-        } else {
-            Setsegue_usuario(true)
-            const novosUsuarios = usuarios.map(user => {
-                if (user.id === id) {
-                    return { ...user, seguido: true };
-                }
-                return user;
-            });
-            setUsuarios(novosUsuarios);
+            if (result.data == 'deseguido') {
+                Setsegue_usuario(false)
+                const novosUsuarios = usuarios.map(user => {
+                    if (user.id === id) {
+                        return { ...user, seguido: false };
+                    }
+                    return user;
+                });
+                setUsuarios(novosUsuarios);
+            } else {
+                Setsegue_usuario(true)
+                const novosUsuarios = usuarios.map(user => {
+                    if (user.id === id) {
+                        return { ...user, seguido: true };
+                    }
+                    return user;
+                });
+                setUsuarios(novosUsuarios);
+            }
+        } catch (error) {
+            console.log(error)
         }
     }
 
@@ -73,99 +81,82 @@ export default function ParaVoce() {
         recomendarHashtags();
     }, []);
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.ScrollCont}>
-                <View style={styles.contentContainer}>
+        <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false} >
 
-                    {/* Tendências */}
-                    <View style={styles.containerTredings}>
-                        <View style={styles.containerTitle}>
-                            <Text style={styles.title}>Assuntos para você</Text>
-                        </View>
-
-                        <FlatList
-                            nestedScrollEnabled
-                            data={hashtags}
-                            keyExtractor={item => item.id}
-                            renderItem={({ item }) => (
-                                <View style={styles.trendigItem}>
-                                    <Text style={styles.subTitle}>Para você</Text>
-
-                                    <View style={styles.trendigRow}>
-                                        <Text style={styles.trendigName}>{item.nomeHashtag}</Text>
-                                        <View style={{ height: 20, alignItems: 'center', justifyContent: 'center' }}>
-                                            <Configuracoes />
-                                        </View>
-                                    </View>
-
-                                </View>
-                            )}
-                        />
-
-
+                {/* Tendências */}
+                <View style={styles.containerTredings}>
+                    <View style={styles.containerTitle}>
+                        <Text style={styles.title}>Assuntos para você</Text>
                     </View>
 
-                    {/* Sugestão de usuários */}
-                    <View style={styles.sugestao}>
-                        <View style={styles.containerTitle}>
-                            <Text style={styles.title}>Quem seguir</Text>
-                        </View>
-
-                        <FlatList
-                            nestedScrollEnabled
-                            data={usuarios}
-                            keyExtractor={item => item.id}
-                            renderItem={({ item }) => (
-                                <View style={styles.userContainer}>
-                                    <Pressable style={styles.userImgContainer} onPress={() => {
-                                        navigation.navigate('Perfil', {
-                                            idUserPerfil: item.id,
-                                            titulo: item.arroba_user
-                                        });
-                                    }}>
-
-                                        <Image source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }} style={styles.imgLogo} />
-                                    </Pressable>
-
-                                    <Pressable style={styles.containerNomeUser} onPress={() => {
-                                        navigation.navigate('Perfil', {
-                                            idUserPerfil: item.id,
-                                            titulo: item.arroba_user
-                                        });
-                                    }}>
-                                        <Text style={styles.nomeUser}>{item.nome_user}</Text>
-                                        <Text style={styles.arrobaUser}>@{item.arroba_user}</Text>
-                                    </Pressable>
-
-                                    <View style={styles.buttonFollowContainer}>
-                                        <Pressable
-                                            style={item.seguido ? styles.buttonFollowActive : styles.buttonFollow}
-                                            onPress={() => seguir(item.id)}
-                                        >
-                                            <Text style={item.seguido ? styles.titleButtonActive : styles.titleButton}>{item.seguido ? ('Seguido') : 'Seguir'}</Text>
-                                        </Pressable>
-                                    </View>
+                    {hashtags?.map(item => (
+                        <View style={styles.trendigItem} key={item.id}>
+                            <Text style={styles.subTitle}>Para você</Text>
+                            <View style={styles.trendigRow}>
+                                <Text style={styles.trendigName}>{item.nomeHashtag}</Text>
+                                <View style={{ height: 20, alignItems: 'center', justifyContent: 'center' }}>
+                                    <Configuracoes />
                                 </View>
-                            )}
-                        />
-
-                        <View style={styles.containerMS}>
-                            <Text style={styles.titleMS}>Mostrar Mais</Text>
+                            </View>
                         </View>
+                    ))}
+                </View>
+
+                {/* Sugestão de usuários */}
+                <View style={styles.sugestao}>
+                    <View style={styles.containerTitle}>
+                        <Text style={styles.title}>Quem seguir</Text>
                     </View>
 
+                    {usuarios?.map(item => (
+                        <View style={styles.userContainer} key={item.id}>
+                            <Pressable
+                                style={styles.userImgContainer}
+                                onPress={() => navigation.navigate('Perfil', { idUserPerfil: item.id, titulo: item.arroba_user })}
+                            >
+                                <Image
+                                    source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }}
+                                    style={styles.imgLogo}
+                                />
+                            </Pressable>
 
-                    <View style={styles.containerPost}>
-                        <View style={styles.containerTitlePost}>
-                            <Text style={styles.title}>Postagens para você</Text>
+                            <Pressable
+                                style={styles.containerNomeUser}
+                                onPress={() => navigation.navigate('Perfil', { idUserPerfil: item.id, titulo: item.arroba_user })}
+                            >
+                                <Text style={styles.nomeUser}>{item.nome_user}</Text>
+                                <Text style={styles.arrobaUser}>@{item.arroba_user}</Text>
+                            </Pressable>
+
+                            <View style={styles.buttonFollowContainer}>
+                                <Pressable
+                                    style={item.seguido ? styles.buttonFollowActive : styles.buttonFollow}
+                                    onPress={() => seguir(item.id)}
+                                >
+                                    <Text style={item.seguido ? styles.titleButtonActive : styles.titleButton}>
+                                        {item.seguido ? 'Seguido' : 'Seguir'}
+                                    </Text>
+                                </Pressable>
+                            </View>
                         </View>
+                    ))}
 
-                        <Post tipo="maisCurtidos" />
-
-
+                    <View style={styles.containerMS}>
+                        <Text style={styles.titleMS}>Mostrar Mais</Text>
                     </View>
                 </View>
-            </View>
-        </SafeAreaView>
+
+                {/* Posts */}
+                <View style={styles.containerPost}>
+                    <View style={styles.containerTitlePost}>
+                        <Text style={styles.title}>Postagens para você</Text>
+                    </View>
+
+                    <Post tipo="maisCurtidos" />
+                </View>
+
+            </ScrollView>
+        </View>
     );
 };

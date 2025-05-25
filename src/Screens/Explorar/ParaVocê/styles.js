@@ -5,15 +5,16 @@ export default StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FBFF',
-  },
-  ScrollCont: {
-    flex: 1,
+    
   },
   contentContainer: {
-    marginHorizontal: 16,
-    paddingTop: 20,
+    paddingHorizontal: 16,
+    paddingTop: 0,
+    flexGrow: 1,
+    marginTop:0
   },
   containerTredings: {
+    paddingHorizontal: 16,
     width: '100%',
     backgroundColor: 'white',
     borderRadius: 10,
@@ -22,13 +23,15 @@ export default StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     paddingVertical: 5,
+    elevation: 4,
+    marginTop:25,
     marginBottom: 20,
   },
   containerTitle: {
     paddingHorizontal: 10,
     marginBottom: 10,
   },
-   containerTitlePost: {
+  containerTitlePost: {
     paddingHorizontal: 5,
     marginBottom: 10,
   },
@@ -52,7 +55,7 @@ export default StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding:0
+    padding: 0
   },
   trendigName: {
     fontSize: 16,
@@ -86,6 +89,7 @@ export default StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
+    elevation: 4,
     paddingVertical: 16,
     marginBottom: 20,
   },
@@ -129,27 +133,27 @@ export default StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#448FFF',
   },
-  buttonFollowActive:{
+  buttonFollowActive: {
     alignItems: 'center',
     justifyContent: 'center',
     width: 87,
     height: 28,
     borderRadius: 5,
-    borderWidth:1,
-    borderColor:colors.preto,
-    backgroundColor: 'transparency',
+    borderWidth: 1,
+    borderColor: colors.preto,
+    backgroundColor: 'transparent',
   },
   titleButton: {
     color: 'white',
     fontSize: 12,
     fontWeight: '600',
   },
-  titleButtonActive:{
+  titleButtonActive: {
     color: colors.preto,
     fontSize: 12,
     fontWeight: '600',
   },
-   containerPost :{
+  containerPost: {
     width: '100%',
     backgroundColor: 'white',
     borderRadius: 10,
@@ -159,7 +163,7 @@ export default StyleSheet.create({
     shadowRadius: 5,
     paddingVertical: 5,
     marginBottom: 20,
-    paddingHorizontal:5,
+    paddingHorizontal: 5,
   },
-  
+
 });
