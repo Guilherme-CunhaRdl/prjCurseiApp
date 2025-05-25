@@ -34,15 +34,11 @@ const usersData = [
       {
         id: '1',
         videoUrl: 'https://www.w3schools.com/html/movie.mp4',
-        description: 'Texto de descrição 1',
-        likes: 21,
         comments: 43
       },
       {
         id: '2',
         videoUrl: 'https://www.w3schools.com/html/movie.mp4',
-        description: 'Texto de descrição 2',
-        likes: 56,
         comments: 12
       }
     ]
@@ -55,8 +51,31 @@ const usersData = [
       {
         id: '3',
         videoUrl: 'https://www.w3schools.com/html/movie.mp4',
-        description: 'Outro story',
-        likes: 78,
+        comments: 34
+      },
+      {
+        id: '4',
+        videoUrl: 'https://www.w3schools.com/html/movie.mp4',
+        comments: 34
+      },
+      {
+        id: '5',
+        videoUrl: 'https://www.w3schools.com/html/movie.mp4',
+        comments: 34
+      },
+      {
+        id: '6',
+        videoUrl: 'https://www.w3schools.com/html/movie.mp4',
+        comments: 34
+      },
+      {
+        id: '7',
+        videoUrl: 'https://www.w3schools.com/html/movie.mp4',
+        comments: 34
+      },
+      {
+        id: '8',
+        videoUrl: 'https://www.w3schools.com/html/movie.mp4',
         comments: 34
       }
     ]
@@ -68,15 +87,14 @@ export default function Story() {
   const navigation = useNavigation();
   const videoRefs = useRef([]);
   const flatListRef = useRef(null);
-  const timerRef = useRef(null);
-  const videoDurations = useRef({});
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentUser, setCurrentUser] = useState('');
   const [viewedStories, setViewedStories] = useState(new Set());
+  const [progress, setProgress] = useState(0);
   const progressAnim = useRef(new Animated.Value(0)).current;
 
-  const storiesData = usersData.flatMap(user => 
+  const storiesData = usersData.flatMap(user =>
     user.stories.map((story, index) => ({
       ...story,
       userId: user.id,
@@ -86,36 +104,6 @@ export default function Story() {
       storyIndex: index
     }))
   );
-
-  const startTimer = useCallback((duration = 5000) => {
-    progressAnim.setValue(0);
-    if (timerRef.current) {
-      timerRef.current.stop();
-    }
-
-    timerRef.current = Animated.timing(progressAnim, {
-      toValue: 1,
-      duration,
-      useNativeDriver: false,
-    });
-
-    timerRef.current.start(({ finished }) => {
-      if (finished) handleNext();
-    });
-  }, []);
-
-  const handleVideoStatusUpdate = useCallback(async (status, index) => {
-    if (status.didJustFinish) {
-      handleNext();
-    }
-    
-    if (status.isLoaded && !videoDurations.current[index]) {
-      videoDurations.current[index] = status.durationMillis;
-      if (index === currentIndex) {
-        startTimer(status.durationMillis);
-      }
-    }
-  }, [currentIndex]);
 
   const handleNext = useCallback(() => {
     if (currentIndex < storiesData.length - 1) {
@@ -135,18 +123,7 @@ export default function Story() {
     }
   }, [currentIndex]);
 
-  const handleScrollEnd = (e) => {
-    const offsetX = e.nativeEvent.contentOffset.x;
-    const newIndex = Math.round(offsetX / ITEM_WIDTH);
-    
-    if (newIndex !== currentIndex) {
-      videoRefs.current[currentIndex]?.pauseAsync();
-      videoRefs.current[newIndex]?.playAsync();
-      setCurrentIndex(newIndex);
-    }
-  };
-
-   const handlePress = (evt) => {
+  const handlePress = (evt) => {
     const x = evt.nativeEvent.locationX;
     const screenThird = width / 3;
 
@@ -157,21 +134,18 @@ export default function Story() {
     }
   };
 
-
   useEffect(() => {
     const story = storiesData[currentIndex];
     if (story.userId !== currentUser) {
       setCurrentUser(story.userId);
+      setProgress(0);
       progressAnim.setValue(0);
-      startTimer(videoDurations.current[currentIndex] || 5000);
     }
   }, [currentIndex]);
 
   useEffect(() => {
     if (isFocused) {
       videoRefs.current[currentIndex]?.playAsync();
-      startTimer(videoDurations.current[currentIndex] || 5000);
-
       setViewedStories(prev => {
         const newSet = new Set(prev);
         newSet.add(storiesData[currentIndex].id);
@@ -179,9 +153,6 @@ export default function Story() {
       });
     }
     return () => {
-      if (timerRef.current) {
-        timerRef.current.stop();
-      }
       progressAnim.setValue(0);
     };
   }, [currentIndex, isFocused]);
@@ -197,85 +168,72 @@ export default function Story() {
     const currentStoryIndex = userStories.findIndex(s => s.id === item.id);
 
     return (
-      <View style={styles.videoContainer}>
+      <View style={{ width: ITEM_WIDTH, height }}>
         <Video
           ref={(ref) => (videoRefs.current[index] = ref)}
           source={{ uri: item.videoUrl }}
-          style={styles.video}
+          style={{ width: '100%', height: '100%', position: 'absolute' }}
           resizeMode="cover"
           isLooping={false}
           isMuted={false}
-          useNativeControls={false}
           shouldPlay={index === currentIndex}
-          onPlaybackStatusUpdate={(status) => handleVideoStatusUpdate(status, index)}
+          onPlaybackStatusUpdate={(status) => {
+            if (status.isLoaded && status.durationMillis) {
+              const progressValue = status.positionMillis / status.durationMillis;
+              setProgress(progressValue);
+              progressAnim.setValue(progressValue);
+              if (status.didJustFinish) {
+                handleNext();
+              }
+            }
+          }}
         />
 
         <LinearGradient
           colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.6)']}
-          style={styles.overlay}
+          style={{ ...StyleSheet.absoluteFillObject }}
         >
-          <View style={styles.progressContainer}>
+          <View style={{ flexDirection: 'row', marginTop: 40, marginHorizontal: 8 }}>
             {userStories.map((story, i) => {
               const isCurrent = story.id === item.id;
               const isPast = i < currentStoryIndex;
-              const isViewed = viewedStories.has(story.id);
-
               return (
-                <View key={story.id} style={styles.progressBar}>
-                  {(isPast || isViewed) && (
-                    <View style={[styles.filledProgressBar, { width: '100%' }]} />
-                  )}
+                <View key={story.id} style={{ flex: 1, height: 3, backgroundColor: '#555', marginHorizontal: 2 }}>
+                  {isPast && <View style={{ backgroundColor: '#fff', height: '100%', width: '100%' }} />}
                   {isCurrent && (
-                    <Animated.View 
-                      style={[
-                        styles.filledProgressBar,
-                        {
-                          width: progressAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: ['0%', '100%']
-                          })
-                        }
-                      ]}
+                    <Animated.View
+                      style={{
+                        backgroundColor: '#fff',
+                        height: '100%',
+                        width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] })
+                      }}
                     />
                   )}
                 </View>
               );
             })}
           </View>
-
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={responsiveFontSize(7)} color="white" />
-            </TouchableOpacity>
-            <Text style={styles.title}>{item.institutionName}</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('CriarStorys')}>
-              <Ionicons name="camera-outline" size={responsiveFontSize(7)} color="white" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.contentContainer}>
-            <View style={styles.profileSection}>
-              <Image
-                style={styles.profileImage}
-                source={{ uri: item.userImage }}
-              />
-              <Text style={styles.institutionName}>{item.institutionName}</Text>
+          <View style={styles.overlay}>
+            <View style={styles.contentContainer}>
+              <View style={styles.profileSection}>
+                <Image style={styles.profileImage} source={{ uri: item.userImage }} />
+                <Text style={styles.institutionName}>{item.institutionName}</Text>
+              </View>
             </View>
-            <Text style={styles.description}>{item.description}</Text>
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity style={styles.button}>
+                <Ionicons name="heart-outline" size={responsiveFontSize(6)} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button}>
+                <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button}>
+                <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.button}>
-              <Ionicons name="heart-outline" size={responsiveFontSize(6)} color="white" />
-              <Text style={styles.buttonText}>{item.likes}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
-              <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
-              <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
-            </TouchableOpacity>
-          </View>
         </LinearGradient>
       </View>
     );
@@ -299,26 +257,18 @@ export default function Story() {
   ).current;
 
   return (
-    <SafeAreaView style={styles.container} {...panResponder.panHandlers}>
-      <Pressable onPress={handlePress} style={styles.fullScreen}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }} {...panResponder.panHandlers}>
+      <Pressable onPress={handlePress} style={{ flex: 1 }}>
         <FlatList
           ref={flatListRef}
           data={storiesData}
           renderItem={renderItem}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id}
           horizontal
           pagingEnabled
-          snapToInterval={ITEM_WIDTH}
-          snapToAlignment="start"
-          decelerationRate="fast"
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={handleScrollEnd}
-          getItemLayout={(_, index) => ({
-            length: ITEM_WIDTH,
-            offset: ITEM_WIDTH * index,
-            index,
-          })}
-          overScrollMode="never"
+          scrollEnabled={false}
+          initialScrollIndex={currentIndex}
+          getItemLayout={(data, index) => ({ length: ITEM_WIDTH, offset: ITEM_WIDTH * index, index })}
         />
       </Pressable>
     </SafeAreaView>
@@ -332,25 +282,13 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'space-between',
-    padding: responsiveWidth(4),
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: Platform.OS === 'ios' ? responsiveHeight(6) : responsiveHeight(4),
-  },
-  title: {
-    color: 'white',
-    fontSize: responsiveFontSize(4),
-    fontWeight: 'bold',
-    maxWidth: responsiveWidth(60),
+    padding: responsiveWidth(4)
   },
   progressContainer: {
     flexDirection: 'row',
     gap: 4,
     paddingHorizontal: 10,
-    paddingTop: 10,
+    paddingTop: 10
   },
   progressBar: {
     flex: 1,
@@ -358,56 +296,52 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.3)',
     borderRadius: 2,
     overflow: 'hidden',
-    position: 'relative',
+    position: 'relative'
   },
   filledProgressBar: {
     height: '100%',
     backgroundColor: 'white',
-    position: 'absolute',
+    position: 'absolute'
   },
   contentContainer: {
     flex: 1,
     justifyContent: 'flex-end',
-    marginBottom: responsiveHeight(5),
+    marginBottom: responsiveHeight(0)
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: responsiveWidth(2),
-    marginBottom: responsiveHeight(2),
+    marginBottom: responsiveHeight(2)
   },
   profileImage: {
     width: responsiveWidth(12),
     height: responsiveWidth(12),
-    borderRadius: responsiveWidth(6),
+    borderRadius: responsiveWidth(6)
   },
   institutionName: {
     color: 'white',
     fontSize: responsiveFontSize(4),
-    fontWeight: '500',
+    fontWeight: '500'
   },
-  description: {
-    color: 'white',
-    fontSize: responsiveFontSize(3.8),
-    width: responsiveWidth(80),
-  },
+
   actionButtons: {
     position: 'absolute',
     right: responsiveWidth(4),
     bottom: responsiveHeight(5),
     alignItems: 'center',
-    gap: responsiveHeight(2),
+    gap: responsiveHeight(2)
   },
   button: {
     alignItems: 'center',
-    marginVertical: responsiveHeight(0.5),
+    marginVertical: responsiveHeight(0.5)
   },
   buttonText: {
     color: 'white',
     fontSize: responsiveFontSize(3),
-    marginTop: responsiveHeight(0.5),
+    marginTop: responsiveHeight(0.5)
   },
   fullScreen: {
-    flex: 1,
-  },
+    flex: 1
+  }
 });
