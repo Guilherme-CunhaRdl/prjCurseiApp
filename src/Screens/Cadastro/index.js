@@ -111,9 +111,10 @@ export default function Cadastro() {
   }
  
   async function fotoBanner() {
-    let result = await ImagePicker.launchCameraAsync({
+    let result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [2, 1],
+      
       quality: 1,
     });
     if (!result.canceled) {
@@ -122,9 +123,9 @@ export default function Cadastro() {
   }
 
   async function fotoPerfil() {
-    let result = await ImagePicker.launchCameraAsync({
+    let result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [1, 1],
       quality: 1,
     });
     if (!result.canceled) {
@@ -222,7 +223,7 @@ export default function Cadastro() {
     //  Dados básicos
     usuario.append('nomeUser', nome);
     usuario.append('senhaUser', senha);
-    usuario.append('bioUser', 'cleiton');
+    usuario.append('bioUser', '');
     usuario.append('arrobaUser', user);
     usuario.append('emailUser', email);
     
@@ -399,7 +400,7 @@ export default function Cadastro() {
             <Text style={styles.loginLink} onPress={() => navigation.navigate('Login')}> Faça login</Text>
           </Text>
 
-          <Text style={styles.loginText}>Deseja ser uma instituição? 
+          {/* <Text style={styles.loginText}>Deseja ser uma instituição? 
             <Text style={styles.loginLink} onPress={async () => {
               if (nome.trim() && user.trim() && email.trim() && senha.trim()) {
                 const novoId = await CriarUser();
@@ -420,7 +421,7 @@ export default function Cadastro() {
               setModalVisible(false);
               navigation.navigate('Login'); 
             }}
-          />
+          /> */}
         </View>
       </View>
     </ScrollView>

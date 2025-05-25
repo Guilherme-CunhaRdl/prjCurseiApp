@@ -16,6 +16,12 @@ import ModalPostagem from "../../Components/ModalPostagem";
 import ModalEditarPerfil from '../../Components/modalEditarPerfil';
 import host from '../../global';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Appbar,
+  IconButton,
+  Provider as PaperProvider,
+  SegmentedButtons,
+} from "react-native-paper";
 const DATA = [
     {
         id: Math.random().toString(36).substring(2, 27),
@@ -190,11 +196,16 @@ export default function Perfil() {
     }
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar style="dark" backgroundColor="#fff" />
+            <View style={styles.headerTopo}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+               <Ionicons size={22} name='arrow-back-outline' color={colors.azul}/>
+            </TouchableOpacity>
+           <Text style={{ color: "black", fontWeight: 600, fontSize: 20 }}>@{user}</Text>
+          </View>
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 nestedScrollEnabled={true}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 0 }}
                 style={styles.containerCont}
             >
                 {/*Container da Imagem de Fundo do Header */}

@@ -12,8 +12,8 @@ import colors from '../../colors';
 import dayjs from 'dayjs';
 import host from '../../global';
 export default function PostUnico() {
-    const route = useRoute();
-    const rotavalores = route.params;
+  const route = useRoute();
+  const rotavalores = route.params;
   const navigation = useNavigation();
   const [comentario, setComentario] = useState('');
   const [idPost, setIdPost] = useState(rotavalores.idPost);
@@ -24,13 +24,13 @@ export default function PostUnico() {
     setLoading(true)
     await buscarComentarios(id)
     setLoading(false)
-   
+
   }
 
   useEffect(() => {
     carregarPost(rotavalores.idPost);
-    
-  },[]);
+
+  }, []);
 
   async function buscarComentarios(idPost) {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -65,7 +65,7 @@ export default function PostUnico() {
 
     setComentarios(listaComentarios);
     setLoading(false)
-   
+
   }
 
   const formatarTempoInsercao = (seconds) => {
@@ -74,50 +74,51 @@ export default function PostUnico() {
 
 
   const curtirComentario = async (id) => {
-    
-  if (curtidasEmProcesso.includes(id)) {
-    return; 
-  }
 
-  setCurtidasEmProcesso((prev) => [...prev, id]); 
-  const comentarioCurtido = comentarios.find((item) => item.id === id);
-  const idUserSalvo = await AsyncStorage.getItem('idUser');
+    if (curtidasEmProcesso.includes(id)) {
+      return;
+    }
 
-  const NovaCurtida = {
-    idComentario: id,
-    idUser: idUserSalvo,
-    acao: comentarioCurtido.curtido ? 'descurtir' : 'curtir',
-  };
+    setCurtidasEmProcesso((prev) => [...prev, id]);
+    const comentarioCurtido = comentarios.find((item) => item.id === id);
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
 
-  try {
-    await axios.post('http://127.0.0.1:8000/api/posts/interacoes/curtirComentario', NovaCurtida);
+    const NovaCurtida = {
+      idComentario: id,
+      idUser: idUserSalvo,
+      acao: comentarioCurtido.curtido ? 'descurtir' : 'curtir',
+    };
 
-    setComentarios((prevComentarios) =>
-      prevComentarios.map((item) =>
-        item.id === id
-          ? {
+    try {
+      await axios.post(`http://${host}:8000/api/posts/interacoes/curtirComentario`, NovaCurtida);
+
+      setComentarios((prevComentarios) =>
+        prevComentarios.map((item) =>
+          item.id === id
+            ? {
               ...item,
               curtido: !comentarioCurtido.curtido,
               curtidas: comentarioCurtido.curtido
                 ? item.curtidas - 1
                 : item.curtidas + 1,
             }
-          : item
-      )
-    );
-  } catch (error) {
-    console.error('Erro ao curtir/descurtir:', error);
-  } finally {
-    
-    setCurtidasEmProcesso((prev) => prev.filter((itemId) => itemId !== id));
-  }
-};
+            : item
+        )
+      );
+    } catch (error) {
+      console.error('Erro ao curtir/descurtir:', error);
+    } finally {
+
+      setCurtidasEmProcesso((prev) => prev.filter((itemId) => itemId !== id));
+    }
+  };
 
   const adicionarComentario = async () => {
     if (comentario.trim() === '') return;
     const idUserSalvo = await AsyncStorage.getItem('idUser');
+    
     if (!idUserSalvo) {
-     
+
       navigation.navigate('Login')
     } else {
       const Createcomentario = {
@@ -125,7 +126,14 @@ export default function PostUnico() {
         idUser: idUserSalvo,
         comentario: comentario
       }
-      const comentar = await axios.post('http://127.0.0.1:8000/api/posts/interacoes/comentar', Createcomentario)
+      
+      const comentar = await axios.post(`http://${host}:8000/api/posts/interacoes/comentar`,Createcomentario
+        , {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        })
+    
       const novoComentario = {
         id: comentar.data.comentario.id,
         usuario: comentar.data.usuario[0].arroba_user,
@@ -137,7 +145,7 @@ export default function PostUnico() {
 
         foto: `http://${host}:8000/img/user/fotoPerfil/${comentar.data.usuario[0].img_user}`
       };
-      
+
       setComentarios([novoComentario, ...comentarios]);
       setComentario('');
     }
@@ -146,17 +154,18 @@ export default function PostUnico() {
   useEffect(() => {
 
   }, []);
-  const ItemComentario = React.memo(({ usuario, tempoCriacao, texto, curtidas, curtido, foto, id,idUserComent }) => {
+  const ItemComentario = React.memo(({ usuario, tempoCriacao, texto, curtidas, curtido, foto, id, idUserComent }) => {
 
 
 
     return (
       <View style={styles.itemComentario}>
-        <Pressable style={styles.cabecalhoComentario} onPress={() =>{
-                  navigation.navigate('Perfil', {
-                    idUserPerfil: idUserComent,
-                    titulo: usuario
-                  })}}>
+        <Pressable style={styles.cabecalhoComentario} onPress={() => {
+          navigation.navigate('Perfil', {
+            idUserPerfil: idUserComent,
+            titulo: usuario
+          })
+        }}>
           <Image source={{ uri: foto }} style={styles.fotoUsuario} />
           <View style={styles.infoUsuario}>
             <Text style={styles.nomeUsuario}>@{usuario}</Text>
@@ -185,57 +194,57 @@ export default function PostUnico() {
   });
   return (
     <View style={styles.container}>
-   
-        <ScrollView style={styles.containerModal}>
-          
-          {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '100%' }}>
-            <ActivityIndicator size="large" color="#3498db" />
-          </View>
-          ) : null}
 
-          <View style={styles.post}>
+      <ScrollView style={styles.containerModal}>
 
-            <Post idPostUnico={idPost} />
-          </View>
-          <ScrollView style={styles.listaComentarios}>
-            <Text style={styles.tituloComentarios}>Comentarios ({comentarios.length})</Text>
-            {comentarios.map((comentario) => (
-              <ItemComentario
-                key={comentario.id}
-                id={comentario.id}
-                usuario={comentario.usuario}
-                tempoCriacao={comentario.tempoCriacao} // Corrigido aqui
-                texto={comentario.texto}
-                curtidas={comentario.curtidas}
-                curtido={comentario.curtido}
-                foto={comentario.foto}
-                idUserComent={comentario.idUserComent}
-              />
-            ))}
-          </ScrollView>
-        </ScrollView>
-
-
-        <View style={styles.containerInput}>
-          <TextInput
-            style={styles.inputComentario}
-            placeholder="Escreva seu comentário..."
-            placeholderTextColor="#999"
-            value={comentario}
-            onChangeText={setComentario}
-            onSubmitEditing={adicionarComentario}
-            keyboardType='text'
-          />
-
-          <TouchableOpacity
-            style={styles.botaoEnviar}
-            onPress={adicionarComentario}
-          >
-            <Ionicons name="send" size={20} color="#4a69bd" />
-          </TouchableOpacity>
-
+        {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '100%' }}>
+          <ActivityIndicator size="large" color="#3498db" />
         </View>
-    
+        ) : null}
+
+        <View style={styles.post}>
+
+          <Post idPostUnico={idPost} />
+        </View>
+        <ScrollView style={styles.listaComentarios}>
+          <Text style={styles.tituloComentarios}>Comentarios ({comentarios.length})</Text>
+          {comentarios.map((comentario) => (
+            <ItemComentario
+              key={comentario.id}
+              id={comentario.id}
+              usuario={comentario.usuario}
+              tempoCriacao={comentario.tempoCriacao} // Corrigido aqui
+              texto={comentario.texto}
+              curtidas={comentario.curtidas}
+              curtido={comentario.curtido}
+              foto={comentario.foto}
+              idUserComent={comentario.idUserComent}
+            />
+          ))}
+        </ScrollView>
+      </ScrollView>
+
+
+      <View style={styles.containerInput}>
+        <TextInput
+          style={styles.inputComentario}
+          placeholder="Escreva seu comentário..."
+          placeholderTextColor="#999"
+          value={comentario}
+          onChangeText={setComentario}
+          onSubmitEditing={adicionarComentario}
+          keyboardType='text'
+        />
+
+        <TouchableOpacity
+          style={styles.botaoEnviar}
+          onPress={adicionarComentario}
+        >
+          <Ionicons name="send" size={20} color="#4a69bd" />
+        </TouchableOpacity>
+
+      </View>
+
     </View>
   );
 }
@@ -244,12 +253,12 @@ export default function PostUnico() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-   
+
   },
   modalTelaCheia: {
     flex: 1,
     zIndex: 99,
-    width:'100%'
+    width: '100%'
   },
   containerModal: {
     backgroundColor: colors.branco

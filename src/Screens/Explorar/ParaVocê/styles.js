@@ -23,7 +23,7 @@ export default StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     paddingVertical: 5,
-    elevation: 4,
+    elevation: 2,
     marginTop:25,
     marginBottom: 20,
   },
@@ -89,7 +89,7 @@ export default StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation: 4,
+    elevation: 2,
     paddingVertical: 16,
     marginBottom: 20,
   },
@@ -161,9 +161,11 @@ export default StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
+    elevation:2,
     paddingVertical: 5,
     marginBottom: 20,
     paddingHorizontal: 5,
+   
   },
 
 });

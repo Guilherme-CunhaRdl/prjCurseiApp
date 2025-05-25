@@ -41,9 +41,9 @@ const [banner, setBanner] = useState(usuarioAtual.banner ?
 
   const resultado = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: tipo === 'foto',
-    aspect: tipo === 'foto' ? [1, 1] : [3, 1],
-    quality: 0.8,
+    allowsEditing: true,
+    aspect: tipo === 'foto' ? [1, 1] : [2, 1],
+    quality:1,
   });
 
   if (!resultado.canceled) {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   bannerContainer: {
-    height: 150,
+    height: 200,
     width: '100%',
     backgroundColor: '#f0f0f0',
     position: 'relative',
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   fotoContainer: {
     position: 'absolute',
-    top: 100,
+    top: 140,
     left: 20,
     width: 100,
     height: 100,

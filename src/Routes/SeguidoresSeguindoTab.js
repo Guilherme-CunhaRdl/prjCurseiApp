@@ -12,12 +12,12 @@ const SeguidoresSeguindoTab = ({ idPerfil,arroba,pagina}) => {
   return (
     <Top.Navigator initialRouteName={pagina === 'seguidores' ? 'Seguidores' : 'Seguindo'}>
       <Top.Screen
-        name="Seguindo"
-        children={() => <Seguindo idPerfil={idPerfil} arroba={arroba} />}
-      />
-      <Top.Screen
         name="Seguidores"
         children={() => <Seguidores idPerfil={idPerfil} arroba={arroba}/>}
+      />
+      <Top.Screen
+        name="Seguindo"
+        children={() => <Seguindo idPerfil={idPerfil} arroba={arroba} />}
       />
     </Top.Navigator>
   );

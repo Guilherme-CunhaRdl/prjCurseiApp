@@ -10,9 +10,14 @@ const NaoInteressado = ({ visible, onClose,arroba,idPost }) => {
     data = new FormData();
     data.append('idUser',idUserSalvo)
     data.append('idPost',idPost)
+    
     const url = `http://${host}:8000/api/posts/interacoes/naointeressado`;
     try{
-      axios.post(url,data)
+      axios.post(url,data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+    })
       onClose()
     }catch{
       console.log("erro ao não interessar o post")

@@ -45,7 +45,7 @@ const ModalPostagem = forwardRef(
     const [repost_descricao, setRepostDescricao] = useState("");
     const [repost_conteudo, setRepostConteudo] = useState("");
     const [editar, setEditar] = useState(false);
-
+    const [imagemEdit, setImagemEdit] = useState(null)
     const abrirGaleria = async () => {
       const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissao.granted) {
@@ -89,7 +89,8 @@ const ModalPostagem = forwardRef(
 
       if (editar) {
         const editarPost = new FormData();
-        if (imagem !== null) {
+        if (imagem != imagemEdit) {
+          console.log(imagem,imagemEdit)
           if (imagem.startsWith("data:image")) {
             // Converter Base64 para Blob
             const response = await fetch(imagem);
@@ -117,10 +118,12 @@ const ModalPostagem = forwardRef(
             // Adicionar o arquivo ao FormData
             editarPost.append("img", file);
           }
+        }
           editarPost.append("descricaoPost", descPost);
 
           const idUser = await AsyncStorage.getItem("idUser");
           url = `http://${host}:8000/api/cursei/postsUpdate/` + idPost;
+          
           try {
             const response = await axios.post(url, editarPost, {
               headers: {
@@ -134,10 +137,10 @@ const ModalPostagem = forwardRef(
             // if(tela=='perfil'){
             //   navigation.replace('user');
             // }
-          } catch {
-            console.log("erro ao fazer a postagem");
+          } catch(error) {
+            console.log("erro ao fazer a postagem :",error);
           }
-        }
+        
       } else {
         const novoPost = new FormData();
         if (imagem !== null) {
@@ -185,6 +188,7 @@ const ModalPostagem = forwardRef(
           });
           fecharModal();
           setDescPost('')
+          setImagem('')
           // if(tela=='perfil'){
           //   navigation.replace('user');
           // }
@@ -201,7 +205,7 @@ const ModalPostagem = forwardRef(
         const arroba = await AsyncStorage.getItem("arrobaUser");
         SetArrobaUser(arroba);
       };
-
+ 
       carregarUsuario();
     }, []);
 
@@ -256,6 +260,7 @@ const ModalPostagem = forwardRef(
         setImagem(
           `http://${host}:8000/img/user/imgPosts/${data.conteudo_post}`
         );
+        setImagemEdit(`http://${host}:8000/img/user/imgPosts/${data.conteudo_post}`)
         setEditar(true)
       }
 
@@ -445,7 +450,7 @@ const estilos = StyleSheet.create({
     // outline: 'none',
   },
   imagemPreview: {
-    height: 210,
+    height: 280,
     borderRadius: 8,
     marginBottom: 8,
     position: "relative",
