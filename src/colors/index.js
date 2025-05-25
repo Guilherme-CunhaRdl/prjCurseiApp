@@ -5,8 +5,8 @@ const colors ={
     branco: '#FFFFFF',
     cinza: '#666',
     verde: '',
-    vermelho: '#E41313'
-
+    vermelho: '#E41313',
+    msgEnviador : '#7eabde'
 }
 
 module.exports = colors

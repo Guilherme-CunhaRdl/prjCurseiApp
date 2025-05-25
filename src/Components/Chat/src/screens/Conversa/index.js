@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   },
   mensagemRecebida: {
     alignSelf: "flex-start",
-    backgroundColor: "#fff",
+    backgroundColor: "#f1f1f1",
     borderRadius: 8,
     padding: 4,
     marginBottom: 10,
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   },
   mensagemEnviada: {
     alignSelf: "flex-end",
-    backgroundColor: colors.azul,
+    backgroundColor: colors.msgEnviador,
     padding: 4,
     borderRadius: 8,
     marginBottom: 10,

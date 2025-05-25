@@ -371,9 +371,9 @@ export default function Mensagens({ route }) {
                     <Text
                       style={[
                         styles.ultimaMensagem,
-                        item.status_mensagem === 0 && item.enviador !== idUser
-                          ? { fontWeight: 500, color: "black" }
-                          : { fontWeight: "normal" },
+                        // item.status_mensagem === 0 && item.enviador !== idUser
+                        //   ? { fontWeight: 500, color: "black" }
+                        //   : { fontWeight: "normal" },
                       ]}
                       numberOfLines={1}
                     >
