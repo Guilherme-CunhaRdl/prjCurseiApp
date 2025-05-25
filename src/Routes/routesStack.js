@@ -77,7 +77,7 @@ export default function StackRoutes() {
         component={Perfil}
         options={({ route }) => ({
           title: route.params?.titulo || "Perfil",
-          headerShown: true,
+          headerShown: false,
         })}
       />
 

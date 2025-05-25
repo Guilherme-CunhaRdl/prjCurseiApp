@@ -17,7 +17,7 @@ import axios from "axios";
 import Pusher from "pusher-js/react-native";
 import colors from "../../../../../colors";
 import Icon from "react-native-vector-icons/Feather";
-
+import host from "../../../../../global";
 export default function Conversa({ route }) {
   const {
     idUserLogado,
@@ -40,11 +40,11 @@ export default function Conversa({ route }) {
   const abrirConversaInicio = async () => {
     try {
       const resposta = await axios.get(
-        `http://127.0.0.1:8000/api/cursei/chat/mensagens/${idChat}`
+        `http://${host}:8000/api/cursei/chat/mensagens/${idChat}`
       );
 
       const respostaCanal = await axios.get(
-        `http://127.0.0.1:8000/api/cursei/chat/mensagensCanal/${idEnviador}`
+        `http://${host}:8000/api/cursei/chat/mensagensCanal/${idEnviador}`
       )
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
@@ -64,11 +64,11 @@ export default function Conversa({ route }) {
   useEffect(() => {
     const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
-      wsHost: "127.0.0.1",
+      wsHost: `${host}`,
       wsPort: 6001,
       forceTLS: false,
       enabledTransports: ["ws"],
-      authEndpoint: "http://127.0.0.1:8000/broadcasting/auth",
+      authEndpoint: `http://${host}:8000/broadcasting/auth`,
       auth: {
         headers: {
           Authorization: "Bearer SEU_TOKEN_AQUI",
@@ -100,7 +100,7 @@ export default function Conversa({ route }) {
     console.log(idChat)
     try {
       const resposta = await axios.post(
-        `http://127.0.0.1:8000/api/cursei/chat/enviarMensagem/semImagem`,
+        `http://${host}:8000/api/cursei/chat/enviarMensagem/semImagem`,
         {
           idChat: idChat,
           conteudoMensagem: mensagem,
@@ -145,7 +145,7 @@ export default function Conversa({ route }) {
     mensagem.append("idChat", idChat);
 
     const url =
-      "http://127.0.0.1:8000/api/cursei/chat/enviarMensagem/comImagem";
+      `http://${host}:8000/api/cursei/chat/enviarMensagem/comImagem`;
 
     try {
       const resposta = await axios.post(url, mensagem, {
@@ -242,7 +242,7 @@ console.log(idUserLogado)
                 imgEnviador === null
                   ? require("../../img/metalbat.jpg")
                   : {
-                      uri: `http://127.0.0.1:8000/img/user/fotoPerfil/${imgEnviador}`,
+                      uri: `http://${host}:8000/img/user/fotoPerfil/${imgEnviador}`,
                     }
               }
               style={styles.avatar}
@@ -274,7 +274,7 @@ console.log(idUserLogado)
               {item.foto_enviada && (
                 <Image
                   source={{
-                    uri: `http://127.0.0.1:8000/img/chat/fotosChat/${item.foto_enviada}`,
+                    uri: `http://${host}:8000/img/chat/fotosChat/${item.foto_enviada}`,
                   }}
                   style={styles.imgMensagem}
                   resizeMode="cover"
@@ -282,7 +282,9 @@ console.log(idUserLogado)
               )}
               { item.conteudo_mensagem && (
 <View style={styles.viewTextoMsg}>
-              <Text style={styles.textoMensagem}>
+              <Text style={[item.id_enviador == idUserLogado
+                  ? styles.textoMsgEnviado
+                  : styles.textoMsgRecebido]}>
                 {item.conteudo_mensagem}
               </Text>
               </View>
@@ -491,23 +493,27 @@ const styles = StyleSheet.create({
   },
   mensagemRecebida: {
     alignSelf: "flex-start",
-    backgroundColor: "#f1f1f1",
+    backgroundColor: "#fff",
     borderRadius: 8,
     padding: 4,
     marginBottom: 10,
     maxWidth: "75%",
+    shadowColor: colors.preto,
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.4,
+    shadowRadius: 2
 
   },
   mensagemEnviada: {
     alignSelf: "flex-end",
-    backgroundColor: "#f1f1f1",
+    backgroundColor: colors.azul,
     padding: 4,
     borderRadius: 8,
     marginBottom: 10,
     maxWidth: "75%",
   },
   viewTextoMsg:{
-    padding: 3
+    padding: 3,
   },  
   imgMensagem: {
     width: "100%",
@@ -516,7 +522,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginBottom: 3,
   },
-  textoMensagem: { color: "#000", fontSize: 14 },
+  textoMsgEnviado: { color: colors.branco, fontSize: 14 },
+  textoMsgRecebido: { color: colors.preto, fontSize: 14 },
 
   inputContainer: {
     flexDirection: "row",

@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
   },
   capa: {
     flex: 0.6,
-    height: 120,
+    height: 200,
     backgroundColor: '#4B97FF',
     justifyContent: 'center',
     alignItems: 'center',

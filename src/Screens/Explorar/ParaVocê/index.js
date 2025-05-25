@@ -43,14 +43,14 @@ export default function ParaVoce() {
         const seguidor = new FormData();
         seguidor.append('idUser', idUserSalvo)
         seguidor.append('userPost', id)
-        
+
         try {
             const result = await axios.post(url, seguidor, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             })
-           
+
 
             if (result.data == 'deseguido') {
                 Setsegue_usuario(false)
@@ -93,12 +93,16 @@ export default function ParaVoce() {
                     {hashtags?.map(item => (
                         <View style={styles.trendigItem} key={item.id}>
                             <Text style={styles.subTitle}>Para você</Text>
-                            <View style={styles.trendigRow}>
-                                <Text style={styles.trendigName}>{item.nomeHashtag}</Text>
-                                <View style={{ height: 20, alignItems: 'center', justifyContent: 'center' }}>
-                                    <Configuracoes />
+                            <Pressable onPress={() => navigation.navigate('Pesquisar', { termoPesquisado: item.nomeHashtag })}>
+
+                                <View style={styles.trendigRow}>
+                                    <Text style={styles.trendigName}>{item.nomeHashtag}</Text>
+                                    <View style={{ height: 20, alignItems: 'center', justifyContent: 'center' }}>
+                                        <Configuracoes />
+                                    </View>
                                 </View>
-                            </View>
+                            </Pressable>
+
                         </View>
                     ))}
                 </View>

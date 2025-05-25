@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,6 +10,7 @@ import {
   Pressable,
   Modal,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import {
   Appbar,
@@ -24,175 +25,136 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Pusher from "pusher-js/react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import colors from "../../../../../colors";
+import host from "../../../../../global";
 
-export default function Mensagens() {
+export default function Mensagens({ route }) {
   const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState("todas");
   const [conversas, setConversas] = useState([]);
-  const [chats, setChats] = useState([]);
-  const [idChat,setIdChat] = useState()
   const [idUser, setIdUser] = useState(null);
   const [IsVisto, setIsVisto] = useState();
   const [resultadosUsuarios, setResultadosUsuarios] = useState([]);
   const [mostrarResultadosPesquisa, setMostrarResultadosPesquisa] = useState(false);
-const [query, setQuery] = useState("");
+  const [query, setQuery] = useState("");
   const [chatsPesquisados, setChatsPesquisados] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-
-
-  const listarChats = async (userId) => {
-    console.log(userId);
-
-    try {
-      const [resposta, respostaCanais, respostaInstituicao] = await Promise.all(
-        [
-          axios.get(
-            `http://localhost:8000/api/cursei/chat/recebidor/${userId}/todas`
-          ),
-          axios.get(
-            `http://localhost:8000/api/cursei/chat/selecionarCanal/pegarTodos/${userId}`
-          ),
-          axios.get(
-            `http://localhost:8000/api/cursei/chat/recebidor/${userId}/instituicao`
-          ),
-        ]
-      );
-
-      const conversasUnicas = new Map();
-     
-      resposta.data.chats.forEach((chat) => {
-        const key = `chat_${chat.id_chat}_${chat.id_mensagem}`;
-        if (!conversasUnicas.has(key)) {
-          conversasUnicas.set(key, { ...chat, tipo: "chat" });
-        }
-      });
-
-      
-      respostaCanais.data.canais.forEach((canal) => {
-        const key = `canal_${canal.id_canal}`;
-        if (!conversasUnicas.has(key)) {
-          conversasUnicas.set(key, { ...canal, tipo: "canal" });
-        }
-      });
-      console.log(respostaCanais)
-      
-      respostaInstituicao.data.instituicoes.forEach((instituicao) => {
-        const key = `instituicao_${instituicao.id_instituicao}_${
-          instituicao.id_mensagem_instituicao || ""
-        }`;
-        if (!conversasUnicas.has(key)) {
-          conversasUnicas.set(key, { ...instituicao, tipo: "instituicao" });
-        }
-      });
-      const conversasFinal =  Array.from(conversasUnicas.values());
-      setConversas(conversasFinal);
-      return conversasFinal;
-    } catch (error) {
-      console.error("Erro ao buscar mensagens:", error);
+  useEffect(() => {
+    if (route.params?.novaConversa) {
+      setConversas(prev => [route.params.novaConversa, ...prev]);
+      conectarCanal([route.params.novaConversa]);
+      // Remove o parâmetro para não adicionar novamente
+      navigation.setParams({ novaConversa: undefined });
     }
-  };
+  }, [route.params?.novaConversa]);
 
   useEffect(() => {
     const inicializar = async () => {
       const id = await AsyncStorage.getItem("idUser");
       setIdUser(id);
       if (id) {
-        
+
         const chats = await listarChats(id);
         conectarCanal(chats);
+        console.log(chats)
       }
     };
 
     inicializar();
   }, []);
 
+  const listarChats = async (userId) => {
+    console.log(idUser);
 
-  const conectarCanal = async (chats) => {
-    const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
-      cluster: "mt1",
-      wsHost: "127.0.0.1",
-      wsPort: 6001,
-      forceTLS: false,
-      enabledTransports: ["ws"],
-      authEndpoint: "http://127.0.0.1:8000/broadcasting/auth",
-      auth: {
-        headers: {
-          Authorization: "Bearer SEU_TOKEN_AQUI",
+    try {
+      const resposta = await axios.get(
+        `http://${host}:8000/api/cursei/chat/recebidor/${userId}/todas/0`
+      )
+      console.log(resposta)
+      setConversas(resposta.data.conversas)
+      return resposta.data.conversas;
+
+    } catch (error) {
+      console.error("Erro ao buscar mensagens:", error);
+      return "deu erro";
+    } finally {
+      setTimeout(() => {
+        setLoading(false)
+      }, 1500)
+
+    }
+  };
+
+
+
+
+  const conectarCanal = async (novosChats) => {
+    if (!window.pusherInstance) {
+      window.pusherInstance = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
+        cluster: "mt1",
+        wsHost: `${host}`,
+        wsPort: 6001,
+        forceTLS: false,
+        enabledTransports: ["ws"],
+        authEndpoint: `http://${host}:8000/broadcasting/auth`,
+        auth: {
+          headers: {
+            Authorization: "Bearer SEU_TOKEN_AQUI",
+          },
         },
-      },
+      });
+    }
+
+    const ordenarConversas = (conversas) => {
+      return [...conversas].sort((a, b) =>
+        new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+      );
+    };
+
+    const transformarMensagem = (msg) => ({
+      id_conversa: msg.id_chat,
+      id_remetente: msg.id_enviador,
+      nome: msg.nome_enviador,
+      arroba: msg.arroba_enviador,
+      img: msg.img_enviador,
+      ultima_mensagem: msg.ultima_mensagem,
+      foto_enviada: msg.foto_enviada,
+      status_mensagem: msg.status_mensagem,
+      updated_at: msg.created_at || new Date().toISOString()
     });
-    console.log(chats)
-      chats.forEach((chat) =>{
-    const canal = pusher.subscribe(`trazer_chats.${chat.id_chat}`);
 
-    canal.bind("chats", (data) => {
-      const novaMensagem = data.msgs[0];
-      console.log(data);
+    novosChats.forEach((chat) => {
+      if (!window.pusherInstance.channel(`trazer_chats.${chat.id_conversa}`)) {
+        const canal = window.pusherInstance.subscribe(`trazer_chats.${chat.id_conversa}`);
 
-      setConversas((prevChats) => {
-        const chatExistente = prevChats.find(
-          (c) => c.id_chat === novaMensagem.id_chat
-        );
-        if (chatExistente) {
-          return prevChats.map((chat) =>
-            chat.id_chat === novaMensagem.id_chat
-              ? {
-                  ...chat,
-                  ultima_mensagem: novaMensagem.ultima_mensagem,
-                  foto_enviada: novaMensagem.foto_enviada,
-                  status_mensagem: novaMensagem.status_mensagem,
-                }
-              : chat
-          );
-        } else {
-          return [novaMensagem, ...prevChats];
-        }
-      });
+        canal.bind("chats", (data) => {
+          if (!data?.msgs?.length) return;
 
-      setChatsPesquisados((prevPesquisados) => {
-        if (!prevPesquisados || prevPesquisados.length === 0) {
-          return prevPesquisados;
-        }
-        const chatExistente = prevPesquisados.find(
-          (c) => c.id_chat === novaMensagem.id_chat
-        );
-        if (chatExistente) {
-          return prevPesquisados.map((chat) =>
-            chat.id_chat === novaMensagem.id_chat
-              ? {
-                  ...chat,
-                  ultima_mensagem: novaMensagem.ultima_mensagem,
-                  foto_enviada: novaMensagem.foto_enviada,
-                  status_mensagem: novaMensagem.status_mensagem,
-                }
-              : chat
-          );
-        } else {
-           assinarCanal(novaMensagem.id_chat);
-          return [novaMensagem, ...prevPesquisados];
-        }
-      });
-      if (novaMensagem.status_chat === 1) {
-        setIsVisto(true);
-      } else {
-        setIsVisto(false);
+          data.msgs.forEach((msg) => {
+            const mensagemFormatada = transformarMensagem(msg);
+
+            setConversas(prev => {
+              const chatIndex = prev.findIndex(c => c.id_conversa === mensagemFormatada.id_conversa);
+
+              if (chatIndex !== -1) {
+                const updated = [...prev];
+                updated[chatIndex] = {
+                  ...updated[chatIndex],
+                  ...mensagemFormatada,
+                  updated_at: mensagemFormatada.updated_at
+                };
+                return ordenarConversas(updated);
+              }
+
+              return prev;
+            });
+          });
+        });
       }
     });
-  })
-   const assinarCanal = (id_chat) => {
-  const canal = pusher.subscribe(`trazer_chats.${id_chat}`);
-  canal.bind("chats");
-};
+  };
 
-// Quando iniciar a tela, assina todos os canais dos chats já existentes
-chats.forEach((chat) => {
-  assinarCanal(chat.id_chat);
-}) 
-  
-};
 
-  
-  
   const procurarChat = async (userId) => {
     try {
       if (query.trim() === "") {
@@ -201,10 +163,10 @@ chats.forEach((chat) => {
       }
 
       const response = await axios.get(
-        `http://localhost:8000/api/cursei/chat/pesquisa/${query}/${userId}`
+        `http://${host}:8000/api/cursei/chat/recebidor/${userId}/todas/${query}`
       );
 
-      
+
       const resultadosComTipo = response.data.chats.map((chat) => ({
         ...chat,
         tipo: "chat",
@@ -225,7 +187,7 @@ chats.forEach((chat) => {
 
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/cursei/chat/pesquisa/${query}/${userId}`
+        `http://${host}:8000/api/cursei/chat/pesquisa/${query}/${userId}`
       );
       setResultadosUsuarios(response.data.chats);
       setMostrarResultadosPesquisa(true);
@@ -250,34 +212,27 @@ chats.forEach((chat) => {
     }
   }, [query, idUser]);
 
-  const conversasFiltradas = useMemo(() => {
-    return conversas?.filter((item) => {
-      if (selectedTab === "todas") return true;
-      if (selectedTab === "canais") return item.tipo === "canal";
-      if (selectedTab === "instituicoes") return item.tipo === "instituicao";
-      return true;
-    });
-  }, [conversas, selectedTab]);
+  const filtrarChats = (chats) => {
+    const termo = query.toLowerCase();
 
-  const getImageSource = (item) => {
-    if (item.img_enviador) {
-      return {
-        uri: `http://127.0.0.1:8000/img/user/fotoPerfil/${item.img_enviador}`,
-      };
-    } else if (item.img_canal) {
-      return {
-        uri: `http://127.0.0.1:8000/img/chat/imgCanal/${item.img_canal}`,
-      };
-    } else if (item.img_instituicao) {
-      return {
-        uri: `http://127.0.0.1:8000/img/instituicao/${item.img_instituicao}`,
-      };
-    } else {
-      return require("../../img/metalbat.jpg");
-    }
+    return chats.filter(chat => {
+      const tipoMatch = selectedTab === "todas" || chat.tipo === selectedTab;
+      console.log(chat.tipo, selectedTab, tipoMatch)
+
+      const queryMatch = query === "" ||
+        chat.nome?.toLowerCase().includes(termo) ||
+        chat.ultima_mensagem?.toLowerCase().includes(termo);
+      return tipoMatch && queryMatch;
+    });
   };
+
+  const conversasFiltradas = useMemo(() => {
+    return filtrarChats(conversas);
+  }, [conversas, selectedTab, query]);
+
   return (
     <SafeAreaProvider>
+
       <PaperProvider>
         <View style={styles.container}>
           <Appbar.Header style={styles.Header}>
@@ -316,6 +271,7 @@ chats.forEach((chat) => {
           </View>
 
           <View style={{ marginTop: 32, marginBottom: 8 }}>
+
             {/* mesma coisa aqui, antes era o SegmentedButtons do Paper, mas a personalização é toda fudida, ai troquei*/}
             <ScrollView
               horizontal
@@ -330,8 +286,8 @@ chats.forEach((chat) => {
             >
               {[
                 { label: "Todas", value: "todas" },
-                { label: "Canais", value: "canais" },
-                { label: "Instituições", value: "instituicoes" },
+                { label: "Canais", value: "canal" },
+                { label: "Instituições", value: "instituicao" },
               ].map((tab) => {
                 const isSelected = selectedTab === tab.value;
 
@@ -363,188 +319,95 @@ chats.forEach((chat) => {
               })}
             </ScrollView>
           </View>
-          {!mostrarResultadosPesquisa && (
-            <FlatList
-              data={conversasFiltradas}
-              keyExtractor={(item) => {
-                if (item.tipo === "chat")
-                  return `chat_${item.id_chat}_${item.id_mensagem}`;
-                if (item.tipo === "canal") return `canal_${item.id_canal}`;
-                if (item.tipo === "instituicao")
-                  return `instituicao_${item.id_instituicao}_${
-                    item.id_mensagem_instituicao || ""
-                  }`;
-                return `item_${Math.random().toString(36).substr(2, 9)}`;
-              }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (item.tipo === "chat") {
-                      navigation.navigate("Conversa", {
-                        idUserLogado: idUser,
-                        idEnviador: item.id_enviador,
-                        imgEnviador: item.img_enviador,
-                        nomeEnviador: item.nome_enviador,
-                        arrobaEnviador: item.arroba_enviador,
-                        idChat: item.id_chat,
-                        isCanal: false
-                      });
-                    } else if (item.tipo === "canal") {
-                      navigation.navigate("Conversa", {
-                        idUserLogado: idUser,
-                        idEnviador: item.id_enviador,
-                        imgEnviador: item.img_enviador,
-                        nomeEnviador: item.nome_canal,
-                        arrobaEnviador: item.arroba_enviador,
-                        idChat: item.id_chat,
-                        isCanal : true
-                      });
-                    } else if (item.tipo === "instituicao") {
-                      navigation.navigate("Conversa", {
-                        idUserLogado: idUser,
-                        idEnviador: item.id_enviador,
-                        imgEnviador: item.img_enviador,
-                        nomeEnviador: item.nome_enviador,
-                        arrobaEnviador: item.arroba_enviador,
-                        idChat: item.id_chat,
-                        isCanal: false
 
-                      });
-                    }
-                  }}
-                  rippleColor="rgba(0, 0, 0, .05)"
-                >
-                  <View style={styles.mensagemItem}>
-                    <Image
-                      source={getImageSource(item)}
-                      style={styles.avatar}
-                    />
-                    <View style={styles.mensagemTexto}>
-                      <Text style={styles.nome} numberOfLines={1}>
-                        {item.nome_canal ||
-                        item.nome_enviador ||
-                          item.nome_instituicao}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.ultimaMensagem,
-                          item.status_mensagem === 0 && item.enviador !== idUser
-                            ? { fontWeight: 500, color: "black" }
-                            : { fontWeight: "normal" },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {item.foto_enviada ? (
-                          <View style={styles.ultimaMensagemImg}>
-                            <View style={styles.circuloImagem}>
-                              <Ionicons
-                                style={styles.imagemIcon}
-                                name="image-outline"
-                                color={colors.branco}
-                              />
-                            </View>
-                            <Text>Imagem</Text>
+          <FlatList
+            data={conversasFiltradas}
+            keyExtractor={(item) => item.id_conversa.toString()}
+            renderItem={({ item }) => (
+
+              <TouchableOpacity
+
+                onPress={() => {
+                  if (item.tipo === "privada") {
+                    navigation.navigate("Conversa", {
+                      idUserLogado: idUser,
+                      idEnviador: item.id_remetente,
+                      imgEnviador: item.img,
+                      nomeEnviador: item.nome,
+                      arrobaEnviador: item.arroba,
+                      idChat: item.id_conversa,
+                      isCanal: false,
+                    });
+                  } else if (item.tipo === "canal") {
+                    navigation.navigate("Conversa", {
+                      idUserLogado: idUser,
+                      idEnviador: item.id_remetente,
+                      imgEnviador: item.img,
+                      nomeEnviador: item.nome,
+                      arrobaEnviador: item.arroba,
+                      idChat: item.id_conversa,
+                      isCanal: true,
+                    });
+                  } else if (item.tipo === "instituicao") {
+                    navigation.navigate("Conversa", {
+                      idUserLogado: idUser,
+                      idEnviador: item.id_remetente,
+                      imgEnviador: item.img,
+                      nomeEnviador: item.nome,
+                      arrobaEnviador: item.arroba,
+                      idChat: item.id_conversa,
+                      isCanal: false,
+                    });
+                  }
+                }}
+              >
+
+                <View style={styles.mensagemItem}>
+                  <Image source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}` }} style={styles.avatar} />
+                  <View style={styles.mensagemTexto}>
+                    <Text style={styles.nome} numberOfLines={1}>
+                      {item.nome}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.ultimaMensagem,
+                        item.status_mensagem === 0 && item.enviador !== idUser
+                          ? { fontWeight: 500, color: "black" }
+                          : { fontWeight: "normal" },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {item.foto_enviada ? (
+                        <View style={styles.ultimaMensagemImg}>
+                          <View style={styles.circuloImagem}>
+                            <Ionicons
+                              style={styles.imagemIcon}
+                              name="image-outline"
+                              color={colors.branco}
+                            />
                           </View>
-                        ) : (
-                          <Text>{item.ultima_mensagem}</Text>
-                        )}
-                      </Text>
-                    </View>
+                          <Text>Imagem</Text>
+                        </View>
+                      ) : (
+                        <Text>{item.ultima_mensagem}</Text>
+                      )}
+                    </Text>
                   </View>
-                </TouchableOpacity>
-              )}
-              contentContainerStyle={styles.listaMensagens}
-            />
-          )}
-          {mostrarResultadosPesquisa && resultadosUsuarios.length > 0 && (
-            <FlatList
-              data={resultadosUsuarios}
-              keyExtractor={(item) => {
-                if (item.tipo === "chat")
-                  return `chat_${item.id_chat}_${item.id_mensagem}`;
-                if (item.tipo === "canal") return `canal_${item.id_canal}`;
-                if (item.tipo === "instituicao")
-                  return `instituicao_${item.id_instituicao}_${
-                    item.id_mensagem_instituicao || ""
-                  }`;
-                return `item_${Math.random().toString(36).substr(2, 9)}`;
-              }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (item.tipo === "chat") {
-                      navigation.navigate("Conversa", {
-                        idUserLogado: idUser,
-                        idEnviador: item.id_enviador,
-                        imgEnviador: item.img_enviador,
-                        nomeEnviador: item.nome_enviador,
-                        arrobaEnviador: item.arroba_enviador,
-                        idChat: item.id_chat,
-                      });
-                    } else if (item.tipo === "canal") {
-                      navigation.navigate("Conversa", {
-                        idUserLogado: idUser,
-                        idEnviador: item.id_enviador,
-                        imgEnviador: item.img_enviador,
-                        nomeEnviador: item.nome_enviador,
-                        arrobaEnviador: item.arroba_enviador,
-                        idChat: item.id_chat,
-                      });
-                    } else if (item.tipo === "instituicao") {
-                      navigation.navigate("Conversa", {
-                        idUserLogado: idUser,
-                        idEnviador: item.id_enviador,
-                        imgEnviador: item.img_enviador,
-                        nomeEnviador: item.nome_enviador,
-                        arrobaEnviador: item.arroba_enviador,
-                        idChat: item.id_chat,
-                      });
-                    }
-                  }}
-                  rippleColor="rgba(0, 0, 0, .05)"
-                >
-                  <View style={styles.mensagemItem}>
-                    <Image
-                      source={getImageSource(item)}
-                      style={styles.avatar}
-                    />
-                    <View style={styles.mensagemTexto}>
-                      <Text style={styles.nome} numberOfLines={1}>
-                        { item.nome_canal || 
-                          item.nome_enviador ||  
-                          item.nome_instituicao}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.ultimaMensagem,
-                          item.status_mensagem === 0 && item.enviador !== idUser
-                            ? { fontWeight: 500, color: "black" }
-                            : { fontWeight: "normal" },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {item.foto_enviada ? (
-                          <View style={styles.ultimaMensagemImg}>
-                            <View style={styles.circuloImagem}>
-                              <Ionicons
-                                style={styles.imagemIcon}
-                                name="image-outline"
-                                color={colors.branco}
-                              />
-                            </View>
-                            <Text>Imagem</Text>
-                          </View>
-                        ) : (
-                          <Text>{item.ultima_mensagem}</Text>
-                        )}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              )}
-              contentContainerStyle={styles.listaMensagens}
-            />
-          )}
+                </View>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              <View style={styles.listaVazia}>
+                {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '70%' }}>
+                  <ActivityIndicator size="large" color="#3498db" />
+                </View>
+                ) : null}              </View>
+            }
+            contentContainerStyle={styles.listaMensagens}
+
+
+          />
+
 
           <StatusBar style="auto" />
         </View>
