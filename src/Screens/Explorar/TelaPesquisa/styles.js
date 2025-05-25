@@ -23,7 +23,7 @@ export default StyleSheet.create({
   explorarTitle: {
     fontWeight: 'bold',
     fontSize: 20,
-    marginTop: 10 /
+    marginTop: 10 
   },
   barraContainer: {
     paddingHorizontal: 16,

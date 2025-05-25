@@ -151,7 +151,6 @@ export default function Perfil() {
             const resposta = await axios.get(`http://${host}:8000/api/cursei/chat/adicionarChat/${idUserLogado}/${idUser}`);
             const chatExistente = resposta.data.seguidor;
             const idChatExistente = chatExistente ? chatExistente.id_chat : null;
-
             const dadosChat = {
                 idUser1: idUserLogado,
                 idUser2: idUser
