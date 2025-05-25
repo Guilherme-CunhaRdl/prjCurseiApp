@@ -2,90 +2,95 @@ import { StyleSheet } from "react-native";
 import colors from "../../../colors";
 
 export default StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor:colors.branco
-      },
-      ScrollCont:{
-        
-      },
-      Header:{
-        flex: 2,
-        width: '100%',
-      },
-      explorarContainer:{
-        paddingTop: 10,
-        paddingBottom: 10,
-        paddingHorizontal: 16,
-      },
-      explorarTitle:{
-        fontWeight: 'bold',
-        fontSize: 20,
-      },
-      barraPesquisa:{
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderRadius: 8,
-        marginBottom: 16,
-        paddingHorizontal: 15,
-        height: 45,
-        width: '100%',
-        backgroundColor: '#EFEFEF',
-      },
-      barraContainer:{
-        paddingHorizontal: 16,
-      },
-      inputIcon: {
-        marginRight: 10,
-        fontSize: 20,
-        color: 'gray',
-      },
-      input: {
-        flex: 1,
-        height: 50,
-        color: '#333',
-        fontSize: 16,
-      },
-      opcoesContainer:{
-      },
-      opcaoText:{
-        fontSize: 18,
-      },
-      opcao1:{
-        borderBottomColor: 'blue',
-        borderBottomWidth: 1,
-      },
-      contContain:{
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: 20,
+  container: {
+    flex: 1,
+    backgroundColor: colors.branco
+  },
+  ScrollCont: {
 
-      },
-      trendigContainer:{
-        backgroundColor: 'white',
-        width: '100%',
-        height: '100%',
-        borderRadius: 10,
-        shadowColor: '#000',
-        shadowOffset: {width: 5, height: 10 },
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
-      },
-      titleContainer:{
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        width: 310,
-        height: 44,
-        paddingLeft: 20,
-        borderBottomColor: "#D2D2D2",
-        borderBottomWidth: 2,
-      },
-      containerPost:{
-       backgroundColor:colors.branco,
-       paddingHorizontal:15
-      },
+  },
+  Header: {
+    paddingTop: 10, // Reduzido para ficar mais justo no topo
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 10 // Adicionado para equilíbrio
+  },
+  explorarContainer: {
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingHorizontal: 16,
+  },
+  explorarTitle: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    marginTop: 10 // Espaço extra apenas para pesquisa
+  },
+  barraContainer: {
+    paddingHorizontal: 16,
+    marginTop: 10 // Espaço entre título e barra
+  },
+  barraPesquisa: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    marginBottom: 10,
+    paddingHorizontal: 15,
+    height: 45,
+    width: '100%',
+    backgroundColor: '#EFEFEF',
+  },
+  inputIcon: {
+    marginRight: 10,
+    fontSize: 20,
+    color: 'gray',
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    color: '#333',
+    fontSize: 16,
+  },
+  opcoesContainer: {
+  },
+  opcaoText: {
+    fontSize: 18,
+  },
+  opcao1: {
+    borderBottomColor: 'blue',
+    borderBottomWidth: 1,
+  },
+  contContain: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 20,
 
-      userContainer: {
+  },
+  trendigContainer: {
+    backgroundColor: 'white',
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 5, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+  },
+  titleContainer: {
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    width: 310,
+    height: 44,
+    paddingLeft: 20,
+    borderBottomColor: "#D2D2D2",
+    borderBottomWidth: 2,
+  },
+  containerPost: {
+    backgroundColor: colors.branco,
+    paddingHorizontal: 15,
+    marginTop:3
+  },
+
+  userContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderTopWidth: 1,
@@ -125,14 +130,14 @@ export default StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#448FFF',
   },
-  buttonFollowActive:{
+  buttonFollowActive: {
     alignItems: 'center',
     justifyContent: 'center',
     width: 87,
     height: 28,
     borderRadius: 5,
-    borderWidth:1,
-    borderColor:colors.preto,
+    borderWidth: 1,
+    borderColor: colors.preto,
     backgroundColor: 'transparency',
   },
   titleButton: {
@@ -140,7 +145,7 @@ export default StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  titleButtonActive:{
+  titleButtonActive: {
     color: colors.preto,
     fontSize: 12,
     fontWeight: '600',

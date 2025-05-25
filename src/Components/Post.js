@@ -17,7 +17,11 @@ import colors from '../colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import host from '../global';
 
-export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
+      //DUDU AQUI tem um parametro novo pra trazer os posts mais recentes baseado no que pesquisou
+      //La no controllerApi eu criei um case 12: pra trazer os posts mais recentes, trocando o orderBy so por created_at
+
+
+export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesquisaMaisRecente }) {
   const navigation = useNavigation();
   const [perfilProprio, setPerfilProprio] = useState(false)
   const [loading, setLoading] = useState(false);
@@ -94,6 +98,10 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa}) {
       }
       if(pesquisa){
          url = `http://${host}:8000/api/posts/3/0/50/0/${pesquisa}`
+      }
+      //DUDU eu fiz gambiarra aqui pra poder trazer os mais recentes, dps da uma olhada e ve se ta ok pra ti.
+      if(pesquisaMaisRecente){
+         url = `http://${host}:8000/api/posts/9/0/50/0/${pesquisaMaisRecente}`
       }
       if(tipo && tipo == 'instituicao'){
         url = `http://${host}:8000/api/posts/7/${id}/50/0/0`;
