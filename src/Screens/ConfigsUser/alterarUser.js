@@ -8,21 +8,17 @@ import {
   SafeAreaView,
   Modal,
   TextInput,
-  Button,
-  Pressable
-  ,ActivityIndicator 
+  Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import host from '../../global';
+import { useTema } from "../../context/themeContext";
+
 export default function AlterarUser() {
-  const [userData, setUserData] = useState({
-    nome: '',
-    email: '',
-    arroba: '',
-  });
+  const [userData, setUserData] = useState({ nome: '', email: '', arroba: '' });
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,6 +29,9 @@ export default function AlterarUser() {
   const [nomeValue, setNomeValue] = useState('');
   const [arrobaValue, setArrobaValue] = useState('');
   const [emailValue, setEmailValue] = useState('');
+
+  const { tema } = useTema();
+  console.log(tema)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -51,188 +50,128 @@ export default function AlterarUser() {
       } catch (error) {
         console.error('Erro ao buscar dados do usuário:', error);
       } finally {
-        setTimeout(() => {
-          setLoading(false);
-        }, 500);
+        setTimeout(() => setLoading(false), 500);
       }
     };
-
     fetchUserData();
   }, []);
 
-  const handleSaveNome = async () => {
+  const handleSave = async (field, value, setModal) => {
     try {
-      await axios.post(`http://${host}:8000/api/cursei/user/${userId}`, {
-        nome_user: nomeValue,
-      });
-      setUserData(prev => ({ ...prev, nome: nomeValue }));
-      setModalNome(false);
+      const data = {};
+      data[field] = value;
+      await axios.post(`http://${host}:8000/api/cursei/user/${userId}`, data);
+      setUserData(prev => ({ ...prev, [field.replace('_user', '')]: value }));
+      setModal(false);
     } catch (error) {
-      console.error('Desgraça:', error);
-    }
-  };
-
-  const handleSaveArroba = async () => {
-    try {
-      await axios.post(`http://${host}:8000/api/cursei/user/${userId}`, {
-        arroba_user: arrobaValue,
-      });
-      setUserData(prev => ({ ...prev, arroba: arrobaValue }));
-      setModalArroba(false);
-    } catch (error) {
-      console.error('Desgraça:', error);
-    }
-  };
-
-  const handleSaveEmail = async () => {
-    try {
-      await axios.post(`http://${host}:8000/api/cursei/user/${userId}`, {
-        email_user: emailValue,
-      });
-      setUserData(prev => ({ ...prev, email: emailValue }));
-      setModalEmail(false);
-    } catch (error) {
-      console.error('Desgraça:', error);
+      console.error('Erro ao salvar:', error);
     }
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' ,backgroundColor:"#fff"}}>
-      <ActivityIndicator size="large" color="#3498db" />
-</SafeAreaView> 
+      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: tema.fundo }]}>
+        <ActivityIndicator size="large" color={tema.azul} />
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: tema.fundo }]}>
       <TouchableOpacity
         style={styles.item}
-        onPress={() => {
-          setNomeValue(userData.nome);
-          setModalNome(true);
-        }}
-      >
+        onPress={() => { setNomeValue(userData.nome); setModalNome(true); }}>
         <View>
-          <Text style={styles.label}>Nome do usuário</Text>
-          <Text style={styles.value}>{userData.nome}</Text>
+          <Text style={[styles.label, { color: tema.texto }]}>Nome do usuário</Text>
+          <Text style={[styles.value, { color: tema.descricao }]}>{userData.nome}</Text>
         </View>
-        <MaterialIcons name="keyboard-arrow-right" size={24} color="#999" />
+        <MaterialIcons name="keyboard-arrow-right" size={24} color={tema.descricao} />
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.item}
-        onPress={() => {
-          setArrobaValue(userData.arroba);
-          setModalArroba(true);
-        }}
-      >
+        onPress={() => { setArrobaValue(userData.arroba); setModalArroba(true); }}>
         <View>
-          <Text style={styles.label}>Arroba</Text>
-          <Text style={styles.value}>{userData.arroba}</Text>
+          <Text style={[styles.label, { color: tema.texto }]}>Arroba</Text>
+          <Text style={[styles.value, { color: tema.descricao }]}>{userData.arroba}</Text>
         </View>
-        <MaterialIcons name="keyboard-arrow-right" size={24} color="#999" />
+        <MaterialIcons name="keyboard-arrow-right" size={24} color={tema.descricao} />
       </TouchableOpacity>
 
-      {/* Email */}
       <TouchableOpacity
         style={styles.item}
-        onPress={() => {
-          setEmailValue(userData.email);
-          setModalEmail(true);
-        }}
-      >
+        onPress={() => { setEmailValue(userData.email); setModalEmail(true); }}>
         <View>
-          <Text style={styles.label}>Email do usuário</Text>
-          <Text style={styles.value}>{userData.email}</Text>
+          <Text style={[styles.label, { color: tema.texto }]}>Email do usuário</Text>
+          <Text style={[styles.value, { color: tema.descricao }]}>{userData.email}</Text>
         </View>
-        <MaterialIcons name="keyboard-arrow-right" size={24} color="#999" />
+        <MaterialIcons name="keyboard-arrow-right" size={24} color={tema.descricao} />
       </TouchableOpacity>
-      
 
-      {/* Modais separados */}
-      {/* Modal Nome */}
-      <Modal visible={modalNome} animationType="slide" transparent onRequestClose={() => setModalNome(false)}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edite seu nome</Text>
-            <TextInput
-              style={styles.input}
-              value={nomeValue}
-              onChangeText={setNomeValue}
-              autoFocus
-            />
-            <View style={styles.buttonRow}>
-        <Pressable style={styles.cancelarBotao} onPress={() => setModalNome(false)}>
-          <Text style={styles.buttonText}>Cancelar</Text>
-        </Pressable>
-        <Pressable style={styles.salvarBotao} onPress={handleSaveNome}>
-          <Text style={styles.buttonText}>Salvar</Text>
-        </Pressable>
-      </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal Arroba */}
-      <Modal visible={modalArroba} animationType="slide" transparent onRequestClose={() => setModalArroba(false)}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edite seu @</Text>
-            <TextInput
-              style={styles.input}
-              value={arrobaValue}
-              onChangeText={setArrobaValue}
-              autoFocus
-            />
-           <View style={styles.buttonRow}>
-        <Pressable style={styles.cancelarBotao} onPress={() => setModalArroba(false)}>
-          <Text style={styles.buttonText}>Cancelar</Text>
-        </Pressable>
-        <Pressable style={styles.salvarBotao} onPress={handleSaveArroba}>
-          <Text style={styles.buttonText}>Salvar</Text>
-        </Pressable>
-      </View>
-          </View>
-        </View>
-      </Modal>
-
-     {/* Modal Email */}
-<Modal
-  visible={modalEmail}
-  animationType="slide"
-  transparent
-  onRequestClose={() => setModalEmail(false)}
->
-  <View style={styles.modalContainer}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Mude o email vinculado a sua conta</Text>
-      <TextInput
-        style={styles.input}
-        value={emailValue}
-        onChangeText={setEmailValue}
-        autoFocus
+      {/* MODAIS */}
+      <UserModal
+        visible={modalNome}
+        title="Edite seu nome"
+        value={nomeValue}
+        onChange={setNomeValue}
+        onCancel={() => setModalNome(false)}
+        onSave={() => handleSave('nome_user', nomeValue, setModalNome)}
+        tema={tema}
       />
-      <View style={styles.buttonRow}>
-        <Pressable style={styles.cancelarBotao} onPress={() => setModalEmail(false)}>
-          <Text style={styles.buttonText}>Cancelar</Text>
-        </Pressable>
-        <Pressable style={styles.salvarBotao} onPress={handleSaveEmail}>
-          <Text style={styles.buttonText}>Salvar</Text>
-        </Pressable>
-      </View>
-    </View>
-  </View>
-</Modal>
 
+      <UserModal
+        visible={modalArroba}
+        title="Edite seu @"
+        value={arrobaValue}
+        onChange={setArrobaValue}
+        onCancel={() => setModalArroba(false)}
+        onSave={() => handleSave('arroba_user', arrobaValue, setModalArroba)}
+        tema={tema}
+      />
+
+      <UserModal
+        visible={modalEmail}
+        title="Mude o email vinculado à sua conta"
+        value={emailValue}
+        onChange={setEmailValue}
+        onCancel={() => setModalEmail(false)}
+        onSave={() => handleSave('email_user', emailValue, setModalEmail)}
+        tema={tema}
+      />
     </ScrollView>
+  );
+}
+
+function UserModal({ visible, title, value, onChange, onCancel, onSave, tema }) {
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onCancel}>
+      <View style={styles.modalContainer}>
+        <View style={[styles.modalContent, { backgroundColor: tema.modalFundo }]}>
+          <Text style={[styles.modalTitle, { color: tema.texto }]}>{title}</Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: tema.fundo, color: tema.texto }]}
+            value={value}
+            onChangeText={onChange}
+            autoFocus
+            placeholderTextColor={tema.descricao}
+          />
+          <View style={styles.buttonRow}>
+            <Pressable style={[styles.botao, { backgroundColor: tema.azul }]} onPress={onCancel}>
+              <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Cancelar</Text>
+            </Pressable>
+            <Pressable style={[styles.botao, { backgroundColor: tema.azul }]} onPress={onSave}>
+              <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Salvar</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     paddingHorizontal: 20,
   },
   item: {
@@ -243,13 +182,16 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#333',
     fontWeight: '600',
   },
   value: {
     fontSize: 13,
-    color: '#555',
     marginTop: 2,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContainer: {
     flex: 1,
@@ -258,7 +200,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#fff',
     width: '80%',
     padding: 20,
     borderRadius: 8,
@@ -270,33 +211,22 @@ const styles = StyleSheet.create({
   },
   input: {
     borderRadius: 6,
-    backgroundColor: '#EDEDED',
     marginBottom: 15,
     fontSize: 16,
-    padding: 10
-    },
-    buttonRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 10,
-    },
-    salvarBotao: {
-      backgroundColor: '#448FFF',
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-      borderRadius: 8,
-      marginRight: 10,
-    },
-    cancelarBotao: {
-      backgroundColor: '#448FFF',
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-      borderRadius: 8,
-    },
-    buttonText: {
-      color: '#fff',
-      fontWeight: 'bold',
-      textAlign: 'center',
-    },
-    
+    padding: 10,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  botao: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  buttonText: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });
