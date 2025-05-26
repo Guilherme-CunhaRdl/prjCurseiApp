@@ -10,7 +10,7 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import {  useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
@@ -91,7 +91,8 @@ export default function Conversa({ route }) {
     abrirConversaInicio();
   }, []);
 
-  const enviarMensagem = async () => {
+
+const enviarMensagem = async () => {
     let mensagem = campoMensagem.trim();
 
     if (!mensagem) return;
@@ -120,53 +121,58 @@ export default function Conversa({ route }) {
   };
 
   const enviarMensagemFoto = async () => {
-    const mensagem = new FormData();
-
-    let conteudoMensagem = campoMensagemImg.trim();
-
-    // if (!conteudoMensagem) return;
-
-    setCampoMensagemImg("");
-
-    if (imagemMensagem.startsWith("data:image")) {
-      const resposta = await fetch(imagemMensagem);
-      const blob = await resposta.blob();
-
-      const nomeArquivo = `image_${Date.now()}.jpg`;
-
-      const arquivo = new File([blob], nomeArquivo, { type: blob.type });
-
-      mensagem.append("imgMensagem", arquivo);
-    }
-
-    conteudoMensagem && mensagem.append("conteudoMensagem", conteudoMensagem);
-    mensagem.append("statusMensagem", false);
-    mensagem.append("idEnviador", idUserLogado);
-    mensagem.append("idChat", idChat);
-
-    const url =
-      `http://${host}:8000/api/cursei/chat/enviarMensagem/comImagem`;
-
     try {
-      const resposta = await axios.post(url, mensagem, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const formData = new FormData();
+
+      formData.append('idChat', idChat.toString());
+      formData.append('idEnviador', idUserLogado.toString());
+      formData.append('statusMensagem', 'false');
+
+      if (campoMensagemImg.trim()) {
+        formData.append('conteudoMensagem', campoMensagemImg.trim());
+      }
+
+      if (imagemMensagem) {
+        formData.append('imgMensagem', {
+          uri: imagemMensagem,
+          name: `image_${Date.now()}.jpg`,
+          type: 'image/jpeg'
+        });
+      }
+
+
+      // Envio da requisição
+      const resposta = await axios.post(
+        `http://${host}:8000/api/cursei/chat/enviarMensagem/comImagem`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          transformRequest: () => formData,
+        }
+      );
+
+      console.log("Mensagem enviada:", resposta.data);
+      setCampoMensagemImg("");
+      setModalFoto(false);
+
+    } catch (error) {
+      console.error("Erro detalhado:", {
+        message: error.message,
+        code: error.code,
+        config: error.config,
+        response: error.response?.data,
       });
 
-      console.log(resposta);
-    } catch (e) {
-      console.error(e);
-    }
-    finally{
-      setModalFoto(false)
+      Alert.alert("Erro", error.response?.data?.message || "Falha ao enviar mensagem");
+    } finally {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
       }, 150);
     }
-    
-
   };
+
 
   //Bliblioteca que puxa o gerenciador de arquivos padrão do android
   const abrirDocumentos = async () => {
@@ -199,25 +205,33 @@ export default function Conversa({ route }) {
       if (notificationStatus !== "granted") {
         Alert.alert("Permissão necessária");
       }
+            setModalFoto(true);
+
     })();
   }, []);
 
-  const tirarFoto = async () => {
-    const resultado = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
+  
+  const tirarFotoParaEnvio = async () => {
+        const permissao = await ImagePicker.requestCameraPermissionsAsync();
+        if (!permissao.granted) {
+          alert("Permissão para usar a câmera é necessária!");
+          return;
+        }
+  
+        const resultado = await ImagePicker.launchCameraAsync({
+          allowsEditing: true,
+          quality: 1,
+        });
+  
+        if (!resultado.canceled) {
+          setImagemMensagem(resultado.assets[0].uri);
+          setModalFoto(true);
 
-    if (!resultado.canceled) {
-      const uri = resultado.assets[0].uri;
-      setImagemMensagem(uri);
-      console.log("URI selecionada:", uri); // <-- use o valor diretamente
-      setModalFoto(true);
-    }
-  };
+        }
+        console.log(modalFoto)
+      };
 
-console.log(idUserLogado)
+  console.log(idUserLogado)
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -233,24 +247,24 @@ console.log(idUserLogado)
           </TouchableOpacity>
 
           <View style={styles.headerInfo}>
-            <TouchableOpacity style={{width: '100%', flexDirection: 'row'}} onPress={() => navigation.navigate('Perfil', {
+            <TouchableOpacity style={{ width: '100%', flexDirection: 'row' }} onPress={() => navigation.navigate('Perfil', {
               idUserPerfil: idEnviador,
               titulo: arrobaEnviador
-            })}> 
-            <Image
-              source={
-                imgEnviador === null
-                  ? require("../../img/metalbat.jpg")
-                  : {
+            })}>
+              <Image
+                source={
+                  imgEnviador === null
+                    ? require("../../img/metalbat.jpg")
+                    : {
                       uri: `http://${host}:8000/img/user/fotoPerfil/${imgEnviador}`,
                     }
-              }
-              style={styles.avatar}
-            />
-            <View>
-              <Text style={styles.nome}>{nomeEnviador}</Text>
-              <Text style={styles.usuario}>@{arrobaEnviador}</Text>
-            </View>
+                }
+                style={styles.avatar}
+              />
+              <View>
+                <Text style={styles.nome}>{nomeEnviador}</Text>
+                <Text style={styles.usuario}>@{arrobaEnviador}</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -265,13 +279,12 @@ console.log(idUserLogado)
           renderItem={({ item }) => (
             <View
               style={[
-                //deixei dois iguais por conta da tipagem que ta maluca, mas o if ta certin
                 item.id_enviador == idUserLogado
                   ? styles.mensagemEnviada
                   : styles.mensagemRecebida
               ]}
             >
-              {item.foto_enviada && (
+              {item.foto_enviada ? (
                 <Image
                   source={{
                     uri: `http://${host}:8000/img/chat/fotosChat/${item.foto_enviada}`,
@@ -279,117 +292,111 @@ console.log(idUserLogado)
                   style={styles.imgMensagem}
                   resizeMode="cover"
                 />
-              )}
-              { item.conteudo_mensagem && (
-<View style={styles.viewTextoMsg}>
-              <Text style={[item.id_enviador == idUserLogado
-                  ? styles.textoMsgEnviado
-                  : styles.textoMsgRecebido]}>
-                {item.conteudo_mensagem}
-              </Text>
-              </View>
-              )}
-              
+              ) : null}
+
+              {item.conteudo_mensagem ? (
+                <View style={styles.viewTextoMsg}>
+                  <Text style={[
+                    item.id_enviador == idUserLogado
+                      ? styles.textoMsgEnviado
+                      : styles.textoMsgRecebido
+                  ]}>
+                    {item.conteudo_mensagem}
+                  </Text>
+                </View>
+              ) : null}
             </View>
           )}
           contentContainerStyle={styles.chatContent}
-          style={{flex: 1}}
+          style={{ flex: 1 }}
         />
-        
-        { isCanal && idEnviador != idUserLogado && (
+
+        {isCanal && idEnviador != idUserLogado && (
           <View style={styles.inputContainer}>
-          <TouchableOpacity onPress={tirarFoto}>
-            <Image
-              source={require("../../img/Camera.png")}
-              style={styles.iconSmall}
-            />
-          </TouchableOpacity>
 
-          <TouchableOpacity onPress={abrirDocumentos}>
-            <Image
-              source={require("../../img/gallery.png")}
-              style={styles.iconSmall}
-            />
-          </TouchableOpacity>
 
-          <Text
-            style={styles.input}
-            
-          >Não pode enviar mensagens</Text>
 
-          <TouchableOpacity onPress={() => enviarMensagem()}>
-            <Image
-              source={require("../../img/enviar.png")}
-              style={styles.iconSmall}
-            />
-          </TouchableOpacity>
-        </View>
-        ) }
-        { isCanal && idEnviador == idUserLogado && (
+            <Text
+              style={styles.input}
+
+            >Não pode enviar mensagens</Text>
+
+
+          </View>
+        )}
+        {isCanal && idEnviador == idUserLogado && (
           <View style={styles.inputContainer}>
-          <TouchableOpacity onPress={tirarFoto}>
-            <Image
-              source={require("../../img/Camera.png")}
-              style={styles.iconSmall}
-            />
-          </TouchableOpacity>
+            <View style={{flexDirection:'row', width: '15%', justifyContent: 'space-around', alignItems: 'center'}}>
+              <TouchableOpacity onPress={() => tirarFotoParaEnvio()}>
+                <Image
+                  source={require("../../img/Camera.png")}
+                  style={styles.iconSmall}
+                />
+              </TouchableOpacity>
 
-          <TouchableOpacity onPress={abrirDocumentos}>
-            <Image
-              source={require("../../img/gallery.png")}
-              style={styles.iconSmall}
-            />
-          </TouchableOpacity>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Escreva sua Mensagem..."
-            placeholderTextColor="#A7A7A7"
-            value={campoMensagem}
-            onChangeText={setCampoMensagem}
-          />
-
-          <TouchableOpacity onPress={() => enviarMensagem()}>
-            <Image
-              source={require("../../img/enviar.png")}
-              style={styles.iconSmall}
-            />
-          </TouchableOpacity>
-        </View>
-        ) }
-        { !isCanal && (
+              <TouchableOpacity onPress={abrirDocumentos}>
+                <Image
+                  source={require("../../img/gallery.png")}
+                  style={styles.iconSmall}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={{width: '70%', justifyContent: 'space-between', alignItems: 'center'}}>
+              <TextInput
+                style={styles.input}
+                placeholder="Escreva sua Mensagem..."
+                placeholderTextColor="#A7A7A7"
+                value={campoMensagem}
+                onChangeText={setCampoMensagem}
+              />
+            </View>
+            <View style={{width: '15%', justifyContent: 'space-between', alignItems: 'center'}}>
+              <TouchableOpacity onPress={!isCanal ? () => enviarMensagem() : ''}>
+                <Image
+                  source={require("../../img/enviar.png")}
+                  style={styles.iconSmall}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+        {!isCanal && (
           <View style={styles.inputContainer}>
-          <TouchableOpacity onPress={tirarFoto}>
-            <Image
-              source={require("../../img/Camera.png")}
-              style={styles.iconSmall}
-            />
-          </TouchableOpacity>
+            <View style={{flexDirection:'row', width: '15%', justifyContent: 'space-around', alignItems: 'center'}}>
+              <TouchableOpacity onPress={() => tirarFotoParaEnvio()}>
+                <Image
+                  source={require("../../img/Camera.png")}
+                  style={styles.iconSmall}
+                />
+              </TouchableOpacity>
 
-          <TouchableOpacity onPress={abrirDocumentos}>
-            <Image
-              source={require("../../img/gallery.png")}
-              style={styles.iconSmall}
-            />
-          </TouchableOpacity>
+              <TouchableOpacity onPress={abrirDocumentos}>
+                <Image
+                  source={require("../../img/gallery.png")}
+                  style={styles.iconSmall}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={{width: '70%', justifyContent: 'space-between', alignItems: 'center'}}>
+              <TextInput
+                style={styles.input}
+                placeholder="Escreva sua Mensagem..."
+                placeholderTextColor="#A7A7A7"
+                value={campoMensagem}
+                onChangeText={setCampoMensagem}
+              />
+            </View>
+            <View style={{width: '15%', justifyContent: 'space-between', alignItems: 'center'}}>
+              <TouchableOpacity onPress={!isCanal ? () => enviarMensagem() : ''}>
+                <Image
+                  source={require("../../img/enviar.png")}
+                  style={styles.iconSmall}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
-          <TextInput
-            style={styles.input}
-            placeholder="Escreva sua Mensagem..."
-            placeholderTextColor="#A7A7A7"
-            value={campoMensagem}
-            onChangeText={setCampoMensagem}
-          />
-
-          <TouchableOpacity onPress={ !isCanal ?  () => enviarMensagem() : ''}>
-            <Image
-              source={require("../../img/enviar.png")}
-              style={styles.iconSmall}
-            />
-          </TouchableOpacity>
-        </View>
-        ) }
-        
         <Modal
           animationType="slide"
           transparent={true}
@@ -417,34 +424,38 @@ console.log(idUserLogado)
 
               <View style={styles.viewImgModalFoto}>
                 <View style={styles.fotoModalFoto}>
-                    {imagemMensagem && (
-                      <Image
-                        source={{ uri: imagemMensagem }}
-                        style={styles.imgModalFoto}
-                        resizeMode="contain"
-                      />
-                      
-                    )}
+                  {imagemMensagem && (
+                    <Image
+                      source={{ uri: imagemMensagem }}
+                      style={styles.imgModalFoto}
+                      resizeMode="contain"
+                    />
+
+                  )}
                 </View>
               </View>
               <View style={styles.boxMsgModalFoto}>
-                <View style={[styles.inputContainer, { width: "90%" }]}>
-                  <TextInput
-                    style={[styles.input]}
-                    placeholder="Escreva sua Mensagem..."
-                    placeholderTextColor="#A7A7A7"
-                    value={campoMensagemImg}
-                    onChangeText={setCampoMensagemImg}
-                  />
-
-                  <TouchableOpacity onPress={ !isCanal ? () => enviarMensagemFoto() : ''}>
-                    <Image
-                      source={require("../../img/enviar.png")}
-                      style={styles.iconSmall}
-                    />
-                  </TouchableOpacity>
+                <View style={[styles.inputContainerModal, { width: "90%", height: 45 }]}>
+             
+            <View style={{width: '90%', justifyContent: 'space-between', alignItems: 'center'}}>
+              <TextInput
+                style={styles.input}
+                placeholder="Escreva sua Mensagem..."
+                placeholderTextColor="#A7A7A7"
+                value={campoMensagem}
+                onChangeText={setCampoMensagem}
+              />
+            </View>
+            <View style={{width: '10%', justifyContent: 'space-between', alignItems: 'center'}}>
+              <TouchableOpacity onPress={!isCanal ? () => enviarMensagemFoto() : ''}>
+                <Image
+                  source={require("../../img/enviar.png")}
+                  style={styles.iconSmall}
+                />
+              </TouchableOpacity>
+            </View>
                 </View>
-                </View>
+              </View>
             </View>
           </View>
         </Modal>
@@ -499,7 +510,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     maxWidth: "75%",
     shadowColor: colors.preto,
-    shadowOffset: {width: 0, height: 0},
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 2
 
@@ -512,9 +523,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     maxWidth: "75%",
   },
-  viewTextoMsg:{
+  viewTextoMsg: {
     padding: 3,
-  },  
+  },
   imgMensagem: {
     width: "100%",
     aspectRatio: 3 / 4,
@@ -529,16 +540,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#efefef",
+    justifyContent: 'space-between',
+
     padding: 4,
     margin: 16,
     borderRadius: 16,
   },
+  inputContainerModal: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: 'space-between',
+    backgroundColor: "#efefef",
+    padding: 4,
+    margin: 16,
+    borderRadius: 16,
+    width: '100%'
+  },
   input: {
-    flex: 1,
     fontSize: 14,
     paddingVertical: 4,
     paddingHorizontal: 8,
     color: "#000",
+    width: '90%'
   },
   containerModalFoto: {
     flex: 1,
@@ -556,7 +579,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 5,
     opacity: 1,
-    
+
   },
   cabecalhoModalFoto: {
     width: "100%",
@@ -588,7 +611,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   inputModalFoto: {
-    width: "100%",
     shadowColor: colors.preto,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,

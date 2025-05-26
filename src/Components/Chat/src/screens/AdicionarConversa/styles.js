@@ -84,7 +84,7 @@ export default StyleSheet.create({
         marginLeft: 20
       },
       boxIcone:{
-        borderRadius: '50%',
+        borderRadius: 30,
         width: 60,
         height: 60,
         backgroundColor: '#EFEFEF',
@@ -114,7 +114,7 @@ export default StyleSheet.create({
         width: '100%', 
         height: '100%', 
         objectFit: 'cover',
-        borderRadius: '50%'
+        borderRadius: 30
       },
       containerModal:{
         flex: 1,

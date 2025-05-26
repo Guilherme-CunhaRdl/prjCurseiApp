@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,6 +11,7 @@ import {
   Modal,
   ScrollView,
   ActivityIndicator,
+  RefreshControl
 } from "react-native";
 import {
   Appbar,
@@ -32,12 +33,10 @@ export default function Mensagens({ route }) {
   const [selectedTab, setSelectedTab] = useState("todas");
   const [conversas, setConversas] = useState([]);
   const [idUser, setIdUser] = useState(null);
-  const [IsVisto, setIsVisto] = useState();
-  const [resultadosUsuarios, setResultadosUsuarios] = useState([]);
   const [mostrarResultadosPesquisa, setMostrarResultadosPesquisa] = useState(false);
   const [query, setQuery] = useState("");
-  const [chatsPesquisados, setChatsPesquisados] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // Estado para o refresh
 
   useEffect(() => {
     if (route.params?.novaConversa) {
@@ -118,7 +117,7 @@ export default function Mensagens({ route }) {
       arroba: msg.arroba_enviador,
       img: msg.img_enviador,
       ultima_mensagem: msg.ultima_mensagem,
-      foto_enviada: msg.foto_enviada,
+      img_mensagem: msg.img_mensagem,
       status_mensagem: msg.status_mensagem,
       updated_at: msg.created_at || new Date().toISOString()
     });
@@ -155,62 +154,23 @@ export default function Mensagens({ route }) {
   };
 
 
-  const procurarChat = async (userId) => {
-    try {
-      if (query.trim() === "") {
-        setConversasFiltradas(conversas);
-        return;
-      }
-
-      const response = await axios.get(
-        `http://${host}:8000/api/cursei/chat/recebidor/${userId}/todas/${query}`
-      );
+  
 
 
-      const resultadosComTipo = response.data.chats.map((chat) => ({
-        ...chat,
-        tipo: "chat",
-      }));
+  // useEffect(() => {
+  //   if (query.length > 0 && idUser) {
+  //     const contador = setTimeout(() => {
+  //       procurarChat(idUser);
+  //       pesquisarUsuarios(query, idUser);
+  //     }, 500);
 
-      setConversasFiltradas(resultadosComTipo);
-    } catch (error) {
-      console.error("Search error:", error);
-    }
-  };
-
-  const pesquisarUsuarios = async (query, userId) => {
-    if (query.trim() === "") {
-      setResultadosUsuarios([]);
-      setMostrarResultadosPesquisa(false);
-      return;
-    }
-
-    try {
-      const response = await axios.get(
-        `http://${host}:8000/api/cursei/chat/pesquisa/${query}/${userId}`
-      );
-      setResultadosUsuarios(response.data.chats);
-      setMostrarResultadosPesquisa(true);
-    } catch (error) {
-      console.error("Erro ao pesquisar usuários:", error);
-      setResultadosUsuarios([]);
-    }
-  };
-
-  useEffect(() => {
-    if (query.length > 0 && idUser) {
-      const contador = setTimeout(() => {
-        procurarChat(idUser);
-        pesquisarUsuarios(query, idUser);
-      }, 500);
-
-      return () => clearTimeout(contador);
-    } else {
-      setChatsPesquisados([]);
-      setResultadosUsuarios([]);
-      setMostrarResultadosPesquisa(false);
-    }
-  }, [query, idUser]);
+  //     return () => clearTimeout(contador);
+  //   } else {
+  //     setChatsPesquisados([]);
+  //     setResultadosUsuarios([]);
+  //     setMostrarResultadosPesquisa(false);
+  //   }
+  // }, [query, idUser]);
 
   const filtrarChats = (chats) => {
     const termo = query.toLowerCase();
@@ -229,6 +189,18 @@ export default function Mensagens({ route }) {
   const conversasFiltradas = useMemo(() => {
     return filtrarChats(conversas);
   }, [conversas, selectedTab, query]);
+
+  const recarregarChats =  useCallback(() => {
+    const pegarInfos = async () => {
+    const id = await AsyncStorage.getItem('idUser')
+    console.log(id)
+    setRefreshing(true);
+    listarChats(id).finally(() => setRefreshing(false));
+    }
+
+    pegarInfos()
+    
+  }, []);
 
   return (
     <SafeAreaProvider>
@@ -368,41 +340,53 @@ export default function Mensagens({ route }) {
                     <Text style={styles.nome} numberOfLines={1}>
                       {item.nome}
                     </Text>
-                    <Text
-                      style={[
-                        styles.ultimaMensagem,
-                        // item.status_mensagem === 0 && item.enviador !== idUser
-                        //   ? { fontWeight: 500, color: "black" }
-                        //   : { fontWeight: "normal" },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {item.foto_enviada ? (
-                        <View style={styles.ultimaMensagemImg}>
-                          <View style={styles.circuloImagem}>
-                            <Ionicons
-                              style={styles.imagemIcon}
-                              name="image-outline"
-                              color={colors.branco}
-                            />
-                          </View>
-                          <Text>Imagem</Text>
+                    {item.img_mensagem ? (
+                      <View style={styles.ultimaMensagemImg}>
+                        <View style={styles.circuloImagem}>
+                          <Ionicons
+                            style={styles.imagemIcon}
+                            name="image-outline"
+                            color={colors.branco}
+                          />
                         </View>
-                      ) : (
-                        <Text>{item.ultima_mensagem}</Text>
-                      )}
-                    </Text>
+                        <Text style={styles.ultimaMensagem}>Imagem</Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.ultimaMensagem} numberOfLines={1}>
+                        {item.ultima_mensagem}
+                      </Text>
+                    )}
                   </View>
                 </View>
               </TouchableOpacity>
             )}
             ListEmptyComponent={
-              <View style={styles.listaVazia}>
-                {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '70%' }}>
-                  <ActivityIndicator size="large" color="#3498db" />
-                </View>
-                ) : null}              </View>
-            }
+  loading ? (
+    <View style={{ 
+      flex: 1, 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      backgroundColor: "#fff", 
+      width: '100%', 
+      height: '100%' 
+    }}>
+      <ActivityIndicator size="large" color="#3498db" />
+    </View>
+  ) : (
+    <View style={styles.listaVazia}>
+      {/* Sua mensagem para lista vazia aqui */}
+      <Text>Nenhuma conversa encontrada</Text>
+    </View>
+  )
+}
+  refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={recarregarChats}
+      colors={["#3498db"]} // Cor do spinner (Android)
+      tintColor="#3498db" // Cor do spinner (iOS)
+    />
+  }
             contentContainerStyle={styles.listaMensagens}
 
 

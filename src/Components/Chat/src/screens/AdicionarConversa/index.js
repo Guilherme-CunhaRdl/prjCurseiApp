@@ -1,5 +1,5 @@
 import styles from "./styles";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, } from "react";
 import {
   Text,
   View,
@@ -8,9 +8,9 @@ import {
   TextInput,
   TouchableOpacity,
   Pressable,
-  ScrollView,
   Modal,
   ActivityIndicator,
+  
 
 } from "react-native";
 import {
@@ -18,6 +18,7 @@ import {
   IconButton,
   Provider as PaperProvider,
   SegmentedButtons,
+
 } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -46,6 +47,7 @@ export default function AddConversa({ route }) {
   const [imagemCanal, setImagemCanal] = useState(null);
   const [idInstituicao, setIdInstituicao] = useState();
   const [sugestoes, setSugestoes] = useState([]);
+  const [isInstituicao, setIsInstituicao] = useState()
   const alterarFoco = (campo) => {
     setFocoInput(campo);
   };
@@ -66,26 +68,31 @@ export default function AddConversa({ route }) {
         const idInst = await AsyncStorage.getItem("idInstituicao");
         setIdInstituicao(idInst);
         console.log(resposta);
+        console.log(idInst)
         setSeguidores(resposta.data.seguidores);
         setConexoes(respostaConexoes.data.conexoes);
         setSugestoes(respostaSugestoes.data.sugestoes)
-        console.log(respostaSugestoes)
+        console.log(respostaConexoes)
       } catch (e) {
         console.log(e)
       } finally {
         setTimeout(() => {
           setLoading(false)
-
         }, 1500)
       }
-
-
-
-
     };
-
     selecionarDados();
   }, []);
+  useEffect(() => {
+    const verificarInstituicao = async () => {
+
+      const idInstituicao = await AsyncStorage.getItem('idInstituicao');
+      console.log('idInstituicao', idInstituicao)
+      setIsInstituicao(idInstituicao)
+
+    }
+    verificarInstituicao()
+  }, [])
 
   const irParaConversa = async (idSeguidor, idSeguido, isConexao) => {
     try {
@@ -102,7 +109,7 @@ export default function AddConversa({ route }) {
       );
       console.log(chatExistente)
       const dadosChat = {
-        idUser1: idSeguido,
+        idUser1: idUserLogado,
         idUser2: idSeguidor,
       };
 
@@ -218,6 +225,9 @@ export default function AddConversa({ route }) {
       setImagemCanal(uri);
     }
   };
+
+  
+
   return (
     <SafeAreaProvider>
       <PaperProvider>
@@ -256,9 +266,9 @@ export default function AddConversa({ route }) {
             />
           </View>
 
-          {idInstituicao != 0 && (
-            <ScrollView>
-              {loading ? (<View style={{ flex: 1,paddingTop: 50, justifyContent: 'flex-start', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '100%' }}>
+          {isInstituicao !== '0'  && (
+            <View>
+              {loading ? (<View style={{ flex: 1,paddingTop: 50, justifyContent: 'flex-start', alignItems: 'center', backgroundColor: "#fff", zIndex: 99, width: '100%', height: '100%' }}>
                 <ActivityIndicator size="large" color="#3498db" />
               </View>
               ) : null}
@@ -287,6 +297,7 @@ export default function AddConversa({ route }) {
                         }}
                       >
                         Adicione uma nova conversa ao seu Bate Papo!
+                        {isInstituicao}
                       </Text>
                   </View>
                 </View>
@@ -377,7 +388,7 @@ export default function AddConversa({ route }) {
                                 <Image
                                   style={styles.imgUsuario}
                                   source={{
-                                    uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_seguidor}`,
+                                    uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_seguidor}`,
                                   }}
                                 />
                               </View>
@@ -409,17 +420,18 @@ export default function AddConversa({ route }) {
                 </>
 
               </View>
-            </ScrollView>
+            </View>
           )}
-          {idInstituicao == 0 && (
-            <ScrollView>
+          { isInstituicao === '0' && (
+            <View>
               {loading ? (<View style={{ flex: 1, paddingTop: 50, justifyContent: 'flex-start', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '100%' }}>
                 <ActivityIndicator size="large" color="#3498db" />
               </View>
               ) : null}
               <View style={styles.containerAddUsuario}>
                 <View style={{ width: "100%", paddingLeft: 25 }}>
-                  <Text style={{ fontWeight: 500 }}>Conexões</Text>
+                  <Text style={{ fontWeight: 500 }}>Conexões               
+</Text>
                 </View>
 
                 <>
@@ -434,7 +446,7 @@ export default function AddConversa({ route }) {
                             irParaConversa(
                               item.id_seguidor,
                               item.id_seguido,
-                              false
+                              true
 
                             )
                           }
@@ -447,7 +459,7 @@ export default function AddConversa({ route }) {
                                 <Image
                                   style={styles.imgUsuario}
                                   source={{
-                                    uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_seguidor}`,
+                                    uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_seguidor}`,
                                   }}
                                 />
                               </View>
@@ -471,7 +483,7 @@ export default function AddConversa({ route }) {
                       </View>
                     )}
                     ListEmptyComponent={
-                      <View style={{ padding: 20, alignItems: 'center' }}>
+                      <View style={{ padding: 20,height: 200, alignItems: 'center' }}>
                         <Text>Nenhuma Conexão Encontrada.</Text>
                       </View>
                     }
@@ -504,7 +516,7 @@ export default function AddConversa({ route }) {
                                 <Image
                                   style={styles.imgUsuario}
                                   source={{
-                                    uri: `http://localhost:8000/img/user/fotoPerfil/${item.img_seguidor}`,
+                                    uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_seguidor}`,
                                   }}
                                 />
                               </View>
@@ -528,14 +540,14 @@ export default function AddConversa({ route }) {
                       </View>
                     )}
                     ListEmptyComponent={
-                      <View style={{ padding: 20, alignItems: 'center' }}>
+                      <View style={{ padding: 20,height: 200, alignItems: 'center' }}>
                         <Text>Nenhuma Sugestão Encontrada.</Text>
                       </View>
                     }
                   />
                 </>
               </View>
-            </ScrollView>
+            </View>
           )}
         </View>
       </PaperProvider>

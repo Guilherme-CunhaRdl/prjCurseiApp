@@ -86,6 +86,8 @@ export default function Login() {
         console.log(resposta)
         await AsyncStorage.setItem('idUser', String(usuario.id));
         await AsyncStorage.setItem('logado', '1');
+        await AsyncStorage.setItem('idInstituicao', resposta.data.id_instituicao);
+
         
         await AsyncStorage.setItem('imgUser', usuario.img_user);
         await AsyncStorage.setItem('arrobaUser', usuario.arroba_user);
