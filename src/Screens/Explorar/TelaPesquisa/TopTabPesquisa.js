@@ -8,6 +8,9 @@ import { View, Text, FlatList, Pressable, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import host from '../../../global';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import colors from '../../../colors';
+
 const Top = createMaterialTopTabNavigator();
 
 const TopTabs = ({ termoPesquisado }) => {
@@ -159,7 +162,9 @@ const TopTabs = ({ termoPesquisado }) => {
                                         titulo: item.arroba_user
                                     });
                                 }}>
-                                    <Text style={styles.nomeUser}>{item.nome_user}</Text>
+                                    <Text style={styles.nomeUser}>{item.nome_user}  {item.instituicao == 1 && (
+                                                              <Ionicons color={colors.azul} size={20} name="school-outline" />
+                                                            )}</Text>
                                     <Text style={styles.arrobaUser}>@{item.arroba_user}</Text>
                                 </Pressable>
 
@@ -204,7 +209,7 @@ const TopTabs = ({ termoPesquisado }) => {
                                         titulo: item.arroba_user
                                     });
                                 }}>
-                                    <Text style={styles.nomeUser}>{item.nome_user}</Text>
+                                    <Text style={styles.nomeUser}>{item.nome_user}   <Ionicons color={colors.azul} size={20} name="school-outline" /></Text>
                                     <Text style={styles.arrobaUser}>@{item.arroba_user}</Text>
                                 </Pressable>
 
