@@ -442,8 +442,8 @@ const enviarMensagem = async () => {
                 style={styles.input}
                 placeholder="Escreva sua Mensagem..."
                 placeholderTextColor="#A7A7A7"
-                value={campoMensagem}
-                onChangeText={setCampoMensagem}
+                value={campoMensagemImg}
+                onChangeText={setCampoMensagemImg}
               />
             </View>
             <View style={{width: '10%', justifyContent: 'space-between', alignItems: 'center'}}>
