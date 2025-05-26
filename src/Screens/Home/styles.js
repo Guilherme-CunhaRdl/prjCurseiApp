@@ -195,7 +195,7 @@ export default StyleSheet.create({
 
     paddingTop:15,
     borderBottomWidth: 2,
-    borderBottomColor: '#F5F5F5',
+    borderBottomColor: '#000',
     // backgroundColor:'red'
   },
   opcao:{
@@ -203,7 +203,7 @@ export default StyleSheet.create({
     height: '100%',
     width: '15%',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   opcaoIcon:{
     fontSize: 30,

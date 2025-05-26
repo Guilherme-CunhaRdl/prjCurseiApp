@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { temaClaro, temaEscuro } from './themes';
+import { useTema } from '../context/themeContext';
 
 import TabNav from './TabNav';
 import Login from '../Screens/Login';
@@ -22,14 +22,25 @@ import CriarCurteis from '../Screens/Curtei/CriarCurteis.js';
 import postUnico from '../Screens/PostUnico';
 import TelaPesquisa from '../Screens/Explorar/TelaPesquisa/index.js';
 import host from '../global.js';
-const Stack = createNativeStackNavigator();
 import SeguindoSeguidores from '../Screens/SeguindoSeguidores'
 import Story from '../Screens/Story/index.js'
+const Stack = createNativeStackNavigator();
+
 
 export default function StackRoutes() {
+    const { tema } = useTema();
 
   return (
     <Stack.Navigator
+          screenOptions={{
+        headerStyle: {
+          backgroundColor: tema.fundo,
+        },
+        headerTitleStyle: {
+          color: tema.texto,
+        },
+        headerTintColor: tema.texto, 
+      }}
 
     >
     
