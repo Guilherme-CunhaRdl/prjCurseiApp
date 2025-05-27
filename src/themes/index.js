@@ -20,6 +20,7 @@ export const temaClaro = {
     nome: 'escuro',
     fundo: '#000',
     texto: '#FFFFFF',
+    subTexto: '#CCCCCC',
     azul: '#7FB3FF',
     descricao: '#AAAAAA',
     laranja: '#FFB347',

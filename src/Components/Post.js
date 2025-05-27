@@ -175,7 +175,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
     } else {
       return (
        
-        <Text key={`text-${index}`} style={{ color: 'black' }}>
+        <Text key={`text-${index}`} style={{ color: tema.texto }}>
           {parte}
         </Text>
         
@@ -239,7 +239,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
             const curtido = item.curtiu_post === 1 || curtidos[item.id_post] === true;
   
             return (
-              <View style={[styles.postContainer, { backgroundColor: tema.fundo, borderColor: tema.descricao, borderWidth: 1, borderRadius: 8, marginBottom: 15 }]}>
+              <View style={[styles.postContainer, { backgroundColor: tema.fundo,marginBottom: 15 }]}>
                 <View style={styles.postHeader}>
                   <Pressable
                     style={{ flexDirection: 'row', alignItems: 'center' }}
@@ -343,7 +343,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
                         </View>
                       </View>
                     </View>
-                    <Text style={[styles.postTextRepost, { color: tema.texto }]}>
+                    <Text style={[styles.postTextRepost]}>
                       {renderHashtagText(item.repost_descricao, handleHashtagPress)}
                     </Text>
                     {item.repost_conteudo && (
@@ -370,7 +370,7 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
                   {!idPostUnico && (
                     <View style={styles.actionButton}>
                       <Comentario idPost={item.id_post} tema={tema} />
-                      <Text style={[styles.QuantidadeAction, { color: tema.texto }]}>   {item.comentarios}</Text>
+                      <Text style={[styles.QuantidadeAction, { color: tema.texto }]}>  {item.comentarios}</Text>
                     </View>
                   )}
   
@@ -452,6 +452,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 25,
+    
   },
   institutionText: {
     fontWeight: 600,
