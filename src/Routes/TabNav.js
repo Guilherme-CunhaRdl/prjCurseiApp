@@ -59,19 +59,17 @@ const TabNav = () => {
             nomeIcone = focused ? 'search' : 'search-outline';
           } else if (route.name === 'post') {
             nomeIcone = 'chatbubbles-outline';
-<<<<<<< HEAD
+
             return <Ionicons name={nomeIcone} size={size} color={color} />;
           } else if (route.name === 'albums') {
             nomeIcone = focused ? 'albums' : 'albums-outline';
             return <Ionicons name={nomeIcone} size={size} color={color} />;
           } else if (route.name === 'user') {
-=======
           } else if (route.name === 'add') {
             nomeIcone = focused ? 'add' : 'add-outline';
           }
 
           if (route.name === 'user') {
->>>>>>> 5dc0aff2f1b3c418e128ab8730d4b33b2f19cf2b
             return (
               <Image
                 source={
