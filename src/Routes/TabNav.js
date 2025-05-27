@@ -54,8 +54,8 @@ const TabNav = () => {
           } else if (route.name === 'post') {
             nomeIcone = 'chatbubbles-outline';
             return <Ionicons name={nomeIcone} size={size} color={color} />;
-          } else if (route.name === 'add') {
-            nomeIcone = focused ? 'add' : 'add-outline';
+          } else if (route.name === 'albums') {
+            nomeIcone = focused ? 'albums' : 'albums-outline';
             return <Ionicons name={nomeIcone} size={size} color={color} />;
           } else if (route.name === 'user') {
             return (
@@ -78,7 +78,7 @@ const TabNav = () => {
     >
       <Tab.Screen name='home' component={Home} />
       <Tab.Screen name='post' component={Mensagens} />
-      <Tab.Screen name='add' component={Curtei} />
+      <Tab.Screen name='albums' component={Curtei} />
       <Tab.Screen name='pesquisa' component={Explorar} />
       <Tab.Screen name='user' component={Perfil} />
 

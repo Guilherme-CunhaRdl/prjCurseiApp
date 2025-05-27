@@ -372,9 +372,7 @@ export default function Perfil() {
                     </View>
                 }
                 {/*View Storys*/}
-                {perfilBloqueado == 1 ? (null) :
-
-
+                {perfilBloqueado == 1 || instituicao == 1 ?
                     <View style={styles.storysContainer}>
                         <FlatList
                             horizontal={true}
@@ -398,7 +396,8 @@ export default function Perfil() {
                             )}
                         />
                     </View>
-                }
+                : (null)}
+                
                 {/*Barra de Navegação*/}
                 {perfilBloqueado == 1 ? (null) :
                     <View style={styles.barraContainer}>
