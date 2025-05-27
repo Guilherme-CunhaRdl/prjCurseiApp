@@ -72,15 +72,15 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
         }
         const id = idUser;
         if (tipo) {
-          if (tipo == 'normais') {
+          if (tipo == 'normais') {  
             console.log("aa")
-            url = `http://${host}:8000/api/posts/6/${id}/100/0/0`;
+            url = `http://${host}:8000/api/posts/6/${idUserSalvo}/100/0/${id}`;
           } else {
-            url = `http://${host}:8000/api/posts/5/${id}/100/0/0`;
+            url = `http://${host}:8000/api/posts/5/${idUserSalvo}/100/0/${id}`;
           }
          
         } else {
-          url = `http://${host}:8000/api/posts/2/${id}/100/0/0`;
+          url = `http://${host}:8000/api/posts/2/${idUserSalvo}/100/0/${id}`;
         }
       } else {
         if (idUserSalvo) {
@@ -94,14 +94,14 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
         }
       }
       if (idPostUnico) {
-        url = `http://${host}:8000/api/posts/4/${idPostUnico}/1/0/0`
+        url = `http://${host}:8000/api/posts/4/${idUserSalvo}/1/0/${idPostUnico}`
       }
       if(pesquisa){
-         url = `http://${host}:8000/api/posts/3/0/50/0/${encodeURIComponent(pesquisa)}`
+         url = `http://${host}:8000/api/posts/3/${idUserSalvo}/50/0/${encodeURIComponent(pesquisa)}`
       }
       //DUDU eu fiz gambiarra aqui pra poder trazer os mais recentes, dps da uma olhada e ve se ta ok pra ti.
       if(pesquisaMaisRecente){
-         url = `http://${host}:8000/api/posts/9/0/50/0/${encodeURIComponent(pesquisaMaisRecente)}`
+         url = `http://${host}:8000/api/posts/9/${idUserSalvo}/50/0/${encodeURIComponent(pesquisaMaisRecente)}`
       }
       if(tipo && tipo == 'instituicao'){
         url = `http://${host}:8000/api/posts/7/${id}/50/0/0`;

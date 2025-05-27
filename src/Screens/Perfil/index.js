@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -16,6 +16,7 @@ import ModalPostagem from "../../Components/ModalPostagem";
 import ModalEditarPerfil from '../../Components/modalEditarPerfil';
 import host from '../../global';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import {
     Appbar,
     IconButton,
@@ -70,6 +71,7 @@ export default function Perfil() {
     const [segue_usuario, Setsegue_usuario] = useState(false)
     const [modalEditarVisivel, setModalEditarVisivel] = useState(false);
     const [postsCount, setPostsCount] = useState('')
+    const [refreshing, setRefreshing] = useState(false); // Estado para o refresh
     const alterarFoco = (icone) => {
         setFocoIcone(icone)
     }
@@ -195,6 +197,14 @@ export default function Perfil() {
         }
 
     }
+    async function recarregarPagina() {
+        setRefreshing(true);
+        var temporaria = focoIcone;
+        setFocoIcone('')
+        await carregarPerfil().finally(() => setRefreshing(false))
+        setFocoIcone(temporaria)
+
+    }
     useEffect(() => {
 
         carregarPerfil()
@@ -221,6 +231,16 @@ export default function Perfil() {
                 nestedScrollEnabled={true}
                 contentContainerStyle={{ paddingBottom: 0 }}
                 style={styles.containerCont}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={recarregarPagina}
+                        colors={["#3498db"]}
+                        tintColor="#3498db"
+                    />
+                }
+
+
             >
                 {/*Container da Imagem de Fundo do Header */}
                 <View style={styles.header}>
@@ -403,7 +423,7 @@ export default function Perfil() {
                 }
                 {/*Posts*/}
                 {
-                    perfilBloqueado == 1 ? null : (
+                    perfilBloqueado === 1 ? null : (
                         focoIcone === 'reposts' ? (
                             <View style={styles.postContainer}>
                                 <Post key="post-1" idUser={idUser} tipo="reposts" />
@@ -412,10 +432,12 @@ export default function Perfil() {
                             <View style={styles.postContainer}>
                                 <Post key="post-2" idUser={idUser} tipo="normais" />
                             </View>
-                        ) : (
+                        ) : focoIcone === 'posts' ? (
                             <View style={styles.postContainer}>
                                 <Post key="post-3" idUser={idUser} />
                             </View>
+                        ) : (
+                           null
                         )
                     )
                 }
@@ -441,6 +463,8 @@ export default function Perfil() {
                     if (dadosAtualizados.banner) setBanner(dadosAtualizados.banner);
                 }}
             />
+
+
         </SafeAreaView>
     )
 };

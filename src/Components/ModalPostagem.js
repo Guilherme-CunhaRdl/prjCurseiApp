@@ -133,7 +133,8 @@ const ModalPostagem = forwardRef(
 
             fecharModal();
             setDescPost('')
-            setImagem('')
+            setImagem(null)
+
             // if(tela=='perfil'){
             //   navigation.replace('user');
             // }
@@ -188,7 +189,8 @@ const ModalPostagem = forwardRef(
           });
           fecharModal();
           setDescPost('')
-          setImagem('')
+          setImagem(null)
+          
           // if(tela=='perfil'){
           //   navigation.replace('user');
           // }
@@ -221,10 +223,11 @@ const ModalPostagem = forwardRef(
  
 
       if (id && tipo != 'editar') { 
+        const idUser = await AsyncStorage.getItem("idUser");
         console.log(id)
         setRepost(true);
         setIdepost(id)
-        const url = `http://${host}:8000/api/posts/4/${id}/1/0/0`;
+        const url = `http://${host}:8000/api/posts/4/${idUser}/1/0/${id}`;
         try {
           const response = await axios.get(url);
           const data = response.data.data[0];
@@ -242,7 +245,8 @@ const ModalPostagem = forwardRef(
       }
 
       if (tipo == "editar") {
-        const url = `http://${host}:8000/api/posts/4/${idPost}/1/0/0`;
+        const idUser = await AsyncStorage.getItem("idUser");
+        const url = `http://${host}:8000/api/posts/4/${idUser}/1/0/${idPost}`;
         let response
        try{
          response = await axios.get(url);
