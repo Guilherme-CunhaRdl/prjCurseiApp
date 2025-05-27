@@ -8,6 +8,7 @@ import {
   Image,
   StatusBar,
   Pressable,
+  RefreshControl
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
@@ -28,7 +29,7 @@ import host from "../../global";
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useTema, temaAtual} from '../../context/themeContext';
+import { useTema, temaAtual } from '../../context/themeContext';
 const DATA = [
   {
     id: Math.random().toString(36).substring(2, 27),
@@ -59,6 +60,7 @@ const DATA = [
 
 export default function Home() {
   const { tema } = useTema();
+  const [refreshing, setRefreshing] = useState(false); // Estado para o refresh
 
 
   const [focoIcone, setFocoIcone] = useState('posts')
@@ -128,6 +130,14 @@ export default function Home() {
   useEffect(() => {
     carregarPerfil()
   }, []);
+  async function recarregarHome() {
+    var temporario = focoIcone
+    setRefreshing(true)
+    alterarFoco('temporario')
+    await carregarPerfil().finally(() => setRefreshing(false))
+    alterarFoco(temporario)
+    
+  }
 
   const conteudo = (
     <View style={[styles.ContainerCont, { backgroundColor: tema.fundo }]}>
@@ -158,7 +168,7 @@ export default function Home() {
               <View style={styles.logoCursei}>
                 <Image
                   style={styles.curseiIcon}
-                  source= { tema.nome === 'claro' ? require("../../../assets/curseiLogo.png")  : require("../../../assets/curseiLogoBlackMode.png") }
+                  source={tema.nome === 'claro' ? require("../../../assets/curseiLogo.png") : require("../../../assets/curseiLogoBlackMode.png")}
                 />
               </View>
             </View>
@@ -246,6 +256,15 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}
           contentContainerStyle={{ paddingBottom: 100 }}
+         refreshControl={
+                     <RefreshControl
+                       refreshing={refreshing}
+                       onRefresh={recarregarHome}
+                       colors={["#3498db"]}
+                       tintColor="#3498db"
+                     />
+                   }
+
         >
           {conteudo}
         </ScrollView>

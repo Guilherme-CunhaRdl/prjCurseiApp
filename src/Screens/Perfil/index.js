@@ -222,12 +222,14 @@ export default function Perfil() {
     }
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.headerTopo}>
+            {!perfilProprio ?(
+                <View style={styles.headerTopo}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons size={22} name='arrow-back-outline' color={colors.azul} />
                 </TouchableOpacity>
                 <Text style={{ color: "black", fontWeight: 600, fontSize: 20 }}>@{user}</Text>
             </View>
+            ):null}
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 nestedScrollEnabled={true}

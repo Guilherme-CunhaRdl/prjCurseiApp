@@ -1,5 +1,5 @@
 
-import { View, Text, StyleSheet, FlatList, Image,ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator ,RefreshControl, TouchableOpacity} from 'react-native';
 import { Appbar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import Home from '../../../../../Screens/Home';
@@ -13,22 +13,24 @@ import host from '../../../../../global';
 
 
 export default function Notificacoes() {
-   const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [notificacoes, setNotificacoes] = useState({ recentes: [], antigas: [], muitoAntigas: [] });
- dayjs.extend(relativeTime);
-  dayjs.locale('pt-br')
-  useEffect(() => {
-    async function buscarNotificacoes() {
-      const idUserSalvo = await AsyncStorage.getItem('idUser');
-      Response = await axios.get(`http://${host}:8000/api/cursei/user/notificacao/${idUserSalvo}/0`)
-      setNotificacoes({
-        recentes: (Response.data.ultimos_7_dias),
-        antigas: (Response.data.ultimos_30_dias),
-        muitoAntigas: (Response.data.notificacoes_antigas)
-      })
+  const [refreshing, setRefreshing] = useState(false); // Estado para o refresh
 
-      setLoading(false)
-    }
+  dayjs.extend(relativeTime);
+  dayjs.locale('pt-br')
+  async function buscarNotificacoes() {
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
+    Response = await axios.get(`http://${host}:8000/api/cursei/user/notificacao/${idUserSalvo}/0`)
+    setNotificacoes({
+      recentes: (Response.data.ultimos_7_dias),
+      antigas: (Response.data.ultimos_30_dias),
+      muitoAntigas: (Response.data.notificacoes_antigas)
+    })
+
+    setLoading(false)
+  }
+  useEffect(() => {
     buscarNotificacoes();
   }, []);
 
@@ -37,72 +39,94 @@ export default function Notificacoes() {
     console.log("recente", notificacoes.recentes);
   }, [notificacoes]);
 
- const formatarTempoInsercao = (seconds) => {
+  const formatarTempoInsercao = (seconds) => {
     return dayjs().subtract(seconds, 'seconds').fromNow();
   };
-
+  async function recarregarNotificacoes() {
+    setRefreshing(true)
+    await buscarNotificacoes().finally(() => setRefreshing(false))
+  }
 
 
   const navigation = useNavigation();
   const renderItem = ({ item }) => (
-    <View style={styles.notificacao} key={item.id}>
-      <Image source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}`}} style={styles.avatar} />
+    <TouchableOpacity style={styles.notificacao} key={item.id}  onPress={() => navigation.navigate('Perfil', { idUserPerfil: item.idUsuario, titulo: item.arroba })}>
+      <Image source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }} style={styles.avatar} />
       <View style={styles.textoContainer}>
         <Text style={styles.nome}>
-          {item.usuario} 
-        <Text style={styles.tempo}>      {formatarTempoInsercao(item.tempo_inserido)}</Text>
+          {item.usuario}
+          <Text style={styles.tempo}>      {formatarTempoInsercao(item.tempo_inserido)}</Text>
         </Text>
         <Text style={styles.texto}>
-            {item.tipo === 'curtida'
-              ? 'Curtiu seu post'
-              : item.tipo === 'comentario'
-                ? `Comentou no seu post:`
-                : 'Começou a te seguir.'}
+          {item.tipo === 'curtida'
+            ? 'Curtiu seu post'
+            : item.tipo === 'comentario'
+              ? `Comentou no seu post:` 
+              : item.tipo ==='seguido'?
+               'Começou a te seguir.'
+              : 'Repostou seu Post'
+              }
 
-          <Text style={{fontWeight:'normal'}}> {item.mensagem}</Text>
-          </Text>
+          <Text style={{ fontWeight: 'normal' }}> {item.mensagem}</Text>
+        </Text>
       </View>
-              {item.tipo =='curtida'?(
-                <Icon name="heart" size={25} color="#F22E2E" />
+      {item.tipo == 'curtida' ? (
+        <Icon name="heart" size={25} color="#F22E2E" />
 
-              ):item.tipo =='comentario' ?(
-                <Icon name="message-circle" size={25} color="#448FFF" />
-              ):<Icon name="user-plus" size={25} color="#00E923" />}
-              
-  
-    </View>
+      ) : item.tipo == 'comentario' ? (
+        <Icon name="message-circle" size={25} color="#448FFF" />
+      )  : item.tipo ==='seguido'? <Icon name="user-plus" size={25} color="#00E923" />
+      :  <Icon name="repeat" size={25} color="#666" />
+    }
+
+
+    </TouchableOpacity>
   );
 
 
   return (
-    
-    
+
+
     <View style={styles.container}>
-     
-    
+
+
       <Appbar.Header style={{ backgroundColor: '#fff', elevation: 0 }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Notificações" titleStyle={{ textAlign: 'center', fontWeight: 600 }} />
         <View style={{ width: 48 }} />
       </Appbar.Header>
 
-        {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '100%',backgroundColor:'transparency' }}>
-                        <ActivityIndicator size="large" color="#3498db" />
-                      </View>
-                      ) : 
-      <FlatList
-        ListHeaderComponent={
-          <>
-            <Text style={styles.titulo}>Últimos 7 dias</Text>
-            {notificacoes.recentes.map(item => renderItem({ item }))}
-            <Text style={styles.titulo}>Últimos 30 dias</Text>
-            {notificacoes.antigas.map(item => renderItem({ item }))}
-            <Text style={styles.titulo}>Notificações Antigas</Text>
-            {notificacoes.muitoAntigas.map(item => renderItem({ item }))}
-          </>
-        }
-      />
-}
+      {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '100%', backgroundColor: 'transparency' }}>
+        <ActivityIndicator size="large" color="#3498db" />
+      </View>
+      ) :
+        <FlatList
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={recarregarNotificacoes}
+              colors={["#3498db"]}
+              tintColor="#3498db"
+            />
+          }
+          ListHeaderComponent={
+            <>
+              {notificacoes.recentes.length != 0 ?(
+                <Text style={styles.titulo}>Últimos 7 dias  </Text>
+              ):null}
+              {notificacoes.recentes.map(item => renderItem({ item }))}
+               {notificacoes.antigas.length != 0 ?(
+              <Text style={styles.titulo}>Últimos 30 dias</Text>
+               ):null}
+              {notificacoes.antigas.map(item => renderItem({ item }))}
+               {notificacoes.muitoAntigas.length != 0 ?(
+              <Text style={styles.titulo}>Notificações Antigas</Text>
+               ):null}
+              {notificacoes.muitoAntigas.map(item => renderItem({ item }))}
+            </>
+          }
+        />
+      }
 
     </View>
   );
@@ -123,7 +147,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
     padding: 7,
-   
+
   },
   avatar: {
     width: 40,
@@ -132,7 +156,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   textoContainer: { flex: 1 },
-  nome: { fontWeight: '600',fontSize:15 },
+  nome: { fontWeight: '600', fontSize: 15 },
   texto: { fontWeight: '500', color: '#000' },
   tempo: { fontSize: 12, color: '#999' },
 
@@ -142,7 +166,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     marginTop: 4,
     resizeMode: 'contain',
-   
+
   },
 
 });
