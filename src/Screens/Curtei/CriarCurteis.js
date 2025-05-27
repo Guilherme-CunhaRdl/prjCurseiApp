@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  Image, 
-  StyleSheet, 
-  TextInput, 
-  ActivityIndicator, 
-  Alert, 
-  ScrollView,
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  TextInput,
+  ActivityIndicator,
+  Alert,
   Dimensions,
   Platform,
-  Animated
+  Animated,
+  ScrollView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -20,457 +20,335 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import host from '../../global';
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// Calculate 9:16 aspect ratio dimensions
-const videoWidth = screenWidth - 40;
+const { width, height } = Dimensions.get('window');
+
+const responsiveFontSize = (percentage) => Math.round((width * percentage) / 100);
+const responsiveWidth = (percentage) => width * (percentage / 100);
+const responsiveHeight = (percentage) => height * (percentage / 100);
+
+const videoWidth = width * 0.9;
 const videoHeight = (videoWidth * 16) / 9;
 
-const CriarCurtei = () => {
+const CriarCurteis = () => {
   const [caption, setCaption] = useState('');
   const [videoUri, setVideoUri] = useState(null);
   const [thumbUri, setThumbUri] = useState(null);
   const [uploading, setUploading] = useState(false);
   const scrollViewRef = useRef(null);
-  const scrollX = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(0);
   const videoFileRef = useRef(null);
   const thumbFileRef = useRef(null);
 
-  // Auto-advance when fields are filled
-  useEffect(() => {
-    if (videoUri && currentIndex === 0) {
-      scrollToSection(1);
-    }
-  }, [videoUri]);
+  const animatedIndex = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    if (thumbUri && currentIndex === 1) {
-      scrollToSection(2);
-    }
-  }, [thumbUri]);
+  const scrollToSection = (index) => {
+    scrollViewRef.current?.scrollTo({ x: width * index, animated: true });
+  };
 
   const selectVideo = async () => {
-    try {
-      if (Platform.OS === 'web') {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'video/*';
-        input.onchange = (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            videoFileRef.current = file;
-            const videoUrl = URL.createObjectURL(file);
-            setVideoUri(videoUrl);
-          }
-        };
-        input.click();
-        return;
-      }
-      
-      const result = await launchImageLibrary({
-        mediaType: 'video',
-        videoQuality: 'medium',
-        durationLimit: 60,
-      });
-      
-      if (result.assets && result.assets[0].uri) {
-        setVideoUri(result.assets[0].uri);
-        // No mobile, usamos a URI diretamente
-        videoFileRef.current = {
-          uri: result.assets[0].uri,
-          type: result.assets[0].type || 'video/mp4',
-          name: result.assets[0].fileName || `video_${Date.now()}.mp4`
-        };
-      }
-    } catch (error) {
-      console.error('Error selecting video:', error);
-      Alert.alert('Erro', 'Não foi possível selecionar o vídeo');
+    const result = await launchImageLibrary({
+      mediaType: 'video',
+      videoQuality: 'medium',
+      durationLimit: 60,
+    });
+    if (result.assets && result.assets[0].uri) {
+      setVideoUri(result.assets[0].uri);
+      videoFileRef.current = {
+        uri: result.assets[0].uri,
+        type: result.assets[0].type || 'video/mp4',
+        name: result.assets[0].fileName || video_$`{Date.now()}`.mp4,
+      };
     }
   };
 
   const selectThumbnail = async () => {
-    try {
-      if (Platform.OS === 'web') {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            thumbFileRef.current = file;
-            const thumbUrl = URL.createObjectURL(file);
-            setThumbUri(thumbUrl);
-          }
-        };
-        input.click();
-        return;
-      }
-      
-      const result = await launchImageLibrary({
-        mediaType: 'photo',
-        quality: 0.8,
-      });
-      
-      if (result.assets && result.assets[0].uri) {
-        setThumbUri(result.assets[0].uri);
-        thumbFileRef.current = {
-          uri: result.assets[0].uri,
-          type: result.assets[0].type || 'image/jpeg',
-          name: result.assets[0].fileName || `thumb_${Date.now()}.jpg`
-        };
-      }
-    } catch (error) {
-      console.error('Error selecting thumbnail:', error);
-      Alert.alert('Erro', 'Não foi possível selecionar a thumbnail');
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.8,
+    });
+    if (result.assets && result.assets[0].uri) {
+      setThumbUri(result.assets[0].uri);
+      thumbFileRef.current = {
+        uri: result.assets[0].uri,
+        type: result.assets[0].type || 'image/jpeg',
+        name: result.assets[0].fileName || thumb_$`{Date.now()}`.jpg,
+      };
     }
   };
 
   const handleUpload = async () => {
     const idUserString = await AsyncStorage.getItem('idUser');
     const idUser = parseInt(idUserString);
-    
+
     if (!videoFileRef.current || !thumbFileRef.current) {
       Alert.alert('Atenção', 'Você precisa selecionar um vídeo e uma thumbnail');
       return;
     }
 
     setUploading(true);
-
     try {
       const formData = new FormData();
-      
-      // Adiciona os arquivos diretamente (funciona tanto web quanto mobile)
       formData.append('caminho_curtei', videoFileRef.current);
       formData.append('caminho_curtei_thumb', thumbFileRef.current);
       formData.append('legenda_curtei', caption);
       formData.append('id_user', idUser);
 
-      const response = await axios.post(`http://${host}:8000/api/curtei/upload`, formData, {
+      await axios.post(`http://${host}:8000/api/curtei/upload, formData`, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json',
         },
       });
-      
+
       Alert.alert('Sucesso!', 'Seu vídeo foi publicado com sucesso!');
       setVideoUri(null);
       setThumbUri(null);
       setCaption('');
       videoFileRef.current = null;
       thumbFileRef.current = null;
-      
+      scrollToSection(0);
     } catch (error) {
-      console.error('Erro completo:', error);
-      console.error('Resposta do erro:', error.response?.data);
-      
-      let errorMessage = 'Ocorreu um erro ao enviar o vídeo';
-      if (error.response?.data?.errors) {
-        errorMessage = Object.values(error.response.data.errors).flat().join('\n');
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-      
-      Alert.alert('Erro', errorMessage);
+      console.error(error);
+      Alert.alert('Erro', 'Não foi possível enviar o vídeo');
     } finally {
       setUploading(false);
     }
   };
 
-  const onScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { x: scrollX } }}],
-    {
+  useEffect(() => {
+    Animated.timing(animatedIndex, {
+      toValue: currentIndex,
+      duration: 300,
       useNativeDriver: false,
-      listener: (event) => {
-        const offsetX = event.nativeEvent.contentOffset.x;
-        const newIndex = Math.round(offsetX / (screenWidth - 40));
-        if (newIndex !== currentIndex) {
-          setCurrentIndex(newIndex);
-        }
-      }
-    }
-  );
-
-  const scrollToSection = (index) => {
-    scrollViewRef.current?.scrollTo({ x: (screenWidth - 40) * index, animated: true });
-    setCurrentIndex(index);
-  };
+    }).start();
+  }, [currentIndex]);
 
   return (
     <View style={styles.container}>
-      {/* Indicadores de página */}
-      <View style={styles.indicatorContainer}>
-        <TouchableOpacity onPress={() => scrollToSection(0)}>
-          <View style={[styles.indicator, currentIndex === 0 && styles.activeIndicator]} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => scrollToSection(1)}>
-          <View style={[styles.indicator, currentIndex === 1 && styles.activeIndicator]} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => scrollToSection(2)}>
-          <View style={[styles.indicator, currentIndex === 2 && styles.activeIndicator]} />
-        </TouchableOpacity>
-      </View>
+      <View style={styles.pageIndicatorContainer}>
+        {[0, 1, 2].map((index) => {
+          const scale = animatedIndex.interpolate({
+            inputRange: [index - 1, index, index + 1],
+            outputRange: [1, 1.8, 1],
+            extrapolate: 'clamp',
+          });
 
-      {/* Container principal horizontal */}
-      <Animated.ScrollView
+          const opacity = animatedIndex.interpolate({
+            inputRange: [index - 1, index, index + 1],
+            outputRange: [0.3, 1, 0.3],
+            extrapolate: 'clamp',
+          });
+
+          return (
+            <Animated.View
+              key={index}
+              style={[
+                styles.pageIndicatorDot,
+                {
+                  transform: [{ scale }],
+                  opacity,
+                  backgroundColor: '#3B82F6',
+                },
+              ]}
+            />
+          );
+        })}
+      </View>
+      <ScrollView
         ref={scrollViewRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        style={styles.horizontalScroll}
-        contentContainerStyle={styles.horizontalContent}
-        onScroll={onScroll}
+        contentContainerStyle={{ width: width * 3 }}
+        onMomentumScrollEnd={(event) => {
+          const index = Math.round(event.nativeEvent.contentOffset.x / width);
+          setCurrentIndex(index);
+        }}
         scrollEventThrottle={16}
       >
-        {/* Tela do Vídeo */}
-        <View style={styles.fullScreenSection}>
+        <View style={styles.page}>
           {videoUri ? (
-            <View style={styles.videoContainer}>
-              <Video
-                source={{ uri: videoUri }}
-                style={styles.videoPreview}
-                paused={true}
-                resizeMode="cover"
-                muted
-              />
-              <TouchableOpacity 
-                style={styles.changeButton}
-                onPress={selectVideo}
-              >
-                <Icon name="edit" size={20} color="#fff" />
+            <View style={styles.preview}>
+              <Video source={{ uri: videoUri }} style={styles.media} resizeMode="cover" paused />
+              <TouchableOpacity style={styles.editButton} onPress={selectVideo}>
+                <Icon name="edit" size={25} color="#fff" />
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity 
-              style={styles.uploadPlaceholder}
-              onPress={selectVideo}
-              activeOpacity={0.7}
-            >
-              <Icon name="videocam" size={40} color="#3B82F6" />
-              <Text style={styles.placeholderText}>Selecionar vídeo</Text>
-              <Text style={styles.hintText}>Arraste para continuar</Text>
+            <UploadPlaceholder icon="videocam" label="Selecionar vídeo" onPress={selectVideo} />
+          )}
+          {videoUri && (
+            <TouchableOpacity style={styles.nextButton} onPress={() => scrollToSection(1)}>
+              <Text style={styles.nextText}>Avançar</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Tela da Thumbnail */}
-        <View style={styles.fullScreenSection}>
+        <View style={styles.page}>
           {thumbUri ? (
-            <View style={styles.thumbContainer}>
-              <Image 
-                source={{ uri: thumbUri }} 
-                style={styles.thumbPreview} 
-                resizeMode="cover"
-              />
-              <TouchableOpacity 
-                style={styles.changeButton}
-                onPress={selectThumbnail}
-              >
-                <Icon name="edit" size={20} color="#fff" />
+            <View style={styles.preview}>
+              <Image source={{ uri: thumbUri }} style={styles.media} resizeMode="cover" />
+              <TouchableOpacity style={styles.editButton} onPress={selectThumbnail}>
+                <Icon name="edit" size={25} color="#fff" />
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity 
-              style={styles.uploadPlaceholder}
-              onPress={selectThumbnail}
-              activeOpacity={0.7}
-            >
-              <Icon name="image" size={40} color="#3B82F6" />
-              <Text style={styles.placeholderText}>Selecionar thumbnail</Text>
-              <Text style={styles.hintText}>Arraste para continuar</Text>
+            <UploadPlaceholder icon="image" label="Selecionar thumbnail" onPress={selectThumbnail} />
+          )}
+          {thumbUri && (
+            <TouchableOpacity style={styles.nextButton} onPress={() => scrollToSection(2)}>
+              <Text style={styles.nextText}>Avançar</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Tela da Descrição e Upload */}
-        <View style={styles.fullScreenSection}>
-          <View style={styles.descriptionContainer}>
-            <Text style={styles.sectionTitle}>Legenda (opcional)</Text>
-            <TextInput
-              placeholder="Conte a história por trás desse vídeo..."
-              placeholderTextColor="#9CA3AF"
-              value={caption}
-              onChangeText={setCaption}
-              maxLength={220}
-              multiline
-              numberOfLines={4}
-              style={styles.input}
-              textAlignVertical="top"
-            />
-            <Text style={styles.counter}>{caption.length}/220 caracteres</Text>
-            
-            <TouchableOpacity 
-              style={[styles.uploadButton, (!videoUri || !thumbUri || uploading) && styles.uploadButtonDisabled]} 
-              onPress={handleUpload}
-              disabled={!videoUri || !thumbUri || uploading}
-              activeOpacity={0.8}
-            >
-              {uploading ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <>
-                  {!videoUri || !thumbUri ? (
-                    <AntDesign name="close" size={24} color="#fff" />
-                  ) : (
-                    <AntDesign name="check" size={24} color="#fff" />
-                  )}
-                  <Text style={styles.uploadButtonText}>
-                    {!videoUri || !thumbUri ? 'Preencha os campos' : 'Publicar vídeo'}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
+        <View style={styles.page}>
+          <Text style={styles.label}>Legenda (opcional)</Text>
+          <TextInput
+            placeholder="Conte a história por trás desse vídeo..."
+            value={caption}
+            onChangeText={setCaption}
+            maxLength={220}
+            multiline
+            style={styles.input}
+            textAlignVertical="top"
+          />
+          <Text style={styles.charCounter}>{caption.length}/220</Text>
+          <TouchableOpacity
+            style={[styles.uploadButton, !(videoUri && thumbUri) && { backgroundColor: '#a5c3f7' }]}
+            onPress={handleUpload}
+            disabled={uploading || !videoUri || !thumbUri}
+          >
+            {uploading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <AntDesign name="upload" size={20} color="#fff" />
+                <Text style={styles.uploadText}>Publicar vídeo</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
-      </Animated.ScrollView>
+      </ScrollView>
     </View>
   );
 };
 
+const UploadPlaceholder = ({ icon, label, onPress }) => (
+  <TouchableOpacity style={styles.placeholder} onPress={onPress}>
+    <Icon name={icon} size={50} color="#3B82F6" />
+    <Text style={styles.placeholderLabel}>{label}</Text>
+  </TouchableOpacity>
+);
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#fff',
   },
-  indicatorContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 10,
-    gap: 10,
-  },
-  indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#CBD5E0',
-  },
-  activeIndicator: {
-    backgroundColor: '#3B82F6',
-    width: 16,
-  },
-  horizontalScroll: {
-    flex: 1,
-  },
-  horizontalContent: {
-    width: (screenWidth - 40) * 3,
-  },
-  fullScreenSection: {
-    width: screenWidth - 40,
-    marginRight: 20,
-  },
-  videoContainer: {
-    position: 'relative',
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#F3F4F6',
-    height: videoHeight,
-    justifyContent: 'center',
+  page: {
+    width: width,
     alignItems: 'center',
+    padding: 20,
+    justifyContent: 'center',
   },
-  videoPreview: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#E5E7EB',
-  },
-  thumbContainer: {
-    position: 'relative',
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#F3F4F6',
+  placeholder: {
+    width: videoWidth,
     height: videoHeight,
-  },
-  thumbPreview: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#E5E7EB',
-  },
-  descriptionContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingBottom: 20,
-  },
-  changeButton: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 8,
-    borderRadius: 20,
-  },
-  uploadPlaceholder: {
     borderWidth: 2,
     borderColor: '#3B82F6',
     borderStyle: 'dashed',
-    borderRadius: 12,
-    height: videoHeight,
-    alignItems: 'center',
+    borderRadius: 15,
     justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#EFF6FF',
-    padding: 20,
   },
-  placeholderText: {
+  placeholderLabel: {
+    marginTop: 10,
+    fontSize: 16,
     color: '#3B82F6',
-    marginTop: 12,
-    fontWeight: '500',
-    fontSize: 15,
-    textAlign: 'center',
   },
-  hintText: {
-    color: '#718096',
-    marginTop: 15,
-    fontSize: 14,
-    textAlign: 'center',
+  preview: {
+    width: videoWidth,
+    height: videoHeight,
+    borderRadius: 15,
+    overflow: 'hidden',
+    backgroundColor: '#ddd',
   },
-  sectionTitle: {
+  media: {
+    width: '100%',
+    height: '100%',
+  },
+  editButton: {
+    position: 'absolute',
+    bottom: 15,
+    right: 15,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 10,
+    borderRadius: 25,
+  },
+  nextButton: {
+    marginTop: 20,
+    backgroundColor: '#3B82F6',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+  },
+  nextText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-    color: '#4B5563',
-    marginBottom: 12,
   },
-  input: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 16,
-    minHeight: 120,
-    fontSize: 15,
-    color: '#1F2937',
-    textAlignVertical: 'top',
+  label: {
+    alignSelf: 'flex-start',
+    fontSize: 18,
+    color: '#4B5563',
     marginBottom: 10,
   },
-  counter: {
-    textAlign: 'right',
-    color: '#9CA3AF',
-    marginTop: 6,
-    fontSize: 13,
-    marginBottom: 20,
+  input: {
+    width: '100%',
+    height: responsiveHeight(20),
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 15,
+    backgroundColor: '#F9FAFB',
+  },
+  charCounter: {
+    alignSelf: 'flex-end',
+    color: '#6B7280',
+    marginTop: 5,
   },
   uploadButton: {
+    marginTop: 20,
+    backgroundColor: '#3B82F6',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3B82F6',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    paddingVertical: 15,
+    borderRadius: 10,
+    gap: 10,
+    width: '100%',
   },
-  uploadButtonDisabled: {
-    backgroundColor: '#93C5FD',
-  },
-  uploadButtonText: {
+  uploadText: {
     color: '#fff',
+    fontSize: 16,
     fontWeight: '600',
-    fontSize: 17,
-    marginLeft: 12,
+  },
+  pageIndicatorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    height: responsiveHeight(5),
+  },
+  pageIndicatorDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#D1D5DB',
+    marginHorizontal: 6,
   },
 });
 
-export default CriarCurtei;
+export default CriarCurteis;
