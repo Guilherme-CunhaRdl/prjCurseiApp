@@ -5,10 +5,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import host from '../../global';
+import { useTema } from '../../context/themeContext';
 
 const API_BASE_URL = `http://${host}:8000`;
 
 export default function SegurancaUser() {
+  const { tema } = useTema();
+
   const [userId, setUserId] = useState(null);
   const [doisFatoresAtivo, setDoisFatoresAtivo] = useState(false);
   const [protecaoSenha, setProtecaoSenha] = useState(false);
@@ -19,13 +22,10 @@ export default function SegurancaUser() {
     const carregarDadosUsuario = async () => {
       try {
         const id = await AsyncStorage.getItem('idUser');
-        
         setUserId(id);
-        
 
         const response = await axios.get(`${API_BASE_URL}/api/cursei/user/${id}`);
         setDoisFatoresAtivo(response.data.dois_fatores_user ?? false);
-        
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
         Alert.alert('Erro', 'Não foi possível carregar as configurações de segurança');
@@ -38,22 +38,15 @@ export default function SegurancaUser() {
   }, []);
 
   const ativarAutenticacao = async (novoValor) => {
-    console.log('Tentativa de alteração para:', novoValor); 
-    if (!userId) {
-      console.log('UserId não encontrado');
- 
-      return;
-    }
-  
+    if (!userId) return;
+
     setUpdating(true);
     try {
-      console.log('Enviando requisição para:', `${API_BASE_URL}/api/cursei/user/autenticacao/${userId}`); // Debug 3
       const response = await axios.post(
         `${API_BASE_URL}/api/cursei/user/autenticacao/${userId}`,
         { dois_fatores_user: novoValor }
       );
-      console.log('Resposta da API:', response.data); 
-      
+
       if (response.data.success) {
         setDoisFatoresAtivo(novoValor);
         Alert.alert('Sucesso', response.data.message || 'Configuração atualizada');
@@ -61,8 +54,7 @@ export default function SegurancaUser() {
         throw new Error(response.data.message || 'Erro na resposta da API');
       }
     } catch (error) {
-      console.error('Erro completo:', error.response || error); 
-      
+      console.error('Erro completo:', error.response || error);
       setDoisFatoresAtivo(!novoValor);
       Alert.alert('Erro', error.response?.data?.message || error.message || 'Falha na comunicação');
     } finally {
@@ -72,46 +64,52 @@ export default function SegurancaUser() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <SafeAreaView style={[styles.center, { flex: 1, backgroundColor: tema.fundo }]}>
+        <ActivityIndicator size="large" color={tema.texto} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.descricao}>
+    <SafeAreaView style={[styles.container, { backgroundColor: tema.fundo }]}>
+      <Text style={[styles.descricao, { color: tema.descricao }]}>
         Gerencie a segurança da sua conta da melhor forma.
       </Text>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Autenticação em duas etapas</Text>
+        <Text style={[styles.sectionTitle, { color: tema.texto }]}>
+          Autenticação em duas etapas
+        </Text>
         <View style={styles.row}>
-          <Text style={styles.sectionDescricao}>
+          <Text style={[styles.sectionDescricao, { color: tema.descricao }]}>
             Para evitar acesso não autorizado, proteja sua conta exigindo um segundo método de autenticação, além da sua senha.
           </Text>
           {updating ? (
-            <ActivityIndicator />
+            <ActivityIndicator color={tema.texto} />
           ) : (
             <Switch
               value={doisFatoresAtivo}
               onValueChange={ativarAutenticacao}
               disabled={updating}
+              color={tema.botao}
             />
           )}
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Proteção de senha</Text>
+        <Text style={[styles.sectionTitle, { color: tema.texto }]}>
+          Proteção de senha
+        </Text>
         <View style={styles.row}>
-          <Text style={styles.sectionDescricao}>
+          <Text style={[styles.sectionDescricao, { color: tema.descricao }]}>
             Para melhorar sua proteção, você precisará confirmar seu número de celular ou endereço de e-mail para redefinir a senha.
           </Text>
           <Switch
             value={protecaoSenha}
             onValueChange={() => setProtecaoSenha(!protecaoSenha)}
             disabled={updating}
+            color={tema.botao}
           />
         </View>
       </View>
@@ -122,11 +120,9 @@ export default function SegurancaUser() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 16,
   },
   descricao: {
-    color: '#777',
     fontSize: 13,
     marginBottom: 24,
   },
@@ -137,10 +133,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     marginBottom: 4,
-    color: '#787F89'
   },
   sectionDescricao: {
-    color: '#555',
     fontSize: 13,
     flex: 1,
     marginRight: 10,

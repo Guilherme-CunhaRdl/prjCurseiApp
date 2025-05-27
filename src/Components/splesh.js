@@ -4,9 +4,12 @@ import  * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import host from '../global';
+import {useTema} from '../context/themeContext';
 export default function Splash() {
   const animacaoRef = useRef(null);
   const navigation = useNavigation();
+  const {tema} = useTema();
+  console.log(tema)
 
   useEffect(() => {
     // Inicia a animação
@@ -27,7 +30,7 @@ export default function Splash() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: tema.fundo}]}>
       <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
       
       <Animatable.View
@@ -37,7 +40,7 @@ export default function Splash() {
         duration={1000}
       >
         <Animatable.Image
-          source={require('../../assets/curseiLogo.png')}
+          source={ tema.nome === 'claro' ? require("../../assets/curseiLogo.png")  : require("../../assets/curseiLogoBlackMode.png")}
           style={styles.logo}
  
         />
@@ -49,7 +52,6 @@ export default function Splash() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
   },
