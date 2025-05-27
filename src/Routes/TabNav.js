@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
-
+import { useTema } from '../context/themeContext';
 import Home from '../Screens/Home';
 import Perfil from '../Screens/Perfil';
 import Login from '../Screens/Login';
@@ -29,51 +29,62 @@ async function ViewPost() {
   )
 }
 const TabNav = () => {
-  const [imgPefil, setImgPerfil] = useState('')
-  async function carregarImg() {
-    const img = await AsyncStorage.getItem('imgUser')
-    setImgPerfil(img)
+  const { tema} = useTema();
+  const [imgPerfil, setImgPerfil] = useState('');
 
-  }
-  carregarImg()
+  useEffect(() => {
+    AsyncStorage.getItem('imgUser').then((img) => {
+      setImgPerfil(img);
+    });
+  }, []);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: { display: 'flex' },
+        tabBarStyle: {
+          backgroundColor: tema.barra,
+          borderTopColor: 'transparent',
+          height: 60,
+        },
+        tabBarActiveTintColor: tema.iconeAtivo,
+        tabBarInactiveTintColor: tema.iconeInativo,
         tabBarIcon: ({ focused, color, size }) => {
           let nomeIcone;
 
           if (route.name === 'home') {
             nomeIcone = focused ? 'home' : 'home-outline';
-            return <Ionicons name={nomeIcone} size={size} color={color} />;
           } else if (route.name === 'pesquisa') {
             nomeIcone = focused ? 'search' : 'search-outline';
-            return <Ionicons name={nomeIcone} size={size} color={color} />;
           } else if (route.name === 'post') {
             nomeIcone = 'chatbubbles-outline';
-            return <Ionicons name={nomeIcone} size={size} color={color} />;
           } else if (route.name === 'add') {
             nomeIcone = focused ? 'add' : 'add-outline';
-            return <Ionicons name={nomeIcone} size={size} color={color} />;
-          } else if (route.name === 'user') {
+          }
+
+          if (route.name === 'user') {
             return (
               <Image
-                source={imgPefil !== null ? { uri: `http://${host}:8000/img/user/fotoPerfil/${imgPefil}` } : require('../../assets/userDeslogado.png')} 
+                source={
+                  imgPerfil !== null
+                    ? { uri: `http://${host}:8000/img/user/fotoPerfil/${imgPerfil}` }
+                    : require('../../assets/userDeslogado.png')
+                }
                 style={{
-                  marginTop:3,
+                  marginTop: 3,
                   width: 30,
                   height: 30,
                   borderRadius: 15,
-                  borderWidth: focused ? 1 : 1,
-                  borderColor: focused ? color : 'transparent',
-                 
+                  borderWidth: 2,
+                  borderColor: focused ? tema.iconeAtivo : 'transparent',
                 }}
               />
             );
           }
-        }
+
+          return <Ionicons name={nomeIcone} size={size} color={color} />;
+        },
       })}
     >
       <Tab.Screen name='home' component={Home} />
@@ -81,8 +92,8 @@ const TabNav = () => {
       <Tab.Screen name='add' component={Curtei} />
       <Tab.Screen name='pesquisa' component={Explorar} />
       <Tab.Screen name='user' component={Perfil} />
-
     </Tab.Navigator>
   );
-}
+};
+
 export default TabNav
