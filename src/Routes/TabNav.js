@@ -81,7 +81,7 @@ const TabNav = () => {
                   marginTop: 3,
                   width: 30,
                   height: 30,
-                  borderRadius: 15,
+                  borderRadius: 25,
                   borderWidth: 2,
                   borderColor: focused ? tema.iconeAtivo : 'transparent',
                 }}

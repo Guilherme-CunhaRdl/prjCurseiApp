@@ -22,10 +22,13 @@ import CriarCurteis from '../Screens/Curtei/CriarCurteis.js';
 import postUnico from '../Screens/PostUnico';
 import TelaPesquisa from '../Screens/Explorar/TelaPesquisa/index.js';
 import host from '../global.js';
-import SeguindoSeguidores from '../Screens/SeguindoSeguidores'
-import Story from '../Screens/Story/index.js'
-const Stack = createNativeStackNavigator();
+import SeguindoSeguidores from '../Screens/SeguindoSeguidores';
+import Story from '../Screens/Story/index.js';
+import CriarStorys from '../Screens/Story/CriarStorys.js';
+import Destaques from '../Screens/Destaque/index.js';
+import CriarDestaques from '../Screens/Destaque/CriarDestaques.js';
 
+const Stack = createNativeStackNavigator();
 
 export default function StackRoutes() {
     const { tema } = useTema();
@@ -166,7 +169,23 @@ export default function StackRoutes() {
           ),
           headerTitleAlign: 'center',
         }}
-
+      />
+      
+      <Stack.Screen
+        name="CriarStorys"
+        component={CriarStorys}
+        options={{
+          headerTitle: () => (
+            <Text style={{
+              fontSize: 18,
+              fontWeight: 'bold',
+              color: '#000'
+            }}>
+              Crie um Story!
+            </Text>
+          ),
+          headerTitleAlign: 'center',
+        }}
       />
 
       <Stack.Screen
@@ -204,6 +223,33 @@ export default function StackRoutes() {
           
         }}
       />
+
+      <Stack.Screen
+        name="Destaques"
+        component={Destaques}
+        options={{
+          headerShown: false,
+          
+        }}
+      />
+
+      <Stack.Screen
+        name="CriarDestaques"
+        component={CriarDestaques}
+        options={{
+          headerTitle: () => (
+            <Text style={{
+              fontSize: 18,
+              fontWeight: 'bold',
+              color: '#000'
+            }}>
+              Crie um Destaque!
+            </Text>
+          ),
+          headerTitleAlign: 'center',
+        }}
+      />
+
 
     </Stack.Navigator>
 

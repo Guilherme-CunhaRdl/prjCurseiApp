@@ -174,7 +174,7 @@ export default function Home() {
             keyExtractor={(item) => item.id}
             ListHeaderComponent={
               <View style={styles.storys}>
-                <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('Story')}>
+                <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('CriarCurteis')}>
                   <Image style={styles.imgLogo} source={adicionarLogo} />
                 </Pressable>
                 <Text style={{ color: tema.texto, textAlign: 'center' }}>Seu Story</Text>
@@ -182,7 +182,7 @@ export default function Home() {
             }
             renderItem={({ item }) => (
               <View style={styles.storys}>
-                <Pressable style={styles.circuloStorys}>
+                <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('Story')}>
                   <Image style={styles.imgLogo} source={item.photoURL} />
                 </Pressable>
                 <Text style={{ color: tema.texto, textAlign: 'center' }}>{item.nome}</Text>

@@ -16,6 +16,8 @@ import ModalPostagem from "../../Components/ModalPostagem";
 import ModalEditarPerfil from '../../Components/modalEditarPerfil';
 import host from '../../global';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Destaques from '../../Components/perfilDestaques/destaques';
+import adicionarLogo from "../../../assets/adicionarLogo.png";
 
 import {
     Appbar,
@@ -373,30 +375,12 @@ export default function Perfil() {
                 }
                 {/*View Storys*/}
                 {perfilBloqueado == 1 || instituicao == 1 ?
-                    <View style={styles.storysContainer}>
-                        <FlatList
-                            horizontal={true}
-                            data={DATA}
-                            keyExtractor={(item) => item.id}
-                            showsHorizontalScrollIndicator={false}
-                            renderItem={({ item }) => (
-                                <View style={styles.storys}>
-                                    <Pressable style={styles.circuloStorys}>
-                                        <View
-                                            style={[styles.imgLogo]}
-                                        >
-                                            <Image style={{ width: '100%', height: '100%', resizeMode: 'contain', borderRadius: 100 }} source={item.photoURL} />
-                                        </View>
-                                    </Pressable>
-
-                                    <View style={styles.nomeStorys}>
-                                        <Text style={styles.textStorys}>{item.nome}</Text>
-                                    </View>
-                                </View>
-                            )}
+                    <Destaques 
+                        data={DATA}
+                        navigation={navigation}
+                        adicionarLogo={adicionarLogo}
                         />
-                    </View>
-                : (null)}
+                :(null)}
                 
                 {/*Barra de Navegação*/}
                 {perfilBloqueado == 1 ? (null) :
