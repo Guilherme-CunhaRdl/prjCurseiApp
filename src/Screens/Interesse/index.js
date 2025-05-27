@@ -48,8 +48,8 @@ export default function Interesse() {
   }
   async function buscarUser() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
-
-    const resultados = await axios.get(`http://${host}:8000/api/cursei/user/${idUserSalvo}`);
+    const resultados = await axios.get(`http://${host}:8000/api/cursei/user/${idUserSalvo}/0`);
+    console.log(resultados)
     var data = resultados.data;
     setUserImg(data.User.img_user);
     setBanner(data.User.banner_user);

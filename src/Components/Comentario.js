@@ -9,9 +9,11 @@ import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 import dayjs from 'dayjs';
 import host from '../global';
+import {useTema} from '../context/themeContext';
+import { temaClaro } from '../themes';
 
 export default function Comentario({ idPost }) {
-
+  const {tema} = useTema();
   const navigation = useNavigation();
   const [modalVisivel, setModalVisivel] = useState(false);
   const [comentario, setComentario] = useState('');
@@ -215,7 +217,7 @@ export default function Comentario({ idPost }) {
               ref={refConteudoModal}
               animation="slideInUp"
               duration={300}
-              style={styles.conteudoModal}
+              style={[styles.conteudoModal ,{backgroundColor:tema.modalFundo}]}
             >
 
 
@@ -226,7 +228,7 @@ export default function Comentario({ idPost }) {
                 >
                   <Ionicons name="close" size={24} color="#666" />
                 </TouchableOpacity>
-                <Text style={styles.tituloModal}>Comentários</Text>
+                <Text style={[styles.tituloModal ,{color:tema.iconeInativo}]}>Comentários</Text>
                 <View style={styles.espacadorCabecalho} />
               </View>
 
@@ -254,9 +256,9 @@ export default function Comentario({ idPost }) {
               </ScrollView>)
               }
 
-              <View style={styles.containerInput}>
+              <View style={[styles.containerInput ,{backgroundColor:tema.modalFundo ,borderTopColor: tema.linha}]}>
                 <TextInput
-                  style={styles.inputComentario}
+                  style={[styles.inputComentario ,{backgroundColor:tema.modalFundo}]}
                   placeholder="Escreva seu comentário..."
                   placeholderTextColor="#999"
                   value={comentario}
@@ -286,6 +288,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    
   },
 
 
@@ -300,9 +303,10 @@ const styles = StyleSheet.create({
   containerTeclado: {
     flex: 1,
     justifyContent: 'flex-end',
+    
   },
   conteudoModal: {
-    backgroundColor: '#fff',
+    
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     height: "90%",
@@ -322,7 +326,7 @@ const styles = StyleSheet.create({
   tituloModal: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    
     position: 'absolute',
     left: 0,
     right: 0,
@@ -397,8 +401,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
   },
 
   inputComentario: {

@@ -364,19 +364,19 @@ export default function Post({ idUser = null, idPostUnico, tipo,pesquisa, pesqui
                       size={22}
                       color={curtido ? tema.vermelho : tema.iconeInativo}
                     />
-                    <Text style={[styles.QuantidadeAction, { color: tema.texto }]}>{item.curtidas}</Text>
+                    <Text style={[styles.QuantidadeAction, { color: tema.descricao }]}>{item.curtidas}</Text>
                   </TouchableOpacity>
   
                   {!idPostUnico && (
                     <View style={styles.actionButton}>
                       <Comentario idPost={item.id_post} tema={tema} />
-                      <Text style={[styles.QuantidadeAction, { color: tema.texto }]}>  {item.comentarios}</Text>
+                      <Text style={[styles.QuantidadeAction, { color: tema.descricao }]}>  {item.comentarios}</Text>
                     </View>
                   )}
   
                   <TouchableOpacity style={styles.actionButton} onPress={() => handleOpenModal(item.id_post)}>
-                    <Icon name="repeat" size={19} color={tema.iconeInativo} />
-                    <Text style={[styles.QuantidadeAction, { color: tema.texto }]}>{item.total_reposts}</Text>
+                    <Icon name="repeat" size={20} color={tema.iconeInativo} />
+                    <Text style={[styles.QuantidadeAction, { color: tema.descricao }]}>{item.total_reposts}</Text>
                   </TouchableOpacity>
   
                   <View style={styles.containerShare}>
@@ -431,8 +431,8 @@ const styles = StyleSheet.create({
     gap: 5
   },
   QuantidadeAction: {
-    fontSize: 13,
-    fontWeight: 500,
+    fontSize: 15,
+    fontWeight: 600,
     color: '#666'
   },
   postContent: {

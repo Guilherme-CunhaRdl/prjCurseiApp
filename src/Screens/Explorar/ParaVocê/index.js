@@ -146,9 +146,7 @@ export default function ParaVoce() {
                         </View>
                     ))}
 
-                    <View style={styles.containerMS}>
-                        <Text style={styles.titleMS}>Mostrar Mais</Text>
-                    </View>
+                   
                 </View>
 
                 {/* Posts */}
