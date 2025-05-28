@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   SafeAreaView,
   View,
@@ -8,15 +8,15 @@ import {
   FlatList,
   StyleSheet,
   Dimensions,
-  Platform
+  Platform,
+  ActivityIndicator
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Video } from 'expo-av';
-import { useIsFocused } from '@react-navigation/native';
-import { useEffect } from 'react';
-
+import axios from 'axios';
+import host from '../../global';
 
 const { height, width } = Dimensions.get('window');
 const ITEM_HEIGHT = height;
@@ -27,46 +27,56 @@ const responsiveFontSize = (percentage) => Math.round((width * percentage) / 100
 const responsiveWidth = (percentage) => width * (percentage / 100);
 const responsiveHeight = (percentage) => height * (percentage / 100);
 
-const storiesData = [
-  {
-    id: '1',
-    videoUrl: 'https://www.w3schools.com/html/movie.mp4',
-    userImage: 'https://akamai.sscdn.co/uploadfile/letras/fotos/c/a/5/2/ca52b9aff9234ab34a4f36fa8acdf91f.jpg',
-    institutionName: 'Instituição 1',
-    description: 'Texto de descrição que eles quiserem colocar aqui, bla bla bla',
-    likes: 21,
-    comments: 43
-  },
-  {
-    id: '2',
-    videoUrl: 'https://www.w3schools.com/html/movie.mp4',
-    userImage: 'https://akamai.sscdn.co/uploadfile/letras/fotos/c/a/5/2/ca52b9aff9234ab34a4f36fa8acdf91f.jpg',
-    institutionName: 'Instituição 2',
-    description: 'Outra descrição interessante para o segundo vídeo',
-    likes: 56,
-    comments: 12
-  },
-  {
-    id: '3',
-    videoUrl: 'https://www.w3schools.com/html/movie.mp4',
-    userImage: 'https://akamai.sscdn.co/uploadfile/letras/fotos/c/a/5/2/ca52b9aff9234ab34a4f36fa8acdf91f.jpg',
-    institutionName: 'Instituição 3',
-    description: 'Terceiro item de teste com o mesmo GIF',
-    likes: 78,
-    comments: 34
-  },
-];
-
 export default function Curtei() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const videoRefs = useRef([]);
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Buscar dados do banco
+  const fetchCurteis = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`http://${host}:8000/api/curtei/videos`);
+      
+      // Verificar a estrutura da resposta
+      if (!response.data || !response.data.videos || !Array.isArray(response.data.videos)) {
+        console.error('Formato inesperado da API:', response.data);
+        throw new Error('Formato de resposta inesperado da API');
+      }
+
+      // Mapear os dados para o formato esperado
+      const enrichedStories = response.data.videos.map(curtei => ({
+        id: curtei.id.toString(),
+        videoUrl: curtei.video_url,
+        // Usar exatamente o mesmo padrão que no componente Perfil
+        userImage: curtei.usuario.foto,
+        institutionName: curtei.usuario.nome,
+        description: curtei.legenda,
+        likes: 0,
+        comments: 0
+      }));
+      
+      setStories(enrichedStories);
+    } catch (err) {
+      console.error('Erro ao buscar curteis:', err);
+      setError('Não foi possível carregar os curteis');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCurteis();
+  }, []);
 
   const handleScrollEnd = (e) => {
     const offsetY = e.nativeEvent.contentOffset.y;
-    const maxOffset = (storiesData.length - 1) * ITEM_HEIGHT;
+    const maxOffset = (stories.length - 1) * ITEM_HEIGHT;
     const clampedOffset = Math.min(Math.max(offsetY, 0), maxOffset);
     const index = Math.round(clampedOffset / ITEM_HEIGHT);
 
@@ -94,7 +104,7 @@ export default function Curtei() {
 
   const handleScroll = (e) => {
     const offsetY = e.nativeEvent.contentOffset.y;
-    const maxOffset = (storiesData.length - 1) * ITEM_HEIGHT;
+    const maxOffset = (stories.length - 1) * ITEM_HEIGHT;
 
     if (offsetY > maxOffset) {
       flatListRef.current?.scrollToOffset({
@@ -151,16 +161,21 @@ export default function Curtei() {
           <View style={styles.profileSection}>
             <Image
               style={styles.profileImage}
-              source={{ uri: item.userImage }}
+              source={
+                item.userImage
+                  ? { uri: `http://${host}:8000/img/user/fotoPerfil/${item.userImage}` }
+                  : require('../../../assets/userDeslogado.png')
+              }
             />
             <Text style={styles.institutionName}>{item.institutionName}</Text>
           </View>
 
-          <Text style={styles.description} numberOfLines={1} ellipsizeMode="tail">
-            {item.description}
-          </Text>
+          {item.description && (
+            <Text style={styles.description} numberOfLines={1} ellipsizeMode="tail">
+              {item.description}
+            </Text>
+          )}
         </View>
-
         <View style={styles.actionButtons}>
           <TouchableOpacity style={styles.button}>
             <Ionicons name="heart-outline" size={responsiveFontSize(6)} color="white" />
@@ -180,11 +195,43 @@ export default function Curtei() {
       </LinearGradient>
     </View>
   );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#fff" />
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity onPress={fetchCurteis} style={styles.retryButton}>
+          <Text style={styles.retryText}>Tentar novamente</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  if (stories.length === 0) {
+    return (
+      <SafeAreaView style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>Nenhum curtei disponível</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('CriarCurteis')} style={styles.createButton}>
+          <Ionicons name="camera-outline" size={responsiveFontSize(7)} color="white" />
+          <Text style={styles.createText}>Criar seu primeiro curtei</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
         ref={flatListRef}
-        data={storiesData}
+        data={stories}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         pagingEnabled
@@ -266,7 +313,7 @@ const styles = StyleSheet.create({
   actionButtons: {
     position: 'absolute',
     right: responsiveWidth(4),
-    bottom: responsiveHeight(4),
+    bottom: responsiveHeight(7),
     alignItems: 'center',
     gap: responsiveHeight(2),
   },
@@ -278,5 +325,60 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: responsiveFontSize(3),
     marginTop: responsiveHeight(0.5),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'black',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'black',
+    padding: 20,
+  },
+  errorText: {
+    color: 'white',
+    fontSize: responsiveFontSize(4),
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: 'white',
+    fontSize: responsiveFontSize(4),
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'black',
+    padding: 20,
+  },
+  emptyText: {
+    color: 'white',
+    fontSize: responsiveFontSize(4.5),
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#3B82F6',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    gap: 10,
+  },
+  createText: {
+    color: 'white',
+    fontSize: responsiveFontSize(4),
   },
 });
