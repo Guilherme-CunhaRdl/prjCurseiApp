@@ -8,12 +8,13 @@ import {
     StatusBar,
     Modal,
     Alert,
-    Pressable,
+    Pressable, ScrollView
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
 import { useNavigation } from "@react-navigation/native";
 import axios from 'axios';
+import { MaskedTextInput } from 'react-native-mask-text';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import host from '../../global';
 export default function VirarInstituicao() {
@@ -64,7 +65,7 @@ export default function VirarInstituicao() {
             const data = response.data;
 
             if (data.erro) {
-                Alert.alert('CEP inválido');
+                Alert.alert('CEP inválido.');
             } else {
                 setForm((prevForm) => ({
                     ...prevForm,
@@ -132,15 +133,30 @@ export default function VirarInstituicao() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
             {/* Formulário */}
             {passo === 0 && (
                 <View style={styles.formContainer}>
                     {/* Campos do formulário */}
+
+                    <View style={styles.tituloVirarInstituicao}> 
+                        <Ionicons
+                        name="school-outline"
+                        size={50}
+                        color={'#F29500'}
+                        style={{ marginRight: 10 }}
+                    /> 
+                    <Text style={styles.textoTitulo}>Se torne uma instituição!</Text>
+                    </View>
+                    <Text style={styles.textoVantagens}>Ao se tornar uma instituição, sua conta receberá vantagens exclusivas e receberá o selo de instituição no aplicativo. </Text>
+
+
                     <Text style={styles.tituloInputs}>CNPJ</Text>
-                    <TextInput
+                    <MaskedTextInput
+                        mask="99.999.999/9999-99"
+                        keyboardType='numeric'
                         style={styles.inputs}
                         placeholder="XX.XXX.XXX/0001-XX"
                         placeholderTextColor="#A2A2A2"
@@ -148,8 +164,10 @@ export default function VirarInstituicao() {
                         onChangeText={(text) => handleChange('cnpj', text)}
                     />
                     <Text style={styles.tituloInputs}>Telefone</Text>
-                    <TextInput
+                    <MaskedTextInput
+                        mask="(99) 99999-9999"
                         style={styles.inputs}
+                        keyboardType='numeric'
                         placeholder="(XX) XXXXX-XXXX"
                         placeholderTextColor="#A2A2A2"
                         value={form.telefone}
@@ -162,13 +180,16 @@ export default function VirarInstituicao() {
                         onChangeText={(text) => handleChange('nome_representante', text)}
                     />
                     <Text style={styles.tituloInputs}>Documentos pessoais do representante</Text>
-                    <TextInput
+                    <MaskedTextInput
+                         mask="999.999.999-99"
                         style={styles.inputs}
-                        placeholder="XX.XXX.XXX/0001-XX"
+                        placeholder="XXX.XXX.XXX-XX"
                         placeholderTextColor="#A2A2A2"
+                        keyboardType='numeric'
                         value={form.documentos_representante}
                         onChangeText={(text) => handleChange('documentos_representante', text)}
                     />
+
                     <TouchableOpacity style={styles.botaoEnviar} onPress={() => setPasso(1)}>
                         <Text style={styles.textoBotao}>Próximo</Text>
                     </TouchableOpacity>
@@ -176,10 +197,14 @@ export default function VirarInstituicao() {
             )}
 
             {passo === 1 && (
-                <View style={styles.formContainer}>
+                <ScrollView contentContainerStyle={styles.scrollContainer}
+                    style={styles.formContainer}>
                     {/* Campos do formulário */}
                     <Text style={styles.tituloInputs}>CEP</Text>
-                    <TextInput
+                    <MaskedTextInput
+                        mask="99999999"
+                        keyboardType='numeric'
+                        placeholder='XXXXX-XXX'
                         style={styles.inputs}
                         value={form.cep}
                         onChangeText={(text) => handleChange('cep', text)}
@@ -229,7 +254,7 @@ export default function VirarInstituicao() {
                             <Text style={styles.textoBotao}>Confirmar</Text>
                         </TouchableOpacity>
                     </View>
-                </View>
+                </ScrollView>
             )}
 
             {/* Modal */}
@@ -249,6 +274,6 @@ export default function VirarInstituicao() {
                     </View>
                 </Pressable>
             </Modal>
-        </SafeAreaView>
+        </View >
     );
 }
