@@ -8,11 +8,33 @@ export default StyleSheet.create({
         justifyContent: 'center',
 
     },
+    scrollContainer: {
+        gap: 10,
+      marginTop: 20,
+},
+
+tituloVirarInstituicao: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      justifyContent: 'center',},
+
+    textoTitulo:{
+        fontSize: 25,
+        fontWeight: 'bold',
+        color: '#787F89',
+        textAlign: 'center',
+    },
+    textoVantagens:{
+        fontSize: 16,
+        color: '#787F89',
+        textAlign: 'center',
+        paddingHorizontal: 20,
+    },
     formContainer: {
         width: '100%',
         paddingHorizontal: 20,
         gap: 10,
-        marginTop: 20,
+
     },
     inputs: {
         width: '100%',
@@ -47,17 +69,16 @@ export default StyleSheet.create({
         fontWeight: '600',
     },
     viewBotaoEnviarPasso2: {
-        paddingTop: 20,
+        paddingTop: 10,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        width: '100%',
-        paddingHorizontal: 20
+        paddingBottom:50,
     },
     botaoEnviarPasso2: {
         backgroundColor: '#F29500',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '48%', // deixe um pouco menor que 50% para o gap
+        width: '45%', // deixe um pouco menor que 50% para o gap
         height: 50,
         borderRadius: 10,
     },
