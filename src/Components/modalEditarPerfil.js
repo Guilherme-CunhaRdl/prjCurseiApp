@@ -17,10 +17,11 @@ import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import host from '../global';
+import {useTema} from '../context/themeContext';
 const ModalEditarPerfil = ({ visivel, onClose, usuarioAtual, onSaveSuccess }) => {
   const [nome, setNome] = useState(usuarioAtual.nome || '');
   const [bio, setBio] = useState(usuarioAtual.bio || '');
-
+  const {tema} = useTema();
 const [fotoPerfil, setFotoPerfil] = useState(usuarioAtual.foto ? 
   `http://${host}:8000/img/user/fotoPerfil/${usuarioAtual.foto}` : 
   null
@@ -171,106 +172,98 @@ const salvarAlteracoes = async () => {
     setLoading(false);
   }
 };
-  return (
-    <Modal
-      visible={visivel}
-      transparent={false}
-      animationType="slide"
+return (
+  <Modal visible={visivel} transparent={false} animationType="slide">
+    <ScrollView
+      contentContainerStyle={[styles.container, { backgroundColor: tema.fundo }]}
+      keyboardShouldPersistTaps="handled"
     >
-      <ScrollView 
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        {loading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#0000ff" />
-          </View>
-        )}
- 
-        <Pressable 
-  style={styles.bannerContainer}
-  onPress={() => selecionarImagem('banner')}
-  disabled={loading}
->
-  <Image
-    source={banner ? { uri: banner } : require('../../assets/backGroundDeslogado.jpg')}
-    style={styles.banner}
-  />
-  <View style={styles.botaoEditarBanner}>
-    <Icon name="camera" size={20} color="white" />
-  </View>
-</Pressable>
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={tema.azul} />
+        </View>
+      )}
 
-    
-        <Pressable 
-  style={styles.fotoContainer}
-  onPress={() => selecionarImagem('foto')}
-  disabled={loading}
->
-  <Image
-    source={fotoPerfil ? { uri: fotoPerfil } : require('../../assets/userDeslogado.png')}
-    style={styles.fotoPerfil}
-  />
-  <View style={styles.botaoEditarFoto}>
-    <Icon name="camera" size={16} color="white" />
-  </View>
-</Pressable>
+      {/* Banner */}
+      <Pressable style={styles.bannerContainer} onPress={() => selecionarImagem('banner')} disabled={loading}>
+        <Image
+          source={banner ? { uri: banner } : require('../../assets/backGroundDeslogado.jpg')}
+          style={styles.banner}
+        />
+        <View style={styles.botaoEditarBanner}>
+          <Icon name="camera" size={20} color={tema.textoBotao} />
+        </View>
+      </Pressable>
 
-        {/* Formulário de edição */}
-        <View style={styles.formContainer}>
-          <View style={styles.campoWrapper}>
-            <Text style={styles.rotulo}>Nome</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons name="person-outline" size={20} color="#A0A0A0" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                value={nome}
-                onChangeText={setNome}
-                placeholder="Seu nome"
-                editable={!loading}
-              />
-            </View>
-          </View>
+      {/* Foto de perfil */}
+      <Pressable style={styles.fotoContainer} onPress={() => selecionarImagem('foto')} disabled={loading}>
+        <Image
+          source={fotoPerfil ? { uri: fotoPerfil } : require('../../assets/userDeslogado.png')}
+          style={styles.fotoPerfil}
+        />
+        <View style={styles.botaoEditarFoto}>
+          <Icon name="camera" size={16} color={tema.textoBotao} />
+        </View>
+      </Pressable>
 
-          <View style={styles.campoWrapper}>
-            <Text style={styles.rotulo}>Bio</Text>
-            <View style={[styles.inputContainer, styles.bioContainer]}>
-              <TextInput
-                style={[styles.input, styles.bioInput]}
-                value={bio}
-                onChangeText={setBio}
-                placeholder="Fale um pouco sobre você..."
-                multiline
-                numberOfLines={4}
-                editable={!loading}
-              />
-            </View>
+      {/* Formulário */}
+      <View style={styles.formContainer}>
+        <View style={styles.campoWrapper}>
+          <Text style={[styles.rotulo, { color: tema.texto }]}>Nome</Text>
+          <View style={[styles.inputContainer, { backgroundColor: tema.cinza }]}>
+            <Ionicons name="person-outline" size={20} color={tema.descricao} style={styles.inputIcon} />
+            <TextInput
+              style={[styles.input, { color: tema.texto }]}
+              value={nome}
+              onChangeText={setNome}
+              placeholder="Seu nome"
+              placeholderTextColor={tema.descricao}
+              editable={!loading}
+            />
           </View>
         </View>
 
-        {/* Botões inferiores */}
-        <View style={styles.botoesContainer}>
-          <Pressable 
-            style={[styles.botaoCancelar, loading && styles.botaoDesabilitado]} 
-            onPress={onClose}
-            disabled={loading}
-          >
-            <Text style={styles.textoBotao}>Cancelar</Text>
-          </Pressable>
-          
-          <Pressable 
-            style={[styles.botaoSalvar, loading && styles.botaoDesabilitado]}
-            onPress={salvarAlteracoes}
-            disabled={loading}
-          >
-            <Text style={styles.textoBotaoSalvar}>
-              {loading ? 'Salvando...' : 'Salvar'}
-            </Text>
-          </Pressable>
+        <View style={styles.campoWrapper}>
+          <Text style={[styles.rotulo, { color: tema.texto }]}>Bio</Text>
+          <View style={[styles.inputContainer, styles.bioContainer, { backgroundColor: tema.cinza }]}>
+            <TextInput
+              style={[styles.input, styles.bioInput, { color: tema.texto }]}
+              value={bio}
+              onChangeText={setBio}
+              placeholder="Fale um pouco sobre você..."
+              placeholderTextColor={tema.descricao}
+              multiline
+              numberOfLines={4}
+              editable={!loading}
+            />
+          </View>
         </View>
-      </ScrollView>
-    </Modal>
-  );
+      </View>
+
+      {/* Botões */}
+      <View style={styles.botoesContainer}>
+        <Pressable
+          style={[styles.botaoCancelar, loading && styles.botaoDesabilitado, { backgroundColor: tema.vermelho }]}
+          onPress={onClose}
+          disabled={loading}
+        >
+          <Text style={[styles.textoBotao, { color: tema.textoBotao }]}>Cancelar</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.botaoSalvar, loading && styles.botaoDesabilitado, { backgroundColor: tema.azul }]}
+          onPress={salvarAlteracoes}
+          disabled={loading}
+        >
+          <Text style={[styles.textoBotaoSalvar, { color: tema.textoBotao }]}>
+            {loading ? 'Salvando...' : 'Salvar'}
+          </Text>
+        </Pressable>
+      </View>
+    </ScrollView>
+  </Modal>
+);
+
 };
 
 const styles = StyleSheet.create({
