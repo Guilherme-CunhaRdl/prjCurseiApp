@@ -46,7 +46,7 @@ const TabNav = () => {
         tabBarStyle: {
           backgroundColor: tema.barra,
           borderTopColor: 'transparent',
-          height: 60,
+          height: 45,
         },
         tabBarActiveTintColor: tema.iconeAtivo,
         tabBarInactiveTintColor: tema.iconeInativo,

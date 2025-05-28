@@ -9,7 +9,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Post from '../../../Components/Post';
 import host from '../../../global';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import {useTema} from '../../../context/themeContext';
 
 
 
@@ -18,7 +18,7 @@ export default function ParaVoce() {
     const [usuarios, setUsuarios] = useState()
     const [segue_usuario, Setsegue_usuario] = useState(false)
     const [hashtags, setHashtags] = useState()
-
+    const {tema} = useTema();
 
     async function recomendarUsuarios() {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -81,84 +81,82 @@ export default function ParaVoce() {
         recomendarHashtags();
     }, []);
     return (
-        <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false} >
-
-                {/* Tendências */}
-                <View style={styles.containerTredings}>
-                    <View style={styles.containerTitle}>
-                        <Text style={styles.title}>Assuntos para você</Text>
+        <View style={[styles.container, { backgroundColor: tema.fundo }]}>
+          <ScrollView
+            contentContainerStyle={styles.contentContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Tendências */}
+            <View style={styles.containerTredings}>
+              <View style={styles.containerTitle}>
+                <Text style={[styles.title, { color: tema.texto }]}>Assuntos para você</Text>
+              </View>
+    
+              {hashtags?.map(item => (
+                <View style={styles.trendigItem} key={item.id}>
+                  <Text style={[styles.subTitle, { color: tema.descricao }]}>Para você</Text>
+                  <Pressable onPress={() => navigation.navigate('Pesquisar', { termoPesquisado: item.nomeHashtag })}>
+                    <View style={styles.trendigRow}>
+                      <Text style={[styles.trendigName, { color: tema.texto }]}>{item.nomeHashtag}</Text>
+                      <View style={{ height: 20, alignItems: 'center', justifyContent: 'center' }}>
+                        <Configuracoes />
+                      </View>
                     </View>
-
-                    {hashtags?.map(item => (
-                        <View style={styles.trendigItem} key={item.id}>
-                            <Text style={styles.subTitle}>Para você</Text>
-                            <Pressable onPress={() => navigation.navigate('Pesquisar', { termoPesquisado: item.nomeHashtag })}>
-
-                                <View style={styles.trendigRow}>
-                                    <Text style={styles.trendigName}>{item.nomeHashtag}</Text>
-                                    <View style={{ height: 20, alignItems: 'center', justifyContent: 'center' }}>
-                                        <Configuracoes />
-                                    </View>
-                                </View>
-                            </Pressable>
-
-                        </View>
-                    ))}
+                  </Pressable>
                 </View>
-
-                {/* Sugestão de usuários */}
-                <View style={styles.sugestao}>
-                    <View style={styles.containerTitle}>
-                        <Text style={styles.title}>Quem seguir</Text>
-                    </View>
-
-                    {usuarios?.map(item => (
-                        <View style={styles.userContainer} key={item.id}>
-                            <Pressable
-                                style={styles.userImgContainer}
-                                onPress={() => navigation.navigate('Perfil', { idUserPerfil: item.id, titulo: item.arroba_user })}
-                            >
-                                <Image
-                                    source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }}
-                                    style={styles.imgLogo}
-                                />
-                            </Pressable>
-
-                            <Pressable
-                                style={styles.containerNomeUser}
-                                onPress={() => navigation.navigate('Perfil', { idUserPerfil: item.id, titulo: item.arroba_user })}
-                            >
-                                <Text style={styles.nomeUser}>{item.nome_user}</Text>
-                                <Text style={styles.arrobaUser}>@{item.arroba_user}</Text>
-                            </Pressable>
-
-                            <View style={styles.buttonFollowContainer}>
-                                <Pressable
-                                    style={item.seguido ? styles.buttonFollowActive : styles.buttonFollow}
-                                    onPress={() => seguir(item.id)}
-                                >
-                                    <Text style={item.seguido ? styles.titleButtonActive : styles.titleButton}>
-                                        {item.seguido ? 'Seguido' : 'Seguir'}
-                                    </Text>
-                                </Pressable>
-                            </View>
-                        </View>
-                    ))}
-
-                   
+              ))}
+            </View>
+    
+            {/* Sugestão de usuários */}
+            <View style={styles.sugestao}>
+              <View style={styles.containerTitle}>
+                <Text style={[styles.title, { color: tema.texto }]}>Quem seguir</Text>
+              </View>
+    
+              {usuarios?.map(item => (
+                <View style={styles.userContainer} key={item.id}>
+                  <Pressable
+                    style={styles.userImgContainer}
+                    onPress={() => navigation.navigate('Perfil', { idUserPerfil: item.id, titulo: item.arroba_user })}
+                  >
+                    <Image
+                      source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }}
+                      style={styles.imgLogo}
+                    />
+                  </Pressable>
+    
+                  <Pressable
+                    style={styles.containerNomeUser}
+                    onPress={() => navigation.navigate('Perfil', { idUserPerfil: item.id, titulo: item.arroba_user })}
+                  >
+                    <Text style={[styles.nomeUser, { color: tema.texto }]}>{item.nome_user}</Text>
+                    <Text style={[styles.arrobaUser, { color: tema.descricao }]}>@{item.arroba_user}</Text>
+                  </Pressable>
+    
+                  <View style={styles.buttonFollowContainer}>
+                    <Pressable
+                      style={item.seguido ? styles.buttonFollowActive : styles.buttonFollow}
+                      onPress={() => seguir(item.id)}
+                    >
+                      <Text style={item.seguido ? styles.titleButtonActive : styles.titleButton}>
+                        {item.seguido ? 'Seguido' : 'Seguir'}
+                      </Text>
+                    </Pressable>
+                  </View>
                 </View>
-
-                {/* Posts */}
-                <View style={styles.containerPost}>
-                    <View style={styles.containerTitlePost}>
-                        <Text style={styles.title}>Postagens para você</Text>
-                    </View>
-
-                    <Post tipo="maisCurtidos" />
-                </View>
-
-            </ScrollView>
+              ))}
+            </View>
+    
+            {/* Posts */}
+            <View style={styles.containerPost}>
+              <View style={styles.containerTitlePost}>
+                <Text style={[styles.title, { color: tema.texto }]}>Postagens para você</Text>
+              </View>
+    
+              <Post tipo="maisCurtidos" />
+            </View>
+          </ScrollView>
         </View>
-    );
-};
+      );
+    };
+    

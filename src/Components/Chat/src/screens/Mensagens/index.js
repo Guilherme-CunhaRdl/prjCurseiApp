@@ -27,6 +27,7 @@ import Pusher from "pusher-js/react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import colors from "../../../../../colors";
 import host from "../../../../../global";
+import {useTema} from '../../../../../context/themeContext'
 
 export default function Mensagens({ route }) {
   const navigation = useNavigation();
@@ -37,6 +38,7 @@ export default function Mensagens({ route }) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false); // Estado para o refresh
+  const {tema} = useTema();
 
   useEffect(() => {
     if (route.params?.novaConversa) {
@@ -201,16 +203,14 @@ export default function Mensagens({ route }) {
     pegarInfos()
     
   }, []);
-
   return (
     <SafeAreaProvider>
-
       <PaperProvider>
-        <View style={styles.container}>
-          <Appbar.Header style={styles.Header}>
+        <View style={[styles.container, { backgroundColor: tema.fundo }]}>
+          <Appbar.Header style={[styles.Header, { backgroundColor: tema.fundo }]}>
             <Appbar.Content
               title="Mensagens"
-              titleStyle={{ color: "black", fontWeight: 600 }}
+              titleStyle={{ color: tema.texto, fontWeight: "600" }}
             />
             <IconButton
               icon={() => (
@@ -226,25 +226,22 @@ export default function Mensagens({ route }) {
             />
           </Appbar.Header>
 
-          <View style={styles.customSearchbar}>
+          <View style={[styles.customSearchbar, { backgroundColor: tema.cinza }]}>
             <Image
               source={require("../../img/search.png")}
               style={styles.searchIcon}
             />
-            {/*Barra de pesquisa que troquei pq o do Paper é chei de viadage pra personalizar*/}
             <TextInput
               placeholder="Buscar Conversas..."
-              placeholderTextColor="#A7A7A7"
+              placeholderTextColor={tema.descricao}
               value={query}
               onChangeText={setQuery}
-              style={styles.customSearchInput}
+              style={[styles.customSearchInput, { color: tema.texto }]}
               onFocus={() => query.length > 0 && setMostrarResultadosPesquisa(true)}
             />
           </View>
 
           <View style={{ marginTop: 32, marginBottom: 8 }}>
-
-            {/* mesma coisa aqui, antes era o SegmentedButtons do Paper, mas a personalização é toda fudida, ai troquei*/}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -262,25 +259,22 @@ export default function Mensagens({ route }) {
                 { label: "Instituições", value: "instituicao" },
               ].map((tab) => {
                 const isSelected = selectedTab === tab.value;
-
                 return (
                   <Pressable
                     key={tab.value}
                     onPress={() => setSelectedTab(tab.value)}
-                    style={[
-                      {
-                        paddingBottom: 8,
-                        borderBottomWidth: 2,
-                        borderBottomColor: isSelected
-                          ? "#448fff"
-                          : "transparent",
-                      },
-                    ]}
+                    style={{
+                      paddingBottom: 8,
+                      borderBottomWidth: 2,
+                      borderBottomColor: isSelected
+                        ? tema.azul
+                        : "transparent",
+                    }}
                   >
                     <Text
                       style={{
-                        color: isSelected ? "#448fff" : "#ACACAC",
-                        fontWeight: isSelected ? 600 : "normal",
+                        color: isSelected ? tema.azul : tema.descricao,
+                        fontWeight: isSelected ? "600" : "normal",
                         fontSize: 18,
                       }}
                     >
@@ -296,63 +290,54 @@ export default function Mensagens({ route }) {
             data={conversasFiltradas}
             keyExtractor={(item) => item.id_conversa.toString()}
             renderItem={({ item }) => (
-
               <TouchableOpacity
-
                 onPress={() => {
-                  if (item.tipo === "privada") {
-                    navigation.navigate("Conversa", {
-                      idUserLogado: idUser,
-                      idEnviador: item.id_remetente,
-                      imgEnviador: item.img,
-                      nomeEnviador: item.nome,
-                      arrobaEnviador: item.arroba,
-                      idChat: item.id_conversa,
-                      isCanal: false,
-                    });
-                  } else if (item.tipo === "canal") {
-                    navigation.navigate("Conversa", {
-                      idUserLogado: idUser,
-                      idEnviador: item.id_remetente,
-                      imgEnviador: item.img,
-                      nomeEnviador: item.nome,
-                      arrobaEnviador: item.arroba,
-                      idChat: item.id_conversa,
-                      isCanal: true,
-                    });
-                  } else if (item.tipo === "instituicao") {
-                    navigation.navigate("Conversa", {
-                      idUserLogado: idUser,
-                      idEnviador: item.id_remetente,
-                      imgEnviador: item.img,
-                      nomeEnviador: item.nome,
-                      arrobaEnviador: item.arroba,
-                      idChat: item.id_conversa,
-                      isCanal: false,
-                    });
-                  }
+                  const navData = {
+                    idUserLogado: idUser,
+                    idEnviador: item.id_remetente,
+                    imgEnviador: item.img,
+                    nomeEnviador: item.nome,
+                    arrobaEnviador: item.arroba,
+                    idChat: item.id_conversa,
+                    isCanal: item.tipo === "canal",
+                  };
+                  navigation.navigate("Conversa", navData);
                 }}
               >
-
                 <View style={styles.mensagemItem}>
-                  <Image source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}` }} style={styles.avatar} />
+                  <Image
+                    source={{
+                      uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}`,
+                    }}
+                    style={styles.avatar}
+                  />
                   <View style={styles.mensagemTexto}>
-                    <Text style={styles.nome} numberOfLines={1}>
+                    <Text style={[styles.nome, { color: tema.texto }]} numberOfLines={1}>
                       {item.nome}
                     </Text>
                     {item.img_mensagem ? (
                       <View style={styles.ultimaMensagemImg}>
-                        <View style={styles.circuloImagem}>
+                        <View
+                          style={[
+                            styles.circuloImagem,
+                            { backgroundColor: tema.azul },
+                          ]}
+                        >
                           <Ionicons
                             style={styles.imagemIcon}
                             name="image-outline"
-                            color={colors.branco}
+                            color={tema.textoBotao}
                           />
                         </View>
-                        <Text style={styles.ultimaMensagem}>Imagem</Text>
+                        <Text style={[styles.ultimaMensagem, { color: tema.descricao }]}>
+                          Imagem
+                        </Text>
                       </View>
                     ) : (
-                      <Text style={styles.ultimaMensagem} numberOfLines={1}>
+                      <Text
+                        style={[styles.ultimaMensagem, { color: tema.descricao }]}
+                        numberOfLines={1}
+                      >
                         {item.ultima_mensagem}
                       </Text>
                     )}
@@ -361,37 +346,37 @@ export default function Mensagens({ route }) {
               </TouchableOpacity>
             )}
             ListEmptyComponent={
-  loading ? (
-    <View style={{ 
-      flex: 1, 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      backgroundColor: "#fff", 
-      width: '100%', 
-      height: '100%' 
-    }}>
-      <ActivityIndicator size="large" color="#3498db" />
-    </View>
-  ) : (
-    <View style={styles.listaVazia}>
-      {/* Sua mensagem para lista vazia aqui */}
-      <Text>Nenhuma conversa encontrada</Text>
-    </View>
-  )
-}
-  refreshControl={
-    <RefreshControl
-      refreshing={refreshing}
-      onRefresh={recarregarChats}
-      colors={["#3498db"]} // Cor do spinner (Android)
-      tintColor="#3498db" // Cor do spinner (iOS)
-    />
-  }
+              loading ? (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: tema.fundo,
+                    width: "100%",
+                    height: "100%",
+                  }}
+                >
+                  <ActivityIndicator size="large" color={tema.azul} />
+                </View>
+              ) : (
+                <View style={styles.listaVazia}>
+                  <Text style={{ color: tema.texto }}>
+                    Nenhuma conversa encontrada
+                  </Text>
+                </View>
+              )
+            }
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={recarregarChats}
+                colors={[tema.azul]}
+                tintColor={tema.azul}
+              />
+            }
             contentContainerStyle={styles.listaMensagens}
-
-
           />
-
 
           <StatusBar style="auto" />
         </View>

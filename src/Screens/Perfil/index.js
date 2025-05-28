@@ -11,7 +11,7 @@ import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Configuracoes from '../../Components/Configurações/configuracoes'
-import colors from '../../colors';
+import {useTema} from '../../context/themeContext';
 import ModalPostagem from "../../Components/ModalPostagem";
 import ModalEditarPerfil from '../../Components/modalEditarPerfil';
 import host from '../../global';
@@ -74,6 +74,7 @@ export default function Perfil() {
     const [modalEditarVisivel, setModalEditarVisivel] = useState(false);
     const [postsCount, setPostsCount] = useState('')
     const [refreshing, setRefreshing] = useState(false); // Estado para o refresh
+    const {tema} = useTema();
     const alterarFoco = (icone) => {
         setFocoIcone(icone)
     }
@@ -215,21 +216,21 @@ export default function Perfil() {
     }, []);
     if (loading) {
         return (
-            <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff" }}>
-                <ActivityIndicator size="large" color="#3498db" />
+            <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: tema.fundo }}>
+                <ActivityIndicator size="large" color={tema.azul} />
             </SafeAreaView>
         );
     }
     return (
-        <SafeAreaView style={styles.container}>
-            {!perfilProprio ?(
+        <SafeAreaView style={[styles.container, { backgroundColor: tema.fundo }]}>
+            {!perfilProprio && (
                 <View style={styles.headerTopo}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons size={22} name='arrow-back-outline' color={colors.azul} />
-                </TouchableOpacity>
-                <Text style={{ color: "black", fontWeight: 600, fontSize: 20 }}>@{user}</Text>
-            </View>
-            ):null}
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Ionicons size={22} name="arrow-back-outline" color={tema.azul} />
+                    </TouchableOpacity>
+                    <Text style={{ color: tema.texto, fontWeight: '600', fontSize: 20 }}>@{user}</Text>
+                </View>
+            )}
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 nestedScrollEnabled={true}
@@ -239,199 +240,186 @@ export default function Perfil() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={recarregarPagina}
-                        colors={["#3498db"]}
-                        tintColor="#3498db"
+                        tema={[tema.azul]}
+                        tintColor={tema.azul}
                     />
                 }
-
-
             >
-                {/*Container da Imagem de Fundo do Header */}
                 <View style={styles.header}>
                     <Image
                         style={styles.banner}
-                        source={banner !== null ? { uri: `http://${host}:8000/img/user/bannerPerfil/${banner}` } : require('../../../assets/backGroundDeslogado.jpg')}
+                        source={
+                            banner !== null
+                                ? { uri: `http://${host}:8000/img/user/bannerPerfil/${banner}` }
+                                : require('../../../assets/backGroundDeslogado.jpg')
+                        }
                     />
                 </View>
-                {/*Container do Perfil */}
+    
                 <View style={styles.perfilContainer}>
-
                     <View style={styles.itensContainer}>
                         <View style={styles.imgContainer}>
                             <Image
                                 style={styles.userImg}
-                                source={userImg !== null ? { uri: `http://${host}:8000/img/user/fotoPerfil/${userImg}` } : require('../../../assets/userDeslogado.png')}
+                                source={
+                                    userImg !== null
+                                        ? { uri: `http://${host}:8000/img/user/fotoPerfil/${userImg}` }
+                                        : require('../../../assets/userDeslogado.png')
+                                }
                             />
                         </View>
-
-
-                        {/*Container do Informações do Usúario */}
+    
                         <View style={styles.infoContainer}>
                             <View style={styles.infoUser}>
                                 <View style={styles.boxNomeUser}>
-
-                                    <Text style={styles.nomeUser}>{nome}</Text>
-                                    {instituicao == 1 ? (
-                                        <Ionicons style={styles.instIcon} name="school-outline"></Ionicons>
-                                    ) : null}
+                                    <Text style={[styles.nomeUser, { color: tema.texto }]}>{nome}</Text>
+                                    {instituicao == 1 && (
+                                        <Ionicons style={[styles.instIcon, { color: tema.texto }]} name="school-outline" />
+                                    )}
                                 </View>
-
-                                <View>
-                                    <Text style={styles.arrobaUser}>@{user}</Text>
-                                </View>
-
-
+                                <Text style={[styles.arrobaUser, { color: tema.subTexto }]}>@{user}</Text>
                             </View>
-
                         </View>
-
                     </View>
                 </View>
-
-                {/*Container Seguidores */}
+    
                 <View style={styles.containerBioSeguidores}>
                     <View style={styles.bioUser}>
-                        <Text style={styles.textBioUser}>{bio}</Text>
+                        <Text style={[styles.textBioUser, { color: tema.texto }]}>{bio}</Text>
                     </View>
                     <View style={styles.boxSeguidores}>
-                        <Pressable style={styles.seguidores} onPress={() => {
-                            navigation.navigate('SeguindoSeguidores', {
-                                idUserPerfil: idUser,
-                                titulo: user,
-                                pagina: 'seguidores',
-                            })
-                        }}>
-                            <Text style={styles.numSeg}>{seguidores}</Text>
-                            <Text style={styles.textSeguidores}>Seguidores</Text>
+                        <Pressable
+                            style={styles.seguidores}
+                            onPress={() =>
+                                navigation.navigate('SeguindoSeguidores', {
+                                    idUserPerfil: idUser,
+                                    titulo: user,
+                                    pagina: 'seguidores',
+                                })
+                            }
+                        >
+                            <Text style={[styles.numSeg, { color: tema.texto }]}>{seguidores}</Text>
+                            <Text style={[styles.textSeguidores, { color: tema.subTexto }]}>Seguidores</Text>
                         </Pressable>
-
-                        <Pressable style={styles.seguindo} onPress={() => {
-                            navigation.navigate('SeguindoSeguidores', {
-                                idUserPerfil: idUser,
-                                titulo: user,
-                                pagina: 'seguindo',
-                            })
-                        }}>
-                            <Text style={styles.numSeg}>{seguindo}</Text>
-                            <Text style={styles.textSeguindo}>Seguindo</Text>
+    
+                        <Pressable
+                            style={styles.seguindo}
+                            onPress={() =>
+                                navigation.navigate('SeguindoSeguidores', {
+                                    idUserPerfil: idUser,
+                                    titulo: user,
+                                    pagina: 'seguindo',
+                                })
+                            }
+                        >
+                            <Text style={[styles.numSeg, { color: tema.texto }]}>{seguindo}</Text>
+                            <Text style={[styles.textSeguindo, { color: tema.subTexto }]}>Seguindo</Text>
                         </Pressable>
+    
                         <View style={styles.seguindo}>
-                            <Text style={styles.numSeg}>{postsCount}</Text>
-                            <Text style={styles.textSeguindo}>Posts</Text>
+                            <Text style={[styles.numSeg, { color: tema.texto }]}>{postsCount}</Text>
+                            <Text style={[styles.textSeguindo, { color: tema.subTexto }]}>Posts</Text>
                         </View>
                     </View>
                 </View>
-
-
+    
                 {perfilProprio ? (
                     <View style={styles.editarContainer}>
                         <View style={[styles.buttonContainer, { gap: 0 }]}>
-                            <Pressable style={styles.editarButton}
-                                onPress={() => setModalEditarVisivel(true)}>
-                                <Text style={styles.textEditarPerf}>Editar Perfil</Text>
+                            <Pressable style={[styles.editarButton, { backgroundColor: tema.azul }]} onPress={() => setModalEditarVisivel(true)}>
+                                <Text style={[styles.textEditarPerf, { color: tema.textoBotao }]}>Editar Perfil</Text>
                             </Pressable>
-
-                            <Pressable onPress={() => navigation.navigate('Configurações')} >
-                                <Ionicons style={styles.settingIcon} name="settings-outline"></Ionicons>
+    
+                            <Pressable onPress={() => navigation.navigate('Configurações')}>
+                                <Ionicons style={[styles.settingIcon, { color: tema.icone }]} name="settings-outline" />
                             </Pressable>
-
                         </View>
-
-
-
                     </View>
-                ) :
+                ) : (
                     <View style={styles.editarContainer}>
                         <View style={styles.buttonContainer}>
                             {perfilBloqueado == 1 ? (
-                                <Pressable style={styles.buttonDesbloquear} onPress={desbloquear}>
-                                    <Text style={{ color: '#fff', fontWeight: 500 }}>Desbloquear</Text>
+                                <Pressable style={[styles.buttonDesbloquear, { backgroundColor: tema.vermelho }]} onPress={desbloquear}>
+                                    <Text style={{ color: tema.textoBotao, fontWeight: '500' }}>Desbloquear</Text>
                                 </Pressable>
-                            )
-                                :
-                                segue_usuario ? (
-                                    <Pressable style={styles.buttonVazado} onPress={seguir}>
-                                        <Text style={{ color: '#00000', fontWeight: 500 }}>Seguindo</Text>
-                                    </Pressable>
-                                ) :
-                                    <Pressable style={styles.buttonCompleto} onPress={seguir} >
-                                        <Text style={{ color: '#fff', fontWeight: 500 }}>Seguir</Text>
-                                    </Pressable>
-
-
-                            }
-
-                            {perfilBloqueado ?
-                                (null) :
-                                <Pressable style={styles.buttonVazado} onPress={() => irParaChat()}>
-                                    <Text style={{ fontWeight: 500 }}>Mensagem</Text>
-
-                                </Pressable>}
-                            <Configuracoes
-                                arroba={user}
-                                userPost={idUser}
-                                tipo='perfil'
-                            />
+                            ) : segue_usuario ? (
+                                <Pressable style={[styles.buttonVazado, { borderColor: tema.texto }]} onPress={seguir}>
+                                    <Text style={{ color: tema.texto, fontWeight: '500' }}>Seguindo</Text>
+                                </Pressable>
+                            ) : (
+                                <Pressable style={[styles.buttonCompleto, { backgroundColor: tema.azul }]} onPress={seguir}>
+                                    <Text style={{ color: tema.textoBotao, fontWeight: '500' }}>Seguir</Text>
+                                </Pressable>
+                            )}
+    
+                            {!perfilBloqueado && (
+                                <Pressable style={[styles.buttonVazado, { borderColor: tema.texto }]} onPress={irParaChat}>
+                                    <Text style={{ color: tema.texto, fontWeight: '500' }}>Mensagem</Text>
+                                </Pressable>
+                            )}
+    
+                            <Configuracoes arroba={user} userPost={idUser} tipo="perfil" />
                         </View>
                     </View>
-                }
-                {/*View Storys*/}
-                {perfilBloqueado == 1 || instituicao == 1 ?
-                    <Destaques 
-                        data={DATA}
-                        navigation={navigation}
-                        adicionarLogo={adicionarLogo}
-                        />
-                :(null)}
-                
-                {/*Barra de Navegação*/}
-                {perfilBloqueado == 1 ? (null) :
-                    <View style={styles.barraContainer}>
+                )}
+    
+                {perfilBloqueado == 1 || instituicao == 1 ? (
+                    <Destaques data={DATA} navigation={navigation} adicionarLogo={adicionarLogo} />
+                ) : null}
+    
+                {perfilBloqueado !== 1 && (
+                    <View style={[styles.barraContainer, { borderBottomColor: tema.barra }]}>
                         <Pressable onPress={() => alterarFoco('posts')} style={[styles.opcao, focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                            <Ionicons style={[styles.opcaoIcon, focoIcone === 'posts' ? styles.IconeAtivo : styles.iconeInativo]} name="grid-outline" />
+                            <Ionicons
+                                style={[styles.opcaoIcon, { color: focoIcone === 'posts' ? tema.iconeAtivo : tema.iconeInativo }]}
+                                name="grid-outline"
+                            />
                         </Pressable>
-
+    
                         <Pressable onPress={() => alterarFoco('imagem')} style={[styles.opcao, focoIcone === 'imagem' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                            <Ionicons style={[styles.opcaoIcon, focoIcone === 'imagem' ? styles.IconeAtivo : styles.iconeInativo]} name="image-outline" />
+                            <Ionicons
+                                style={[styles.opcaoIcon, { color: focoIcone === 'imagem' ? tema.iconeAtivo : tema.iconeInativo }]}
+                                name="image-outline"
+                            />
                         </Pressable>
-
+    
                         <Pressable onPress={() => alterarFoco('reposts')} style={[styles.opcao, focoIcone === 'reposts' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                            <Ionicons style={[styles.opcaoIcon, focoIcone === 'reposts' ? styles.IconeAtivo : styles.iconeInativo]} name="repeat-outline" />
+                            <Ionicons
+                                style={[styles.opcaoIcon, { color: focoIcone === 'reposts' ? tema.iconeAtivo : tema.iconeInativo }]}
+                                name="repeat-outline"
+                            />
                         </Pressable>
-                        {instituicao == 1 ? (
-
+    
+                        {instituicao == 1 && (
                             <Pressable onPress={() => alterarFoco('curteis')} style={[styles.opcao, focoIcone === 'curteis' ? styles.opcaoAtiva : styles.opcaoInativa]}>
-                                <Ionicons style={[styles.opcaoIcon, focoIcone === 'curteis' ? styles.IconeAtivo : styles.iconeInativo]} name="id-card-outline" />
+                                <Ionicons
+                                    style={[styles.opcaoIcon, { color: focoIcone === 'curteis' ? tema.iconeAtivo : tema.iconeInativo }]}
+                                    name="id-card-outline"
+                                />
                             </Pressable>
-                        ) : null}
+                        )}
                     </View>
-                }
-                {/*Posts*/}
-                {
-                    perfilBloqueado === 1 ? null : (
-                        focoIcone === 'reposts' ? (
-                            <View style={styles.postContainer}>
-                                <Post key="post-1" idUser={idUser} tipo="reposts" />
-                            </View>
-                        ) : focoIcone === 'imagem' ? (
-                            <View style={styles.postContainer}>
-                                <Post key="post-2" idUser={idUser} tipo="normais" />
-                            </View>
-                        ) : focoIcone === 'posts' ? (
-                            <View style={styles.postContainer}>
-                                <Post key="post-3" idUser={idUser} />
-                            </View>
-                        ) : (
-                           null
-                        )
-                    )
-                }
-
-
-
+                )}
+    
+                {perfilBloqueado !== 1 && (
+                    focoIcone === 'reposts' ? (
+                        <View style={styles.postContainer}>
+                            <Post key="post-1" idUser={idUser} tipo="reposts" />
+                        </View>
+                    ) : focoIcone === 'imagem' ? (
+                        <View style={styles.postContainer}>
+                            <Post key="post-2" idUser={idUser} tipo="normais" />
+                        </View>
+                    ) : focoIcone === 'posts' ? (
+                        <View style={styles.postContainer}>
+                            <Post key="post-3" idUser={idUser} />
+                        </View>
+                    ) : null
+                )}
             </ScrollView>
-            <ModalPostagem tipo='post' tela='perfil' />
-
+    
+            <ModalPostagem tipo="post" tela="perfil" />
+    
             <ModalEditarPerfil
                 visivel={modalEditarVisivel}
                 onClose={() => setModalEditarVisivel(false)}
@@ -448,8 +436,6 @@ export default function Perfil() {
                     if (dadosAtualizados.banner) setBanner(dadosAtualizados.banner);
                 }}
             />
-
-
         </SafeAreaView>
-    )
-};
+    );
+            };    

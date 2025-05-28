@@ -13,7 +13,8 @@ export const temaClaro = {
     switchThumbClaro: '#f4f3f4',
     iconeAtivo: '#000',
     iconeInativo: '#aaa',
-    barra: '#F5F5F5'
+    barra: '#F5F5F5',
+    cinza: '#EFEFEF'
   };
   
   export const temaEscuro = {
@@ -32,5 +33,6 @@ export const temaClaro = {
     switchThumbEscuro: '#f5dd4b',
     iconeAtivo: '#fff',
     iconeInativo: '#666',
-    barra: '#000'
+    barra: '#000',
+    cinza: '#1f1f1f'
   };

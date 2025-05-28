@@ -5,9 +5,11 @@ import Configuracoes from '../../../Components/Configurações/configuracoes';
 import axios from 'axios';
 import host from '../../../global';
 import { useNavigation } from '@react-navigation/native';
+import {useTema} from '../../../context/themeContext';
 export default function Assuntos() {
   const [interesses, setInteresses] = useState([]);
     const navigation = useNavigation();
+    const {tema} = useTema();
   useEffect(() => {
     const fetchAssuntos = async () => {
       try {
@@ -24,38 +26,66 @@ export default function Assuntos() {
   }, []);
 
   return (
-   <SafeAreaView style={styles.container}>
-  <ScrollView
-    style={styles.ScrollCont}
-    contentContainerStyle={styles.contentContainer}
-    showsVerticalScrollIndicator={false}
-  >
-    <View style={styles.containerTradings}>
-      <View style={styles.containerTitle}>
-        <Text style={styles.title}>O que está acontecendo</Text>
-      </View>
-      <View style={styles.separator} />
-
-      {interesses?.map((item, index) => (
-        <Pressable onPress={() => navigation.navigate('Pesquisar', { termoPesquisado: item.hashtag })} key={index}>
-          <View style={styles.trendig}>
-            <View style={styles.trendigHeader}>
-              <Text style={styles.subTitle}>Tendência no Cursei</Text>
-              <View style={{ height: 20, alignItems: 'center', justifyContent: 'flex-start' }}>
-                <Configuracoes />
-              </View>
-            </View>
-
-            <Text style={styles.trendigName}>{item.hashtag}</Text>
-            <Text style={styles.trendigNum}>{item.usos} Posts</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: tema.fundo }]}>
+      <ScrollView
+        style={styles.ScrollCont}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.containerTradings}>
+          <View style={styles.containerTitle}>
+            <Text style={[styles.title, { color: tema.texto }]}>
+              O que está acontecendo
+            </Text>
           </View>
+          <View
+            style={[
+              styles.separator,
+              { backgroundColor: tema.barra || "#ccc" },
+            ]}
+          />
 
-        
-          <View style={styles.separator} />
-        </Pressable>
-      ))}
-    </View>
-  </ScrollView>
-</SafeAreaView>
+          {interesses?.map((item, index) => (
+            <Pressable
+              onPress={() =>
+                navigation.navigate("Pesquisar", { termoPesquisado: item.hashtag })
+              }
+              key={index}
+            >
+              <View style={styles.trendig}>
+                <View style={styles.trendigHeader}>
+                  <Text style={[styles.subTitle, { color: tema.descricao }]}>
+                    Tendência no Cursei
+                  </Text>
+                  <View
+                    style={{
+                      height: 20,
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                    }}
+                  >
+                    <Configuracoes />
+                  </View>
+                </View>
+
+                <Text style={[styles.trendigName, { color: tema.texto }]}>
+                  {item.hashtag}
+                </Text>
+                <Text style={[styles.trendigNum, { color: tema.descricao }]}>
+                  {item.usos} Posts
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.separator,
+                  { backgroundColor: tema.barra || "#ccc" },
+                ]}
+              />
+            </Pressable>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
-}
+};
