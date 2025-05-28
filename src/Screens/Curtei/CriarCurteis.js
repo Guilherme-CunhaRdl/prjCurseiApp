@@ -46,24 +46,58 @@ const CriarCurteis = () => {
     scrollViewRef.current?.scrollTo({ x: width * index, animated: true });
   };
 
-  const selectVideo = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'video',
-      videoQuality: 'medium',
-      durationLimit: 60,
-    });
-    if (result.assets && result.assets[0].uri) {
-      setVideoUri(result.assets[0].uri);
-      videoFileRef.current = {
-        uri: result.assets[0].uri,
-        type: result.assets[0].type || 'video/mp4',
-        name: result.assets[0].fileName || video_$`{Date.now()}`.mp4,
+
+  const launchImageLibraryWeb = async (options) => {
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = options.mediaType === 'video' ? 'video/*' : 'image/*';
+      
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          resolve({
+            assets: [{
+              uri: URL.createObjectURL(file),
+              type: file.type,
+              fileName: file.name
+            }],
+            didCancel: false
+          });
+        } else {
+          resolve({ didCancel: true });
+        }
       };
+      
+      input.click();
+    });
+  };
+
+  const selectVideo = async () => {
+    try {
+      const result = await launchImageLibraryWeb({
+        mediaType: 'video',
+        videoQuality: 'medium',
+        durationLimit: 60,
+        includeBase64: false,
+      });
+  
+      if (!result.didCancel && result.assets && result.assets.length > 0) {
+        setVideoUri(result.assets[0].uri);
+        videoFileRef.current = {
+          uri: result.assets[0].uri,
+          type: result.assets[0].type || 'video/mp4',
+          name: result.assets[0].fileName || `video_${Date.now()}.mp4`,
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao selecionar vídeo:', error);
+      Alert.alert('Erro', 'Não foi possível selecionar o vídeo');
     }
   };
 
   const selectThumbnail = async () => {
-    const result = await launchImageLibrary({
+    const result = await launchImageLibraryWeb({
       mediaType: 'photo',
       quality: 0.8,
     });
@@ -72,7 +106,7 @@ const CriarCurteis = () => {
       thumbFileRef.current = {
         uri: result.assets[0].uri,
         type: result.assets[0].type || 'image/jpeg',
-        name: result.assets[0].fileName || thumb_$`{Date.now()}`.jpg,
+        name: result.assets[0].fileName || `thumb_${Date.now()}.jpg`,
       };
     }
   };
@@ -80,37 +114,56 @@ const CriarCurteis = () => {
   const handleUpload = async () => {
     const idUserString = await AsyncStorage.getItem('idUser');
     const idUser = parseInt(idUserString);
-
+  
     if (!videoFileRef.current || !thumbFileRef.current) {
       Alert.alert('Atenção', 'Você precisa selecionar um vídeo e uma thumbnail');
       return;
     }
-
+  
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('caminho_curtei', videoFileRef.current);
-      formData.append('caminho_curtei_thumb', thumbFileRef.current);
+      
+      // Adiciona os arquivos corretamente
+      if (Platform.OS === 'web') {
+        const videoFile = await fetch(videoFileRef.current.uri)
+          .then(res => res.blob());
+        const thumbFile = await fetch(thumbFileRef.current.uri)
+          .then(res => res.blob());
+    
+        formData.append('caminho_curtei', videoFile, videoFileRef.current.name);
+        formData.append('caminho_curtei_thumb', thumbFile, thumbFileRef.current.name);
+      } 
+      // Para mobile (React Native)
+      else {
+        formData.append('caminho_curtei', {
+          uri: videoFileRef.current.uri,
+          type: videoFileRef.current.type,
+          name: videoFileRef.current.name
+        });
+        
+        formData.append('caminho_curtei_thumb', {
+          uri: thumbFileRef.current.uri,
+          type: thumbFileRef.current.type,
+          name: thumbFileRef.current.name
+        });
+      }
+      
       formData.append('legenda_curtei', caption);
       formData.append('id_user', idUser);
-
-      await axios.post(`http://${host}:8000/api/curtei/upload, formData`, {
+  
+      const response = await axios.post(`http://${host}:8000/api/curtei/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json',
         },
       });
-
+  
       Alert.alert('Sucesso!', 'Seu vídeo foi publicado com sucesso!');
-      setVideoUri(null);
-      setThumbUri(null);
-      setCaption('');
-      videoFileRef.current = null;
-      thumbFileRef.current = null;
-      scrollToSection(0);
+      // Limpeza do estado...
     } catch (error) {
-      console.error(error);
-      Alert.alert('Erro', 'Não foi possível enviar o vídeo');
+      console.error('Erro detalhado:', error.response?.data || error.message);
+      Alert.alert('Erro', error.response?.data?.message || 'Não foi possível enviar o vídeo');
     } finally {
       setUploading(false);
     }
