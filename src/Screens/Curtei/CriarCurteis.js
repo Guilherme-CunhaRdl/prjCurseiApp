@@ -15,8 +15,8 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Video from 'react-native-video';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { Video } from 'expo-av';
+import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import host from '../../global';
@@ -39,50 +39,31 @@ const CriarCurteis = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const videoFileRef = useRef(null);
   const thumbFileRef = useRef(null);
-
+  const videoRef = useRef(null);
   const animatedIndex = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria para selecionar vídeos e fotos.');
+      }
+    })();
+  }, []);
 
   const scrollToSection = (index) => {
     scrollViewRef.current?.scrollTo({ x: width * index, animated: true });
   };
 
-
-  const launchImageLibraryWeb = async (options) => {
-    return new Promise((resolve) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = options.mediaType === 'video' ? 'video/*' : 'image/*';
-      
-      input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          resolve({
-            assets: [{
-              uri: URL.createObjectURL(file),
-              type: file.type,
-              fileName: file.name
-            }],
-            didCancel: false
-          });
-        } else {
-          resolve({ didCancel: true });
-        }
-      };
-      
-      input.click();
-    });
-  };
-
   const selectVideo = async () => {
     try {
-      const result = await launchImageLibraryWeb({
-        mediaType: 'video',
-        videoQuality: 'medium',
-        durationLimit: 60,
-        includeBase64: false,
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+        quality: 1,
       });
-  
-      if (!result.didCancel && result.assets && result.assets.length > 0) {
+
+      if (!result.canceled && result.assets?.length > 0) {
         setVideoUri(result.assets[0].uri);
         videoFileRef.current = {
           uri: result.assets[0].uri,
@@ -97,73 +78,88 @@ const CriarCurteis = () => {
   };
 
   const selectThumbnail = async () => {
-    const result = await launchImageLibraryWeb({
-      mediaType: 'photo',
-      quality: 0.8,
-    });
-    if (result.assets && result.assets[0].uri) {
-      setThumbUri(result.assets[0].uri);
-      thumbFileRef.current = {
-        uri: result.assets[0].uri,
-        type: result.assets[0].type || 'image/jpeg',
-        name: result.assets[0].fileName || `thumb_${Date.now()}.jpg`,
-      };
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets?.length > 0) {
+        setThumbUri(result.assets[0].uri);
+        thumbFileRef.current = {
+          uri: result.assets[0].uri,
+          type: result.assets[0].type || 'image/jpeg',
+          name: result.assets[0].fileName || `thumb_${Date.now()}.jpg`,
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao selecionar thumbnail:', error);
+      Alert.alert('Erro', 'Não foi possível selecionar a thumbnail');
     }
   };
 
   const handleUpload = async () => {
-    const idUserString = await AsyncStorage.getItem('idUser');
-    const idUser = parseInt(idUserString);
-  
     if (!videoFileRef.current || !thumbFileRef.current) {
-      Alert.alert('Atenção', 'Você precisa selecionar um vídeo e uma thumbnail');
+      Alert.alert('Atenção', 'Selecione um vídeo e uma thumbnail');
       return;
     }
   
     setUploading(true);
-    try {
-      const formData = new FormData();
-      
-      // Adiciona os arquivos corretamente
-      if (Platform.OS === 'web') {
-        const videoFile = await fetch(videoFileRef.current.uri)
-          .then(res => res.blob());
-        const thumbFile = await fetch(thumbFileRef.current.uri)
-          .then(res => res.blob());
     
-        formData.append('caminho_curtei', videoFile, videoFileRef.current.name);
-        formData.append('caminho_curtei_thumb', thumbFile, thumbFileRef.current.name);
-      } 
-      // Para mobile (React Native)
-      else {
-        formData.append('caminho_curtei', {
-          uri: videoFileRef.current.uri,
-          type: videoFileRef.current.type,
-          name: videoFileRef.current.name
-        });
-        
-        formData.append('caminho_curtei_thumb', {
-          uri: thumbFileRef.current.uri,
-          type: thumbFileRef.current.type,
-          name: thumbFileRef.current.name
-        });
+    try {
+      const idUser = await AsyncStorage.getItem('idUser');
+      if (!idUser) throw new Error('Usuário não identificado');
+  
+      // Teste de conexão básico
+      try {
+        await axios.get(`http://${host}:8000`, { timeout: 5000 });
+      } catch (e) {
+        throw new Error('Servidor inacessível. Verifique: \n- Se o servidor está rodando\n- Se o IP está correto\n- Se estão na mesma rede');
       }
-      
+  
+      // FormData modificado para React Native
+      const formData = new FormData();
+      formData.append('caminho_curtei', {
+        uri: videoFileRef.current.uri,
+        type: 'video/mp4', // Forçar tipo MIME
+        name: 'video.mp4'
+      });
+      formData.append('caminho_curtei_thumb', {
+        uri: thumbFileRef.current.uri,
+        type: 'image/jpeg',
+        name: 'thumbnail.jpg'
+      });
       formData.append('legenda_curtei', caption);
       formData.append('id_user', idUser);
   
-      const response = await axios.post(`http://${host}:8000/api/curtei/upload`, formData, {
+      console.log('Enviando para:', `http://${host}:8000/api/curtei/upload`);
+      
+      const response = await fetch(`http://${host}:8000/api/curtei/upload`, {
+        method: 'POST',
+        body: formData,
         headers: {
-          'Content-Type': 'multipart/form-data',
           'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
       });
   
-      Alert.alert('Sucesso!', 'Seu vídeo foi publicado com sucesso!');
-      // Limpeza do estado...
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro no servidor');
+      }
+  
+      Alert.alert('Sucesso!', 'Vídeo publicado!');
+      setVideoUri(null);
+      setThumbUri(null);
+      setCaption('');
+      scrollToSection(0);
+  
     } catch (error) {
-      console.error('Erro detalhado:', error.response?.data || error.message);
-      Alert.alert('Erro', error.response?.data?.message || 'Não foi possível enviar o vídeo');
+      console.error('Erro completo:', JSON.stringify(error, null, 2));
+      Alert.alert('Erro', error.message || 'Falha na comunicação');
     } finally {
       setUploading(false);
     }
@@ -208,22 +204,32 @@ const CriarCurteis = () => {
           );
         })}
       </View>
+      
       <ScrollView
         ref={scrollViewRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ width: width * 3 }}
-        onMomentumScrollEnd={(event) => {
-          const index = Math.round(event.nativeEvent.contentOffset.x / width);
+        onMomentumScrollEnd={(e) => {
+          const index = Math.round(e.nativeEvent.contentOffset.x / width);
           setCurrentIndex(index);
         }}
         scrollEventThrottle={16}
       >
+        {/* Página 1 - Seleção de vídeo */}
         <View style={styles.page}>
           {videoUri ? (
             <View style={styles.preview}>
-              <Video source={{ uri: videoUri }} style={styles.media} resizeMode="cover" paused />
+              <Video
+                ref={videoRef}
+                source={{ uri: videoUri }}
+                style={styles.media}
+                resizeMode="cover"
+                isLooping
+                shouldPlay={false}
+                useNativeControls
+              />
               <TouchableOpacity style={styles.editButton} onPress={selectVideo}>
                 <Icon name="edit" size={25} color="#fff" />
               </TouchableOpacity>
@@ -232,12 +238,17 @@ const CriarCurteis = () => {
             <UploadPlaceholder icon="videocam" label="Selecionar vídeo" onPress={selectVideo} />
           )}
           {videoUri && (
-            <TouchableOpacity style={styles.nextButton} onPress={() => scrollToSection(1)}>
+            <TouchableOpacity 
+              style={styles.nextButton} 
+              onPress={() => scrollToSection(1)}
+              disabled={uploading}
+            >
               <Text style={styles.nextText}>Avançar</Text>
             </TouchableOpacity>
           )}
         </View>
 
+        {/* Página 2 - Seleção de thumbnail */}
         <View style={styles.page}>
           {thumbUri ? (
             <View style={styles.preview}>
@@ -250,12 +261,17 @@ const CriarCurteis = () => {
             <UploadPlaceholder icon="image" label="Selecionar thumbnail" onPress={selectThumbnail} />
           )}
           {thumbUri && (
-            <TouchableOpacity style={styles.nextButton} onPress={() => scrollToSection(2)}>
+            <TouchableOpacity 
+              style={styles.nextButton} 
+              onPress={() => scrollToSection(2)}
+              disabled={uploading}
+            >
               <Text style={styles.nextText}>Avançar</Text>
             </TouchableOpacity>
           )}
         </View>
 
+        {/* Página 3 - Legenda e upload */}
         <View style={styles.page}>
           <Text style={styles.label}>Legenda (opcional)</Text>
           <TextInput
@@ -269,7 +285,7 @@ const CriarCurteis = () => {
           />
           <Text style={styles.charCounter}>{caption.length}/220</Text>
           <TouchableOpacity
-            style={[styles.uploadButton, !(videoUri && thumbUri) && { backgroundColor: '#a5c3f7' }]}
+            style={[styles.uploadButton, (!videoUri || !thumbUri) && styles.uploadButtonDisabled]}
             onPress={handleUpload}
             disabled={uploading || !videoUri || !thumbUri}
           >
@@ -328,6 +344,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     overflow: 'hidden',
     backgroundColor: '#ddd',
+    position: 'relative',
   },
   media: {
     width: '100%',
@@ -383,6 +400,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 10,
     width: '100%',
+  },
+  uploadButtonDisabled: {
+    backgroundColor: '#a5c3f7',
   },
   uploadText: {
     color: '#fff',
