@@ -231,12 +231,7 @@ const TopTabs = ({ termoPesquisado }) => {
 
             />
 
-            <Top.Screen
-                name="Curteis"
-                children={() => <ScrollView style={styles.containerPost}>
-                </ScrollView>}
 
-            />
 
 
 
