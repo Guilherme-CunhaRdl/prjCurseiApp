@@ -28,6 +28,7 @@ import colors from "../colors";
 import * as ImagePicker from "expo-image-picker";
 import dayjs from "dayjs";
 import host from "../global";
+import { useTema } from "../context/themeContext";
 const ModalPostagem = forwardRef(
   ({ idPostRepost, tipo, idPost, tela }, ref) => {
     const navigation = useNavigation();
@@ -274,15 +275,15 @@ const ModalPostagem = forwardRef(
       abrirModal,
       fecharModal: () => setModalVisivel(false),
     }));
-
+    const {tema} = useTema();
     return (
-      <View style={{ flex: 0, backgroundColor: 'red' }}>
-        {tipo == "post" ? (
+      <View style={{ flex: 0, backgroundColor: tema.fundo }}>
+        {tipo === "post" && (
           <TouchableOpacity style={estilos.sendButton} onPress={() => abrirModal(false)}>
             <Image source={require('../../assets/LogoBranca.png')} style={{ width: 38, height: 37, resizeMode: 'contain' }} />
           </TouchableOpacity>
-        ) : null}
-
+        )}
+    
         <Modal
           style={estilos.modalTelaCheia}
           animationType="slide"
@@ -290,67 +291,59 @@ const ModalPostagem = forwardRef(
           visible={modalVisivel}
           onRequestClose={fecharModal}
         >
-          <View style={estilos.modalTelaCheia}>
+          <View style={[estilos.modalTelaCheia, { backgroundColor: tema.modalFundo }]}>
             {/* Cabeçalho */}
             <View style={estilos.cabecalho}>
               <TouchableOpacity onPress={fecharModal}>
-                <Icon name="x" size={24} color="#000" />
+                <Icon name="x" size={24} color={tema.icone} />
               </TouchableOpacity>
-              <Text style={estilos.titulo}>Novo Post</Text>
+              <Text style={[estilos.titulo, { color: tema.texto }]}>Novo Post</Text>
               <TouchableOpacity onPress={postar}>
-                <Text style={[estilos.botaoPublicar]}>Publicar</Text>
+                <Text style={[estilos.botaoPublicar, { color: tema.azul }]}>Publicar</Text>
               </TouchableOpacity>
             </View>
-
+    
             {/* Corpo */}
             <ScrollView style={estilos.corpo}>
               <View style={estilos.usuario}>
                 <Image source={{ uri: usuario.foto }} style={estilos.avatar} />
-                <Text style={estilos.nomeUsuario}>@{usuario.username}</Text>
+                <Text style={[estilos.nomeUsuario, { color: tema.texto }]}>@{usuario.username}</Text>
               </View>
-
+    
               <TextInput
                 placeholder="Digite o que aconteceu hoje..."
                 multiline
-                style={estilos.campoTexto}
+                style={[estilos.campoTexto, { color: tema.texto }]}
+                placeholderTextColor={tema.descricao}
                 textAlignVertical="top"
                 value={descPost}
                 onChangeText={(text) => setDescPost(text)}
               />
-              {repost ? (
+    
+              {repost && (
                 <View style={estilos.containerRepost}>
                   <View style={estilos.postHeader}>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        paddingInline: 10,
-                      }}
-                    >
+                    <View style={{ flexDirection: "row", alignItems: "center", paddingInline: 10 }}>
                       <Image
-                        source={{
-                          uri: `http://${host}:8000/img/user/fotoPerfil/${repost_img}`,
-                        }}
+                        source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${repost_img}` }}
                         style={estilos.fotoUserRepost}
                       />
                       <View style={{ paddingLeft: 10 }}>
-                        <View
-                          style={{ flexDirection: "row", alignItems: "center" }}
-                        >
-                          <Text style={estilos.institutionTextRepost}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Text style={[estilos.institutionTextRepost, { color: tema.texto }]}>
                             {repost_autor}
                           </Text>
-                          <Text style={estilos.horaPost}>·</Text>
-                          <Text style={estilos.horaPost}>
+                          <Text style={[estilos.horaPost, { color: tema.descricao }]}>·</Text>
+                          <Text style={[estilos.horaPost, { color: tema.descricao }]}>
                             {formatarTempoInsercao(tempo_repostado)}
                           </Text>
                         </View>
-                        <Text style={estilos.arrobaUser}>@{repost_arroba}</Text>
+                        <Text style={[estilos.arrobaUser, { color: tema.descricao }]}>@{repost_arroba}</Text>
                       </View>
                     </View>
                   </View>
-                  <Text style={estilos.postTextRepost}>{repost_descricao}</Text>
-                  {repost_conteudo ? (
+                  <Text style={[estilos.postTextRepost, { color: tema.texto }]}>{repost_descricao}</Text>
+                  {repost_conteudo && (
                     <TouchableOpacity style={estilos.postContentRepost}>
                       <Image
                         style={{
@@ -359,45 +352,40 @@ const ModalPostagem = forwardRef(
                           borderBottomLeftRadius: 8,
                           borderBottomRightRadius: 8,
                         }}
-                        source={{
-                          uri: `http://${host}:8000/img/user/imgPosts/${repost_conteudo}`,
-                        }}
+                        source={{ uri: `http://${host}:8000/img/user/imgPosts/${repost_conteudo}` }}
                       />
                     </TouchableOpacity>
-                  ) : null}
+                  )}
                 </View>
-              ) : null}
-              {/* Exemplo com imagem estática */}
-              {!repost ? (
+              )}
+    
+              {!repost && imagem && (
                 <Image
                   source={{ uri: imagem }}
                   style={estilos.imagemPreview}
                   resizeMode="cover"
                 />
-              ) : null}
+              )}
             </ScrollView>
-
+    
             {/* Rodapé */}
-            {!repost ? (
+            {!repost && (
               <View style={estilos.rodape}>
-                <TouchableOpacity
-                  style={estilos.botaoAcao}
-                  onPress={abrirGaleria}
-                >
-                  <Icon name="image" size={20} color="#1E90FF" />
-                  <Text>Galeria</Text>
+                <TouchableOpacity style={estilos.botaoAcao} onPress={abrirGaleria}>
+                  <Icon name="image" size={20} color={tema.azul} />
+                  <Text style={{ color: tema.texto }}>Galeria</Text>
                 </TouchableOpacity>
-
+    
                 <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
-                  <Icon name="camera" size={20} color="#1E90FF" />
-                  <Text>Foto</Text>
+                  <Icon name="camera" size={20} color={tema.azul} />
+                  <Text style={{ color: tema.texto }}>Foto</Text>
                 </TouchableOpacity>
               </View>
-            ) : null}
+            )}
           </View>
         </Modal>
       </View>
-    );
+    );    
   }
 );
 

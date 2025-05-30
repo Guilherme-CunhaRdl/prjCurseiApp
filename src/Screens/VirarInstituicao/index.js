@@ -17,9 +17,11 @@ import axios from 'axios';
 import { MaskedTextInput } from 'react-native-mask-text';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import host from '../../global';
+import { useTema } from '../../context/themeContext';
 export default function VirarInstituicao() {
     const [userId, setUserId] = useState(null);
     const [passo, setPasso] = useState(0);
+    const {tema} = useTema();
     const [form, setForm] = useState({
         logradouro: '',
         num_logradouro: '',
@@ -133,147 +135,146 @@ export default function VirarInstituicao() {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-
-            {/* Formulário */}
+        <View style={[styles.container, { backgroundColor: tema.fundo }]}>
+            <StatusBar barStyle={tema.nome === 'claro' ? 'dark-content' : 'light-content'} backgroundColor={tema.fundo} />
+    
             {passo === 0 && (
                 <View style={styles.formContainer}>
-                    {/* Campos do formulário */}
-
-                    <View style={styles.tituloVirarInstituicao}> 
+                    <View style={styles.tituloVirarInstituicao}>
                         <Ionicons
-                        name="school-outline"
-                        size={50}
-                        color={'#F29500'}
-                        style={{ marginRight: 10 }}
-                    /> 
-                    <Text style={styles.textoTitulo}>Se torne uma instituição!</Text>
+                            name="school-outline"
+                            size={50}
+                            color={tema.laranja}
+                            style={{ marginRight: 10 }}
+                        />
+                        <Text style={[styles.textoTitulo, { color: tema.texto }]}>
+                            Se torne uma instituição!
+                        </Text>
                     </View>
-                    <Text style={styles.textoVantagens}>Ao se tornar uma instituição, sua conta receberá vantagens exclusivas e receberá o selo de instituição no aplicativo. </Text>
-
-
-                    <Text style={styles.tituloInputs}>CNPJ</Text>
+    
+                    <Text style={[styles.textoVantagens, { color: tema.descricao }]}>
+                        Ao se tornar uma instituição, sua conta receberá vantagens exclusivas e receberá o selo de instituição no aplicativo.
+                    </Text>
+    
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>CNPJ</Text>
                     <MaskedTextInput
                         mask="99.999.999/9999-99"
                         keyboardType='numeric'
-                        style={styles.inputs}
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
                         placeholder="XX.XXX.XXX/0001-XX"
-                        placeholderTextColor="#A2A2A2"
+                        placeholderTextColor={tema.descricao}
                         value={form.cnpj}
                         onChangeText={(text) => handleChange('cnpj', text)}
                     />
-                    <Text style={styles.tituloInputs}>Telefone</Text>
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>Telefone</Text>
                     <MaskedTextInput
                         mask="(99) 99999-9999"
-                        style={styles.inputs}
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
                         keyboardType='numeric'
                         placeholder="(XX) XXXXX-XXXX"
-                        placeholderTextColor="#A2A2A2"
+                        placeholderTextColor={tema.descricao}
                         value={form.telefone}
                         onChangeText={(text) => handleChange('telefone', text)}
                     />
-                    <Text style={styles.tituloInputs}>Nome do representante</Text>
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>Nome do representante</Text>
                     <TextInput
-                        style={styles.inputs}
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
                         value={form.nome_representante}
                         onChangeText={(text) => handleChange('nome_representante', text)}
                     />
-                    <Text style={styles.tituloInputs}>Documentos pessoais do representante</Text>
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>Documentos pessoais do representante</Text>
                     <MaskedTextInput
-                         mask="999.999.999-99"
-                        style={styles.inputs}
+                        mask="999.999.999-99"
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
                         placeholder="XXX.XXX.XXX-XX"
-                        placeholderTextColor="#A2A2A2"
+                        placeholderTextColor={tema.descricao}
                         keyboardType='numeric'
                         value={form.documentos_representante}
                         onChangeText={(text) => handleChange('documentos_representante', text)}
                     />
-
-                    <TouchableOpacity style={styles.botaoEnviar} onPress={() => setPasso(1)}>
-                        <Text style={styles.textoBotao}>Próximo</Text>
+    
+                    <TouchableOpacity style={[styles.botaoEnviar, { backgroundColor: tema.laranja }]} onPress={() => setPasso(1)}>
+                        <Text style={[styles.textoBotao, { color: tema.textoBotao }]}>Próximo</Text>
                     </TouchableOpacity>
                 </View>
             )}
-
+    
             {passo === 1 && (
-                <ScrollView contentContainerStyle={styles.scrollContainer}
-                    style={styles.formContainer}>
-                    {/* Campos do formulário */}
-                    <Text style={styles.tituloInputs}>CEP</Text>
+                <ScrollView contentContainerStyle={styles.scrollContainer} style={styles.formContainer}>
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>CEP</Text>
                     <MaskedTextInput
                         mask="99999999"
                         keyboardType='numeric'
                         placeholder='XXXXX-XXX'
-                        style={styles.inputs}
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
+                        placeholderTextColor={tema.descricao}
                         value={form.cep}
                         onChangeText={(text) => handleChange('cep', text)}
                     />
-                    <Text style={styles.tituloInputs}>Logradouro</Text>
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>Logradouro</Text>
                     <TextInput
-                        style={styles.inputs}
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
                         value={form.logradouro}
                         onChangeText={(text) => handleChange('logradouro', text)}
                     />
-                    <Text style={styles.tituloInputs}>Número</Text>
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>Número</Text>
                     <TextInput
-                        style={styles.inputs}
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
                         value={form.num_logradouro}
                         onChangeText={(text) => handleChange('num_logradouro', text)}
                         keyboardType="numeric"
                     />
-                    <Text style={styles.tituloInputs}>Bairro</Text>
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>Bairro</Text>
                     <TextInput
-                        style={styles.inputs}
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
                         value={form.bairro}
                         onChangeText={(text) => handleChange('bairro', text)}
                     />
-                    <Text style={styles.tituloInputs}>Cidade</Text>
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>Cidade</Text>
                     <TextInput
-                        style={styles.inputs}
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
                         value={form.cidade}
                         onChangeText={(text) => handleChange('cidade', text)}
                     />
-                    <Text style={styles.tituloInputs}>Estado</Text>
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>Estado</Text>
                     <TextInput
-                        style={styles.inputs}
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
                         value={form.estado}
                         onChangeText={(text) => handleChange('estado', text)}
                     />
-                    <Text style={styles.tituloInputs}>Complemento</Text>
+                    <Text style={[styles.tituloInputs, { color: tema.texto }]}>Complemento</Text>
                     <TextInput
-                        style={styles.inputs}
+                        style={[styles.inputs, { color: tema.texto, borderColor: tema.cinza }]}
                         value={form.complemento}
                         onChangeText={(text) => handleChange('complemento', text)}
                     />
                     <View style={styles.viewBotaoEnviarPasso2}>
-                        <TouchableOpacity style={styles.botaoEnviarPasso2} onPress={() => setPasso(0)}>
-                            <Text style={styles.textoBotao}>Voltar</Text>
+                        <TouchableOpacity style={[styles.botaoEnviarPasso2, { backgroundColor: tema.laranja }]} onPress={() => setPasso(0)}>
+                            <Text style={[styles.textoBotao, { color: tema.textoBotao }]}>Voltar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botaoEnviarPasso2} onPress={handleSubmit}>
-                            <Text style={styles.textoBotao}>Confirmar</Text>
+                        <TouchableOpacity style={[styles.botaoEnviarPasso2, { backgroundColor: tema.azul }]} onPress={handleSubmit}>
+                            <Text style={[styles.textoBotao, { color: tema.textoBotao }]}>Confirmar</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
             )}
-
-            {/* Modal */}
+    
             <Modal
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
                 onRequestClose={handleCloseModal}
             >
-                <Pressable style={styles.modalContainer} onPress={handleCloseModal}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Sua conta entrou em análise</Text>
-                        <Text style={styles.modalMessage}>
+                <Pressable style={[styles.modalContainer, { backgroundColor: tema.modalFundo + 'cc' }]} onPress={handleCloseModal}>
+                    <View style={[styles.modalContent, { backgroundColor: tema.modalFundo }]}>
+                        <Text style={[styles.modalTitle, { color: tema.texto }]}>Sua conta entrou em análise</Text>
+                        <Text style={[styles.modalMessage, { color: tema.descricao }]}>
                             Estamos avaliando sua solicitação para transformar sua conta em uma conta institucional.
                             Entraremos em contato em breve com o resultado. Agradecemos pela confiança!
                         </Text>
                     </View>
                 </Pressable>
             </Modal>
-        </View >
+        </View>
     );
-}
+}    
