@@ -21,7 +21,7 @@ import { useTema } from '../../context/themeContext';
 export default function VirarInstituicao() {
     const [userId, setUserId] = useState(null);
     const [passo, setPasso] = useState(0);
-    const {tema} = useTema();
+    const { tema } = useTema();
     const [form, setForm] = useState({
         logradouro: '',
         num_logradouro: '',
@@ -36,7 +36,11 @@ export default function VirarInstituicao() {
         telefone: '',
     });
     const [modalVisible, setModalVisible] = useState(false); // Estado para o modal
+    const [modalJaSolicitada, setModalJaSolicitadaVisible] = useState(false);
+
     const navigation = useNavigation(); // Hook para navegação
+
+    
 
     useEffect(() => {
         const fetchUserId = async () => {
@@ -50,7 +54,32 @@ export default function VirarInstituicao() {
             }
         };
 
+        const verificarInstituicaoSolicitada = async () => {
+            try {
+                const id = await AsyncStorage.getItem('idUser');
+                const response = await axios.get(`http://${host}:8000/api/cursei/instituicao/verificarInstituicao/${id}`);
+                if (response.data.sucesso === true) {
+                    console.log('Instituição já solicitada.');
+                  //  Alert.alert(
+                  //      'Instituição já solicitada',
+                  //      'Você já solicitou seu cadastro como instituição. Por favor, aguarde enquanto analisamos seus dados.'
+                  // );
+
+                    setModalJaSolicitadaVisible(true);
+                }
+                else {
+                    console.log('Instituição ainda não solicitada.');
+                    setModalJaSolicitadaVisible(false);
+                }
+            } catch (error) {
+                console.log(error)
+
+            }
+        };
+
+
         fetchUserId();
+        verificarInstituicaoSolicitada();
     }, []);
 
     const handleChange = (field, value) => {
@@ -131,13 +160,14 @@ export default function VirarInstituicao() {
 
     const handleCloseModal = () => {
         setModalVisible(false);
+        setModalJaSolicitadaVisible(false);
         navigation.navigate('Configurações'); // Redireciona para a tela de configurações
     };
 
     return (
         <View style={[styles.container, { backgroundColor: tema.fundo }]}>
             <StatusBar barStyle={tema.nome === 'claro' ? 'dark-content' : 'light-content'} backgroundColor={tema.fundo} />
-    
+
             {passo === 0 && (
                 <View style={styles.formContainer}>
                     <View style={styles.tituloVirarInstituicao}>
@@ -151,11 +181,11 @@ export default function VirarInstituicao() {
                             Se torne uma instituição!
                         </Text>
                     </View>
-    
+
                     <Text style={[styles.textoVantagens, { color: tema.descricao }]}>
-                        Ao se tornar uma instituição, sua conta receberá vantagens exclusivas e receberá o selo de instituição no aplicativo.
+                        Ao se tornar uma instituição, sua conta receberá funcionalidades exclusivas e receberá o selo de instituição no aplicativo.
                     </Text>
-    
+
                     <Text style={[styles.tituloInputs, { color: tema.texto }]}>CNPJ</Text>
                     <MaskedTextInput
                         mask="99.999.999/9999-99"
@@ -192,13 +222,13 @@ export default function VirarInstituicao() {
                         value={form.documentos_representante}
                         onChangeText={(text) => handleChange('documentos_representante', text)}
                     />
-    
+
                     <TouchableOpacity style={[styles.botaoEnviar, { backgroundColor: tema.laranja }]} onPress={() => setPasso(1)}>
                         <Text style={[styles.textoBotao, { color: tema.textoBotao }]}>Próximo</Text>
                     </TouchableOpacity>
                 </View>
             )}
-    
+
             {passo === 1 && (
                 <ScrollView contentContainerStyle={styles.scrollContainer} style={styles.formContainer}>
                     <Text style={[styles.tituloInputs, { color: tema.texto }]}>CEP</Text>
@@ -258,7 +288,24 @@ export default function VirarInstituicao() {
                     </View>
                 </ScrollView>
             )}
-    
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalJaSolicitada}
+                onRequestClose={handleCloseModal}
+            >
+                <Pressable style={[styles.modalContainer, { backgroundColor: tema.modalFundo + 'cc' }]} onPress={handleCloseModal}>
+                    <View style={[styles.modalContent, { backgroundColor: tema.modalFundo }]}>
+                        <Text style={[styles.modalTitle, { color: tema.texto }]}>Sua conta já está em análise</Text>
+                        <Text style={[styles.modalMessage, { color: tema.descricao }]}>
+                            Você já solicitou o cadastro como conta institucional.
+                            Pedimos que aguarde enquanto analisamos seus dados. Entraremos em contato em breve com o resultado.
+                        </Text>
+                    </View>
+                </Pressable>
+            </Modal>
+
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -267,14 +314,19 @@ export default function VirarInstituicao() {
             >
                 <Pressable style={[styles.modalContainer, { backgroundColor: tema.modalFundo + 'cc' }]} onPress={handleCloseModal}>
                     <View style={[styles.modalContent, { backgroundColor: tema.modalFundo }]}>
-                        <Text style={[styles.modalTitle, { color: tema.texto }]}>Sua conta entrou em análise</Text>
+                        <Text style={[styles.modalTitle, { color: tema.texto }]}>Sua conta entrou em análise.</Text>
                         <Text style={[styles.modalMessage, { color: tema.descricao }]}>
                             Estamos avaliando sua solicitação para transformar sua conta em uma conta institucional.
+
+                        </Text>
+                        <Text style={[styles.modalMessage, { color: tema.descricao }]}>
                             Entraremos em contato em breve com o resultado. Agradecemos pela confiança!
                         </Text>
                     </View>
                 </Pressable>
             </Modal>
+
+
         </View>
     );
 }    
