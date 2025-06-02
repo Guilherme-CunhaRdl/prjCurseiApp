@@ -8,6 +8,7 @@ import ModalReportar from './modalReportar';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ModalPostagem from "../ModalPostagem";
 import ModalExcluir from './modalExcluir';
+import {useTema} from '../../context/themeContext'
 
 
 const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo }) => {
@@ -104,14 +105,14 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo }) => {
       default:
         break;
     }
-  };
-
+  }; 
+  const {tema} = useTema();
   return (
     <View style={styles.container}>
       <TouchableOpacity ref={buttonRef} onPress={openMenu} style={styles.button}>
-        <AntDesign name="ellipsis1" size={25} color="black" />
+        <AntDesign name="ellipsis1" size={25} color={tema.icone} />
       </TouchableOpacity>
-
+  
       {/* Menu */}
       <Modal
         transparent
@@ -120,14 +121,19 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo }) => {
         onRequestClose={() => setMenuVisible(false)}
       >
         <TouchableOpacity
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.2)' }]}
           activeOpacity={1}
           onPressOut={() => setMenuVisible(false)}
         >
           <View
             style={[
               styles.menuContainer,
-              { top: buttonPosition.y + 5, right: 0 }, // Alinha o menu à direita
+              {
+                top: buttonPosition.y + 5,
+                right: 0,
+                backgroundColor: tema.modalFundo,
+                borderColor: tema.cinza,
+              },
             ]}
           >
             {data.map((item) => (
@@ -136,16 +142,21 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo }) => {
                 style={styles.menuItem}
                 onPress={() => handleItemSelected(item)}
               >
-                  <Ionicons name={item.icon} size={20} color={item.cor} style={styles.itemIcon} />
-    
-                <Text style={[styles.itemText, { color: item.cor }]}>{item.label}</Text>
-
+                <Ionicons
+                  name={item.icon}
+                  size={20}
+                  color={item.cor || tema.icone}
+                  style={styles.itemIcon}
+                />
+                <Text style={[styles.itemText, { color: item.cor || tema.texto }]}>
+                  {item.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         </TouchableOpacity>
       </Modal>
-
+  
       {/* Modais */}
       <NaoInteressado
         visible={modalNaoInteressadoVisible}
@@ -171,21 +182,17 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo }) => {
         arroba={arroba}
         idPost={idPost}
         userPost={userPost}
-
       />
-          <ModalExcluir
+      <ModalExcluir
         visible={modalExcluirVisible}
         onClose={() => setModalExcluirVisible(false)}
         arroba={arroba}
         idPost={idPost}
-        
-
       />
-      <ModalPostagem ref={modalRef} tipo='editar' idPost={idPost}/>
-
+      <ModalPostagem ref={modalRef} tipo="editar" idPost={idPost} />
     </View>
   );
-};
+            };  
 
 export default Configuracoes;
 
