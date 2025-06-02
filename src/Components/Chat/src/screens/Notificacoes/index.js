@@ -10,13 +10,14 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Icon from "react-native-vector-icons/Feather";
 import host from '../../../../../global';
+import { useTema } from '../../../../../context/themeContext';
 
 
 export default function Notificacoes() {
   const [loading, setLoading] = useState(true);
   const [notificacoes, setNotificacoes] = useState({ recentes: [], antigas: [], muitoAntigas: [] });
   const [refreshing, setRefreshing] = useState(false); // Estado para o refresh
-
+  const {tema} = useTema();
   dayjs.extend(relativeTime);
   dayjs.locale('pt-br')
   async function buscarNotificacoes() {
@@ -84,50 +85,62 @@ export default function Notificacoes() {
   );
 
 
+  
   return (
+    <View style={{ flex: 1, backgroundColor: tema.fundo }}>
 
-
-    <View style={styles.container}>
-
-
-      <Appbar.Header style={{ backgroundColor: '#fff', elevation: 0 }}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title="Notificações" titleStyle={{ textAlign: 'center', fontWeight: 600 }} />
+      <Appbar.Header style={{ backgroundColor: tema.barra, elevation: 0 }}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} color={tema.icone} />
+        <Appbar.Content 
+          title="Notificações" 
+          titleStyle={{ textAlign: 'center', fontWeight: '600', color: tema.texto }} 
+        />
         <View style={{ width: 48 }} />
       </Appbar.Header>
 
-      {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", position: 'fixed', zIndex: 99, width: '100%', height: '100%', backgroundColor: 'transparency' }}>
-        <ActivityIndicator size="large" color="#3498db" />
-      </View>
-      ) :
+      {loading ? (
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: tema.fundo,
+          position: 'absolute',
+          zIndex: 99,
+          width: '100%',
+          height: '100%'
+        }}>
+          <ActivityIndicator size="large" color={tema.azul} />
+        </View>
+      ) : (
         <FlatList
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={recarregarNotificacoes}
-              colors={["#3498db"]}
-              tintColor="#3498db"
+              colors={[tema.azul]}
+              tintColor={tema.azul}
             />
           }
           ListHeaderComponent={
             <>
-              {notificacoes.recentes.length != 0 ?(
-                <Text style={styles.titulo}>Últimos 7 dias  </Text>
-              ):null}
+              {notificacoes.recentes.length !== 0 && (
+                <Text style={{ color: tema.texto, fontSize: 16, margin: 10 }}>Últimos 7 dias</Text>
+              )}
               {notificacoes.recentes.map(item => renderItem({ item }))}
-               {notificacoes.antigas.length != 0 ?(
-              <Text style={styles.titulo}>Últimos 30 dias</Text>
-               ):null}
+              
+              {notificacoes.antigas.length !== 0 && (
+                <Text style={{ color: tema.texto, fontSize: 16, margin: 10 }}>Últimos 30 dias</Text>
+              )}
               {notificacoes.antigas.map(item => renderItem({ item }))}
-               {notificacoes.muitoAntigas.length != 0 ?(
-              <Text style={styles.titulo}>Notificações Antigas</Text>
-               ):null}
+              
+              {notificacoes.muitoAntigas.length !== 0 && (
+                <Text style={{ color: tema.texto, fontSize: 16, margin: 10 }}>Notificações Antigas</Text>
+              )}
               {notificacoes.muitoAntigas.map(item => renderItem({ item }))}
             </>
           }
         />
-      }
-
+      )}
     </View>
   );
 }

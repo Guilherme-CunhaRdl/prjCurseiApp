@@ -213,12 +213,12 @@ export default function AddConversa({ route }) {
     }
   };
 
-  const selecionarFotoCanal = async () => {
-    const resultado = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
+    const selecionarFotoCanal = async () => {
+      const resultado = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
 
     if (!resultado.canceled) {
       const uri = resultado.assets[0].uri;
