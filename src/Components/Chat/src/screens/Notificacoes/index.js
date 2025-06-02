@@ -89,12 +89,9 @@ export default function Notificacoes() {
   return (
     <View style={{ flex: 1, backgroundColor: tema.fundo }}>
 
-      <Appbar.Header style={{ backgroundColor: tema.barra, elevation: 0 }}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} color={tema.icone} />
-        <Appbar.Content 
-          title="Notificações" 
-          titleStyle={{ textAlign: 'center', fontWeight: '600', color: tema.texto }} 
-        />
+      <Appbar.Header style={{ backgroundColor: '#fff', elevation: 0 }}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.Content title="Notificações" titleStyle={{ textAlign: 'center', fontWeight: 600 }} />
         <View style={{ width: 48 }} />
       </Appbar.Header>
 
