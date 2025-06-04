@@ -16,6 +16,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Pressable
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import * as Animatable from "react-native-animatable";
@@ -47,6 +48,12 @@ const ModalPostagem = forwardRef(
     const [repost_conteudo, setRepostConteudo] = useState("");
     const [editar, setEditar] = useState(false);
     const [imagemEdit, setImagemEdit] = useState(null)
+    const [instituicao, setInstituicao] = useState(false)
+    const [focoIcone, setFocoIcone] = useState('posts')
+
+
+
+    const alterarFoco = (icone) => setFocoIcone(icone)
     const abrirGaleria = async () => {
       const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissao.granted) {
@@ -91,7 +98,7 @@ const ModalPostagem = forwardRef(
       if (editar) {
         const editarPost = new FormData();
         if (imagem != imagemEdit) {
-          console.log(imagem,imagemEdit)
+          console.log(imagem, imagemEdit)
           if (imagem.startsWith("data:image")) {
             // Converter Base64 para Blob
             const response = await fetch(imagem);
@@ -120,29 +127,29 @@ const ModalPostagem = forwardRef(
             editarPost.append("img", file);
           }
         }
-          editarPost.append("descricaoPost", descPost);
+        editarPost.append("descricaoPost", descPost);
 
-          const idUser = await AsyncStorage.getItem("idUser");
-          url = `http://${host}:8000/api/cursei/postsUpdate/` + idPost;
-          
-          try {
-            const response = await axios.post(url, editarPost, {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            });
+        const idUser = await AsyncStorage.getItem("idUser");
+        url = `http://${host}:8000/api/cursei/postsUpdate/` + idPost;
 
-            fecharModal();
-            setDescPost('')
-            setImagem(null)
+        try {
+          const response = await axios.post(url, editarPost, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
 
-            // if(tela=='perfil'){
-            //   navigation.replace('user');
-            // }
-          } catch(error) {
-            console.log("erro ao fazer a postagem :",error);
-          }
-        
+          fecharModal();
+          setDescPost('')
+          setImagem(null)
+
+          // if(tela=='perfil'){
+          //   navigation.replace('user');
+          // }
+        } catch (error) {
+          console.log("erro ao fazer a postagem :", error);
+        }
+
       } else {
         const novoPost = new FormData();
         if (imagem !== null) {
@@ -181,7 +188,7 @@ const ModalPostagem = forwardRef(
 
         const idUser = await AsyncStorage.getItem("idUser");
         url = `http://${host}:8000/api/cursei/posts/` + idUser;
-         console.log(novoPost,url)
+        console.log(novoPost, url)
         try {
           const response = await axios.post(url, novoPost, {
             headers: {
@@ -191,7 +198,7 @@ const ModalPostagem = forwardRef(
           fecharModal();
           setDescPost('')
           setImagem(null)
-          
+
           // if(tela=='perfil'){
           //   navigation.replace('user');
           // }
@@ -207,10 +214,15 @@ const ModalPostagem = forwardRef(
         SetImgUser(imgUser1);
         const arroba = await AsyncStorage.getItem("arrobaUser");
         SetArrobaUser(arroba);
+        const idInst = await AsyncStorage.getItem("idInstituicao");
+        if (idInst != 0) {
+          setInstituicao(true)
+        }
+
       };
- 
+      console.log(focoIcone)
       carregarUsuario();
-    }, []);
+    }, [focoIcone]);
 
     const usuario = {
       foto: `http://${host}:8000/img/user/fotoPerfil/${imgUser}`,
@@ -221,9 +233,9 @@ const ModalPostagem = forwardRef(
       setModalVisivel(false);
     };
     async function abrirModal(id) {
- 
 
-      if (id && tipo != 'editar') { 
+
+      if (id && tipo != 'editar') {
         const idUser = await AsyncStorage.getItem("idUser");
         console.log(id)
         setRepost(true);
@@ -241,7 +253,7 @@ const ModalPostagem = forwardRef(
         } catch (error) {
           console.error("Erro ao carregar repost:", error);
         }
-      }else{
+      } else {
         setRepost(false)
       }
 
@@ -249,18 +261,18 @@ const ModalPostagem = forwardRef(
         const idUser = await AsyncStorage.getItem("idUser");
         const url = `http://${host}:8000/api/posts/4/${idUser}/1/0/${idPost}`;
         let response
-       try{
-         response = await axios.get(url);
-       }
-       catch(error){
-            console.error("Erro ao carregar post:", error,url);
-       }
+        try {
+          response = await axios.get(url);
+        }
+        catch (error) {
+          console.error("Erro ao carregar post:", error, url);
+        }
 
-        
+
         const data = response.data.data[0];
 
-        if(data.descricao_post){
-           setDescPost(data.descricao_post);
+        if (data.descricao_post) {
+          setDescPost(data.descricao_post);
         }
         setImagem(
           `http://${host}:8000/img/user/imgPosts/${data.conteudo_post}`
@@ -275,7 +287,7 @@ const ModalPostagem = forwardRef(
       abrirModal,
       fecharModal: () => setModalVisivel(false),
     }));
-    const {tema} = useTema();
+    const { tema } = useTema();
     return (
       <View style={{ flex: 0, backgroundColor: tema.fundo }}>
         {tipo === "post" && (
@@ -283,7 +295,7 @@ const ModalPostagem = forwardRef(
             <Image source={require('../../assets/LogoBranca.png')} style={{ width: 38, height: 37, resizeMode: 'contain' }} />
           </TouchableOpacity>
         )}
-    
+
         <Modal
           style={estilos.modalTelaCheia}
           animationType="slide"
@@ -302,90 +314,137 @@ const ModalPostagem = forwardRef(
                 <Text style={[estilos.botaoPublicar, { color: tema.azul }]}>Publicar</Text>
               </TouchableOpacity>
             </View>
-    
+
             {/* Corpo */}
-            <ScrollView style={estilos.corpo}>
-              <View style={estilos.usuario}>
-                <Image source={{ uri: usuario.foto }} style={estilos.avatar} />
-                <Text style={[estilos.nomeUsuario, { color: tema.texto }]}>@{usuario.username}</Text>
-              </View>
-    
-              <TextInput
-                placeholder="Digite o que aconteceu hoje..."
-                multiline
-                style={[estilos.campoTexto, { color: tema.texto }]}
-                placeholderTextColor={tema.descricao}
-                textAlignVertical="top"
-                value={descPost}
-                onChangeText={(text) => setDescPost(text)}
+       <ScrollView style={estilos.corpo}>
+  {instituicao && (
+    <View style={[estilos.barraContainer, { borderBottomColor: tema.barra }]}>
+      <Pressable
+        onPress={() => alterarFoco('posts')}
+        style={[
+          estilos.opcao,
+          focoIcone === 'posts' ? estilos.opcaoAtiva : estilos.opcaoInativa,
+        ]}
+      >
+        <Text style={{ width: 100, textAlign: 'center', fontSize: 15, fontWeight: '500', color: tema.iconeInativo }}>
+          Post
+        </Text>
+      </Pressable>
+
+      <Pressable
+        onPress={() => alterarFoco('eventos')}
+        style={[
+          estilos.opcao,
+          focoIcone === 'eventos' ? estilos.opcaoAtiva : estilos.opcaoInativa,
+        ]}
+      >
+        <Text style={{ width: 100, textAlign: 'center', fontSize: 15, fontWeight: '500', color: tema.iconeInativo }}>
+          Evento
+        </Text>
+      </Pressable>
+    </View>
+  )}
+
+  {focoIcone === 'posts' && (
+    <>
+      <View style={estilos.usuario}>
+        <Image source={{ uri: usuario.foto }} style={estilos.avatar} />
+        <Text style={[estilos.nomeUsuario, { color: tema.texto }]}>@{usuario.username}</Text>
+      </View>
+
+      <TextInput
+        placeholder="Digite o que aconteceu hoje..."
+        multiline
+        style={[estilos.campoTexto, { color: tema.texto }]}
+        placeholderTextColor={tema.descricao}
+        textAlignVertical="top"
+        value={descPost}
+        onChangeText={(text) => setDescPost(text)}
+      />
+
+      {repost && (
+        <View style={estilos.containerRepost}>
+          <View style={estilos.postHeader}>
+            <View style={{ flexDirection: "row", alignItems: "center", paddingInline: 10 }}>
+              <Image
+                source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${repost_img}` }}
+                style={estilos.fotoUserRepost}
               />
-    
-              {repost && (
-                <View style={estilos.containerRepost}>
-                  <View style={estilos.postHeader}>
-                    <View style={{ flexDirection: "row", alignItems: "center", paddingInline: 10 }}>
-                      <Image
-                        source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${repost_img}` }}
-                        style={estilos.fotoUserRepost}
-                      />
-                      <View style={{ paddingLeft: 10 }}>
-                        <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Text style={[estilos.institutionTextRepost, { color: tema.texto }]}>
-                            {repost_autor}
-                          </Text>
-                          <Text style={[estilos.horaPost, { color: tema.descricao }]}>·</Text>
-                          <Text style={[estilos.horaPost, { color: tema.descricao }]}>
-                            {formatarTempoInsercao(tempo_repostado)}
-                          </Text>
-                        </View>
-                        <Text style={[estilos.arrobaUser, { color: tema.descricao }]}>@{repost_arroba}</Text>
-                      </View>
-                    </View>
-                  </View>
-                  <Text style={[estilos.postTextRepost, { color: tema.texto }]}>{repost_descricao}</Text>
-                  {repost_conteudo && (
-                    <TouchableOpacity style={estilos.postContentRepost}>
-                      <Image
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          borderBottomLeftRadius: 8,
-                          borderBottomRightRadius: 8,
-                        }}
-                        source={{ uri: `http://${host}:8000/img/user/imgPosts/${repost_conteudo}` }}
-                      />
-                    </TouchableOpacity>
-                  )}
+              <View style={{ paddingLeft: 10 }}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text style={[estilos.institutionTextRepost, { color: tema.texto }]}>
+                    {repost_autor}
+                  </Text>
+                  <Text style={[estilos.horaPost, { color: tema.descricao }]}>·</Text>
+                  <Text style={[estilos.horaPost, { color: tema.descricao }]}>
+                    {formatarTempoInsercao(tempo_repostado)}
+                  </Text>
                 </View>
-              )}
-    
-              {!repost && imagem && (
-                <Image
-                  source={{ uri: imagem }}
-                  style={estilos.imagemPreview}
-                  resizeMode="cover"
-                />
-              )}
-            </ScrollView>
-    
-            {/* Rodapé */}
-            {!repost && (
-              <View style={estilos.rodape}>
-                <TouchableOpacity style={estilos.botaoAcao} onPress={abrirGaleria}>
-                  <Icon name="image" size={20} color={tema.azul} />
-                  <Text style={{ color: tema.texto }}>Galeria</Text>
-                </TouchableOpacity>
-    
-                <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
-                  <Icon name="camera" size={20} color={tema.azul} />
-                  <Text style={{ color: tema.texto }}>Foto</Text>
-                </TouchableOpacity>
+                <Text style={[estilos.arrobaUser, { color: tema.descricao }]}>@{repost_arroba}</Text>
               </View>
-            )}
+            </View>
+          </View>
+          <Text style={[estilos.postTextRepost, { color: tema.texto }]}>{repost_descricao}</Text>
+          {repost_conteudo && (
+            <TouchableOpacity style={estilos.postContentRepost}>
+              <Image
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  borderBottomLeftRadius: 8,
+                  borderBottomRightRadius: 8,
+                }}
+                source={{ uri: `http://${host}:8000/img/user/imgPosts/${repost_conteudo}` }}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {!repost && imagem && (
+        <Image
+          source={{ uri: imagem }}
+          style={estilos.imagemPreview}
+          resizeMode="cover"
+        />
+      )}
+    </>
+  )}
+</ScrollView>
+
+{/* Rodapé */}
+{(!repost && focoIcone === 'posts') && (
+  <View style={estilos.rodape}>
+    <TouchableOpacity style={estilos.botaoAcao} onPress={abrirGaleria}>
+      <Icon name="image" size={20} color={tema.azul} />
+      <Text style={{ color: tema.texto }}>Galeria</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
+      <Icon name="camera" size={20} color={tema.azul} />
+      <Text style={{ color: tema.texto }}>Foto</Text>
+    </TouchableOpacity>
+
+    {instituicao && (
+      <>
+        <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
+          <Icon name="link" size={20} color={tema.azul} />
+          <Text style={{ color: tema.texto }}>Link</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
+          <Icon name="calendar" size={20} color={tema.azul} />
+          <Text style={{ color: tema.texto }}>Agendar</Text>
+        </TouchableOpacity>
+      </>
+    )}
+  </View>
+)}
+
           </View>
         </Modal>
       </View>
-    );    
+    );
   }
 );
 
@@ -517,6 +576,53 @@ const estilos = StyleSheet.create({
     color: "#666",
     paddingLeft: 10,
     alignSelf: "center",
+  },
+  barraContainer: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-around',
+    paddingTop: 1,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000',
+    height: 50
+    // backgroundColor:'red'
+  },
+  opcao: {
+    paddingHorizontal: 9,
+    height: '100%',
+    width: '50%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  opcaoIcon: {
+    fontSize: 30,
+    color: colors.cinza,
+  },
+  opcaoAtiva: {
+    fontSize: 25,
+    color: colors.preto,
+    borderBottomWidth: 2,
+    borderColor: colors.azul,
+    height: '107%',
+
+
+  },
+  IconeAtivo: {
+    fontSize: 25,
+    color: colors.preto,
+    borderBottomWidth: 0,
+
+  },
+  opcaoInativo: {
+    fontSize: 25,
+    color: colors.cinza,
+    borderBottomWidth: 0,
+
+  },
+  iconeInativo: {
+    fontSize: 25,
+    color: colors.cinza,
   },
 });
 export default ModalPostagem;

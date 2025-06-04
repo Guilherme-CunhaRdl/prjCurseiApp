@@ -74,6 +74,9 @@ export default function Home() {
     if (!Response.data.resultado) {
       navigation.navigate('Interesse');
     }
+        const a = await AsyncStorage.getItem('idInstituicao');
+
+    console.log(a)
   }
 
   useEffect(() => {

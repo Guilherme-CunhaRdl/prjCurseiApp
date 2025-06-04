@@ -27,7 +27,7 @@ import Story from '../Screens/Story/index.js';
 import CriarStorys from '../Screens/Story/CriarStorys.js';
 import Destaques from '../Screens/Destaque/index.js';
 import CriarDestaques from '../Screens/Destaque/CriarDestaques.js';
-
+import Evento from '../Screens/evento'
 const Stack = createNativeStackNavigator();
 
 export default function StackRoutes() {
@@ -46,7 +46,7 @@ export default function StackRoutes() {
       }}
 
     >
-    
+
        <Stack.Screen
         name="Splash"
         component={Splash}
@@ -249,7 +249,14 @@ export default function StackRoutes() {
           headerTitleAlign: 'center',
         }}
       />
-
+      <Stack.Screen
+        name="Evento"
+        component={Evento}
+        options={() => ({
+          title: "Perfil",
+          headerShown: true,
+        })}
+      />
 
     </Stack.Navigator>
 
