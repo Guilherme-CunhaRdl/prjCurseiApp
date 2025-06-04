@@ -11,7 +11,7 @@ export default function Home() {
   const { tema } = useTema();
   const styles = getStyles(tema);
   async function abrirLink() {
-    link ='https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwjZr4m4vdaNAxWVrJUCHXktILsQFnoECBIQAQ&url=https%3A%2F%2Fwww.cps.sp.gov.br%2Fetec%2F&usg=AOvVaw2EW8I6Y_NyQx8pW6g-1fnQ&opi=89978449'
+    link ='https://www.youtube.com/watch?v=m-JSNTfpsjw'
     console.log(link)
     Linking.openURL(link)
   }

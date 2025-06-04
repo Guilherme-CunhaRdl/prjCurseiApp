@@ -30,11 +30,16 @@ import * as ImagePicker from "expo-image-picker";
 import dayjs from "dayjs";
 import host from "../global";
 import { useTema } from "../context/themeContext";
+import styles from "../Screens/VirarInstituicao/styles";
+
+
 const ModalPostagem = forwardRef(
   ({ idPostRepost, tipo, idPost, tela }, ref) => {
     const navigation = useNavigation();
     const [modalVisivel, setModalVisivel] = useState(false);
     const [imagem, setImagem] = useState(null);
+    const [capa, setCapa] = useState(null);
+
     const [imgUser, SetImgUser] = useState("");
     const [arroba, SetArrobaUser] = useState("");
     const [descPost, setDescPost] = useState("");
@@ -49,7 +54,10 @@ const ModalPostagem = forwardRef(
     const [editar, setEditar] = useState(false);
     const [imagemEdit, setImagemEdit] = useState(null)
     const [instituicao, setInstituicao] = useState(false)
-    const [focoIcone, setFocoIcone] = useState('posts')
+    const [focoIcone, setFocoIcone] = useState('')
+    const [nomeEvento, setNomeEvento] = useState('')
+    const [linkEvento, setLinkEvento] = useState('')
+    const [descEvento, setDescEvento] = useState('')
 
 
 
@@ -71,6 +79,7 @@ const ModalPostagem = forwardRef(
         setImagem(resultado.assets[0].uri);
       }
     };
+
 
     const tirarFoto = async () => {
       const permissao = await ImagePicker.requestCameraPermissionsAsync();
@@ -94,6 +103,13 @@ const ModalPostagem = forwardRef(
     };
     let lastTap = null;
     async function postar() {
+
+      if(focoIcone ==='eventos'){
+        console.log(nomeEvento,descEvento,linkEvento)
+      }else{
+
+      
+
 
       if (editar) {
         const editarPost = new FormData();
@@ -208,6 +224,7 @@ const ModalPostagem = forwardRef(
         }
       }
     }
+    }
     useEffect(() => {
       const carregarUsuario = async () => {
         const imgUser1 = await AsyncStorage.getItem("imgUser");
@@ -220,9 +237,9 @@ const ModalPostagem = forwardRef(
         }
 
       };
-      console.log(focoIcone)
+
       carregarUsuario();
-    }, [focoIcone]);
+    },);
 
     const usuario = {
       foto: `http://${host}:8000/img/user/fotoPerfil/${imgUser}`,
@@ -287,6 +304,27 @@ const ModalPostagem = forwardRef(
       abrirModal,
       fecharModal: () => setModalVisivel(false),
     }));
+
+    // parte dos eventos
+    const abrirGaleriaCapa = async () => {
+      const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissao.granted) {
+        alert("É necessário permissão para acessar a galeria!");
+        return;
+      }
+
+      const resultado = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 1,
+        aspect: [5, 4],
+      });
+
+      if (!resultado.canceled) {
+        setCapa(resultado.assets[0].uri);
+      }
+    };
+
     const { tema } = useTema();
     return (
       <View style={{ flex: 0, backgroundColor: tema.fundo }}>
@@ -316,130 +354,225 @@ const ModalPostagem = forwardRef(
             </View>
 
             {/* Corpo */}
-       <ScrollView style={estilos.corpo}>
-  {instituicao && (
-    <View style={[estilos.barraContainer, { borderBottomColor: tema.barra }]}>
-      <Pressable
-        onPress={() => alterarFoco('posts')}
-        style={[
-          estilos.opcao,
-          focoIcone === 'posts' ? estilos.opcaoAtiva : estilos.opcaoInativa,
-        ]}
-      >
-        <Text style={{ width: 100, textAlign: 'center', fontSize: 15, fontWeight: '500', color: tema.iconeInativo }}>
-          Post
-        </Text>
-      </Pressable>
+            <ScrollView style={estilos.corpo}>
+              {instituicao && (
+                <View style={[estilos.barraContainer, { borderBottomColor: tema.barra }]}>
+                  <Pressable
+                    onPress={() => alterarFoco('posts')}
+                    style={[
+                      estilos.opcao,
+                      focoIcone === 'posts' ? estilos.opcaoAtiva : estilos.opcaoInativa,
+                    ]}
+                  >
+                    <Text style={{ width: 100, textAlign: 'center', fontSize: 15, fontWeight: '500', color: tema.iconeInativo }}>
+                      Post
+                    </Text>
+                  </Pressable>
 
-      <Pressable
-        onPress={() => alterarFoco('eventos')}
-        style={[
-          estilos.opcao,
-          focoIcone === 'eventos' ? estilos.opcaoAtiva : estilos.opcaoInativa,
-        ]}
-      >
-        <Text style={{ width: 100, textAlign: 'center', fontSize: 15, fontWeight: '500', color: tema.iconeInativo }}>
-          Evento
-        </Text>
-      </Pressable>
-    </View>
-  )}
-
-  {focoIcone === 'posts' && (
-    <>
-      <View style={estilos.usuario}>
-        <Image source={{ uri: usuario.foto }} style={estilos.avatar} />
-        <Text style={[estilos.nomeUsuario, { color: tema.texto }]}>@{usuario.username}</Text>
-      </View>
-
-      <TextInput
-        placeholder="Digite o que aconteceu hoje..."
-        multiline
-        style={[estilos.campoTexto, { color: tema.texto }]}
-        placeholderTextColor={tema.descricao}
-        textAlignVertical="top"
-        value={descPost}
-        onChangeText={(text) => setDescPost(text)}
-      />
-
-      {repost && (
-        <View style={estilos.containerRepost}>
-          <View style={estilos.postHeader}>
-            <View style={{ flexDirection: "row", alignItems: "center", paddingInline: 10 }}>
-              <Image
-                source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${repost_img}` }}
-                style={estilos.fotoUserRepost}
-              />
-              <View style={{ paddingLeft: 10 }}>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text style={[estilos.institutionTextRepost, { color: tema.texto }]}>
-                    {repost_autor}
-                  </Text>
-                  <Text style={[estilos.horaPost, { color: tema.descricao }]}>·</Text>
-                  <Text style={[estilos.horaPost, { color: tema.descricao }]}>
-                    {formatarTempoInsercao(tempo_repostado)}
-                  </Text>
+                  <Pressable
+                    onPress={() => alterarFoco('eventos')}
+                    style={[
+                      estilos.opcao,
+                      focoIcone === 'eventos' ? estilos.opcaoAtiva : estilos.opcaoInativa,
+                    ]}
+                  >
+                    <Text style={{ width: 100, textAlign: 'center', fontSize: 15, fontWeight: '500', color: tema.iconeInativo }}>
+                      Evento
+                    </Text>
+                  </Pressable>
                 </View>
-                <Text style={[estilos.arrobaUser, { color: tema.descricao }]}>@{repost_arroba}</Text>
+              )}
+
+              {focoIcone === 'posts' && (
+                <View style={{ paddingInline: 17 }}>
+
+                  <View style={estilos.usuario}>
+                    <Image source={{ uri: usuario.foto }} style={estilos.avatar} />
+                    <Text style={[estilos.nomeUsuario, { color: tema.texto }]}>@{usuario.username}</Text>
+                  </View>
+
+                  <TextInput
+                    placeholder="Digite o que aconteceu hoje..."
+                    multiline
+                    style={[estilos.campoTexto, { color: tema.texto }]}
+                    placeholderTextColor={tema.descricao}
+                    textAlignVertical="top"
+                    value={descPost}
+                    onChangeText={(text) => setDescPost(text)}
+                  />
+
+                  {repost && (
+                    <View style={estilos.containerRepost}>
+                      <View style={estilos.postHeader}>
+                        <View style={{ flexDirection: "row", alignItems: "center", paddingInline: 10 }}>
+                          <Image
+                            source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${repost_img}` }}
+                            style={estilos.fotoUserRepost}
+                          />
+                          <View style={{ paddingLeft: 10 }}>
+                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                              <Text style={[estilos.institutionTextRepost, { color: tema.texto }]}>
+                                {repost_autor}
+                              </Text>
+                              <Text style={[estilos.horaPost, { color: tema.descricao }]}>·</Text>
+                              <Text style={[estilos.horaPost, { color: tema.descricao }]}>
+                                {formatarTempoInsercao(tempo_repostado)}
+                              </Text>
+                            </View>
+                            <Text style={[estilos.arrobaUser, { color: tema.descricao }]}>@{repost_arroba}</Text>
+                          </View>
+                        </View>
+                      </View>
+                      <Text style={[estilos.postTextRepost, { color: tema.texto }]}>{repost_descricao}</Text>
+                      {repost_conteudo && (
+                        <TouchableOpacity style={estilos.postContentRepost}>
+                          <Image
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              borderBottomLeftRadius: 8,
+                              borderBottomRightRadius: 8,
+                            }}
+                            source={{ uri: `http://${host}:8000/img/user/imgPosts/${repost_conteudo}` }}
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+
+                  {!repost && imagem && (
+                    <Image
+                      source={{ uri: imagem }}
+                      style={estilos.imagemPreview}
+                      resizeMode="cover"
+                    />
+                  )}
+                </View>
+              )}
+              {focoIcone === 'eventos' && (
+                <>
+                  <TouchableOpacity style={[estilos.contbanner, { backgroundColor: tema.azul }]} onPress={abrirGaleriaCapa}>
+                    <Image
+                      source={{ uri: capa }}
+                      style={estilos.banner}
+                    />
+                    <View style={estilos.textBanerr}>
+                      <Icon name="camera" size={40} color={'#fff'} />
+                      <Text style={{ fontWeight: 500, fontSize: 18, color: '#fff' }}>Adicionar Capa</Text>
+                    </View>
+                  </TouchableOpacity  >
+                  <View style={estilos.inputs}>
+                    <View>
+                      <Text style={[estilos.tituloInput, , { color: tema.iconeInativo }]}>Nome do evento</Text>
+                      <View style={[
+                        estilos.inputContainer
+                      ]}>
+
+                        <Image
+                          source={require('../../assets/curseiLogo.png')}
+                          style={[{ width: 27, height: 25, objectFit: 'contain', opacity: 0.5, marginRight: 10 }]}
+                        />
+                        <TextInput
+                          style={estilos.input}
+                          placeholder="Escolha o titulo do seu evento"
+                          value={nomeEvento}
+                          onChangeText={(text) => setNomeEvento(text)}
+                        />
+                      </View>
+                    </View>
+                    <View>
+                      <Text style={[estilos.tituloInput, , { color: tema.iconeInativo }]}>Inicio do evento</Text>
+                      <View style={[
+                        estilos.inputContainer
+                      ]}>
+
+                        <Ionicons style={estilos.inputIcon} name="calendar" />
+                        <TextInput
+                          style={estilos.input}
+                          placeholder="00/00/0000"
+                        />
+                      </View>
+                    </View>
+                    <View>
+                      <Text style={[estilos.tituloInput, , { color: tema.iconeInativo }]}>Termino do evento</Text>
+                      <View style={[
+                        estilos.inputContainer
+                      ]}>
+
+                        <Ionicons style={estilos.inputIcon} name="calendar" />
+                        <TextInput
+                          style={estilos.input}
+                          placeholder="00/00/0000"
+                        />
+                      </View>
+                    </View>
+                    <View>
+                      <Text style={[estilos.tituloInput, , { color: tema.iconeInativo }]}>Link do seu evento</Text>
+                      <View style={[
+                        estilos.inputContainer
+                      ]}>
+
+                        <Ionicons style={estilos.inputIcon} name="link" />
+                        <TextInput
+                          style={estilos.input}
+                          placeholder="Url"
+                          value={linkEvento}
+                          onChangeText={(text) => setLinkEvento(text)}
+                        />
+                      </View>
+                    </View>
+                    <View>
+                      <Text style={[estilos.tituloInput, , { color: tema.iconeInativo }]}>Descrição:</Text>
+                      <View style={[
+                        estilos.inputContainer, { height: 200, padding: 0, justifyContent: 'flex-start', alignItems: 'flex-start' }
+                      ]}>
+                        <TextInput
+                          placeholder="Descreva seu evento"
+                          multiline
+                          style={[estilos.campoTexto, { color: tema.texto, width: '100%', height: '100%', padding: 5 }]}
+                          placeholderTextColor={tema.descricao}
+                          textAlignVertical="top"
+                          value={descEvento}
+                          onChangeText={(text) => setDescEvento(text)}
+                        />
+
+                      </View>
+                    </View>
+                  </View>
+                </>
+              )}
+            </ScrollView>
+
+            {/* Rodapé */}
+            {(!repost && focoIcone === 'posts') && (
+              <View style={estilos.rodape}>
+                <TouchableOpacity style={estilos.botaoAcao} onPress={abrirGaleria}>
+                  <Icon name="image" size={20} color={tema.azul} />
+                  <Text style={{ color: tema.texto }}>Galeria</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
+                  <Icon name="camera" size={20} color={tema.azul} />
+                  <Text style={{ color: tema.texto }}>Foto</Text>
+                </TouchableOpacity>
+
+                {instituicao && (
+                  <>
+                    <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
+                      <Icon name="link" size={20} color={tema.azul} />
+                      <Text style={{ color: tema.texto }}>Link</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
+                      <Icon name="calendar" size={20} color={tema.azul} />
+                      <Text style={{ color: tema.texto }}>Agendar</Text>
+                    </TouchableOpacity>
+                  </>
+                )
+
+                }
               </View>
-            </View>
-          </View>
-          <Text style={[estilos.postTextRepost, { color: tema.texto }]}>{repost_descricao}</Text>
-          {repost_conteudo && (
-            <TouchableOpacity style={estilos.postContentRepost}>
-              <Image
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  borderBottomLeftRadius: 8,
-                  borderBottomRightRadius: 8,
-                }}
-                source={{ uri: `http://${host}:8000/img/user/imgPosts/${repost_conteudo}` }}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-
-      {!repost && imagem && (
-        <Image
-          source={{ uri: imagem }}
-          style={estilos.imagemPreview}
-          resizeMode="cover"
-        />
-      )}
-    </>
-  )}
-</ScrollView>
-
-{/* Rodapé */}
-{(!repost && focoIcone === 'posts') && (
-  <View style={estilos.rodape}>
-    <TouchableOpacity style={estilos.botaoAcao} onPress={abrirGaleria}>
-      <Icon name="image" size={20} color={tema.azul} />
-      <Text style={{ color: tema.texto }}>Galeria</Text>
-    </TouchableOpacity>
-
-    <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
-      <Icon name="camera" size={20} color={tema.azul} />
-      <Text style={{ color: tema.texto }}>Foto</Text>
-    </TouchableOpacity>
-
-    {instituicao && (
-      <>
-        <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
-          <Icon name="link" size={20} color={tema.azul} />
-          <Text style={{ color: tema.texto }}>Link</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
-          <Icon name="calendar" size={20} color={tema.azul} />
-          <Text style={{ color: tema.texto }}>Agendar</Text>
-        </TouchableOpacity>
-      </>
-    )}
-  </View>
-)}
+            )}
 
           </View>
         </Modal>
@@ -473,7 +606,7 @@ const estilos = StyleSheet.create({
   },
   corpo: {
     flex: 1,
-    paddingHorizontal: 16,
+
   },
   usuario: {
     flexDirection: "row",
@@ -623,6 +756,59 @@ const estilos = StyleSheet.create({
   iconeInativo: {
     fontSize: 25,
     color: colors.cinza,
+  },
+  contbanner: {
+    width: '100%',
+    height: 210,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  banner: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    zIndex: 99
+  },
+  textBanerr: {
+    opacity: 0.8,
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  inputs: {
+
+    paddingInline: 16,
+    marginTop: 10,
+    gap: 5
+  },
+  tituloInput: {
+    fontSize: 17,
+    fontWeight: 600
+  },
+  inputContainer: {
+    marginTop: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e1e1e1',
+    borderRadius: 8,
+    marginBottom: 16,
+    paddingLeft: 12,
+    height: 50,
+    backgroundColor: '#f8f8f8',
+
+  },
+  inputIcon: {
+    marginRight: 10,
+    fontSize: 20,
+    color: 'gray',
+  },
+  input: {
+    width: '100%',
+    height: 50,
+    color: '#333',
+    fontSize: 16,
+    outlineStyle: "none",        // Remove borda azul no focus
   },
 });
 export default ModalPostagem;

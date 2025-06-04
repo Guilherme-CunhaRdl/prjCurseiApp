@@ -12,6 +12,7 @@
     "@expo/metro-runtime": "~4.0.1",
     "@gorhom/portal": "^1.0.14",
     "@react-native-async-storage/async-storage": "^2.1.2",
+    "@react-native-community/datetimepicker": "^8.4.1",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/material-top-tabs": "^7.2.10",

@@ -327,7 +327,7 @@ export default function Perfil() {
                     <View style={styles.editarContainer}>
                         <View style={[styles.buttonContainer, { gap: 0 }]}>
                             <Pressable style={[styles.editarButton, { backgroundColor: tema.azul }]} onPress={() => setModalEditarVisivel(true)}>
-                                <Text style={[styles.textEditarPerf, { color: tema.texto }]}>Editar Perfil</Text>
+                                <Text style={[styles.textEditarPerf, { color: '#fff' }]}>Editar Perfil</Text>
                             </Pressable>
     
                             <Pressable onPress={() => navigation.navigate('Configurações')}>
