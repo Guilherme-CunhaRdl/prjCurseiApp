@@ -14,48 +14,78 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import bcrypt from 'bcryptjs';
 import host from '../../global';
 import { useTema } from "../../context/themeContext";
 
 export default function AlterarUser() {
-  const [userData, setUserData] = useState({ nome: '', email: '', arroba: '' });
+  const [userData, setUserData] = useState({ senha: '', email: '', arroba: '' });
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [modalNome, setModalNome] = useState(false);
+  const [modalSenha, setModalSenha] = useState(false);
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
   const [modalArroba, setModalArroba] = useState(false);
   const [modalEmail, setModalEmail] = useState(false);
 
-  const [nomeValue, setNomeValue] = useState('');
   const [arrobaValue, setArrobaValue] = useState('');
   const [emailValue, setEmailValue] = useState('');
 
   const { tema } = useTema();
-  console.log(tema)
 
   useEffect(() => {
+    console.log('[DEBUG] Iniciando busca de dados do usuário');
+  
     const fetchUserData = async () => {
       try {
-        const idUserSalvo = await AsyncStorage.getItem('idUser');
-        if (idUserSalvo) {
-          setUserId(idUserSalvo);
-          const response = await axios.get(`http://${host}:8000/api/cursei/user/${idUserSalvo}`);
-          const data = response.data.User;
-          setUserData({
-            nome: data.nome_user,
-            email: data.email_user,
-            arroba: data.arroba_user,
-          });
+        const id = await AsyncStorage.getItem('idUser');
+        console.log(`[DEBUG] ID do usuário local: ${id}`);
+  
+        if (!id) {
+          console.warn('[AVISO] Nenhum ID de usuário encontrado no storage');
+          return;
         }
+  
+        const url = `http://${host}:8000/api/cursei/user/puxar/${id}`;
+        console.log(`[DEBUG] Endpoint chamado: ${url}`);
+  
+        const response = await axios.get(url);
+        console.log('[DEBUG] Resposta completa da API:', JSON.stringify(response.data, null, 2));
+  
+        const userData = response.data.User;
+        if (!userData) {
+          throw new Error('Estrutura de dados inválida - user não encontrado na resposta');
+        }
+  
+        console.log('[DEBUG] Dados brutos recebidos:', {
+          nome_user: userData.nome_user,
+          senha_user: userData.senha_user,
+          email_user: userData.email_user,
+          arroba_user: userData.arroba_user
+        });
+  
+        setUserData({
+          senha: userData.senha_user,
+          email: userData.email_user,
+          arroba: userData.arroba_user,
+        });
+  
       } catch (error) {
-        console.error('Erro ao buscar dados do usuário:', error);
+        console.error('[ERRO] Detalhes do erro:', {
+          mensagem: error.message,
+          url: error.config?.url,
+          status: error.response?.status,
+          dados: error.response?.data
+        });
       } finally {
-        setTimeout(() => setLoading(false), 500);
+        setLoading(false);
       }
     };
+  
     fetchUserData();
-  }, []);
-
+  }, [host]);
+  
   const handleSave = async (field, value, setModal) => {
     try {
       const data = {};
@@ -65,6 +95,32 @@ export default function AlterarUser() {
       setModal(false);
     } catch (error) {
       console.error('Erro ao salvar:', error);
+    }
+  };
+
+  const handleSenhaUpdate = async () => {
+    try {
+      const response = await axios.get(`http://${host}:8000/api/cursei/user/${userId}`);
+      const hash = response.data.User.senha_user;
+
+      const senhaCorreta = await bcrypt.compare(senhaAtual, hash);
+
+      if (!senhaCorreta) {
+        alert('Senha atual incorreta.');
+        return;
+      }
+
+      await axios.post(`http://${host}:8000/api/cursei/user/${userId}`, {
+        senha_user: novaSenha,
+      });
+
+      alert('Senha alterada com sucesso!');
+      setModalSenha(false);
+      setSenhaAtual('');
+      setNovaSenha('');
+    } catch (error) {
+      console.error('Erro ao atualizar a senha:', error);
+      alert('Erro ao atualizar a senha. Tente novamente.');
     }
   };
 
@@ -78,16 +134,6 @@ export default function AlterarUser() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: tema.fundo }]}>
-      <TouchableOpacity
-        style={styles.item}
-        onPress={() => { setNomeValue(userData.nome); setModalNome(true); }}>
-        <View>
-          <Text style={[styles.label, { color: tema.texto }]}>Nome do usuário</Text>
-          <Text style={[styles.value, { color: tema.descricao }]}>{userData.nome}</Text>
-        </View>
-        <MaterialIcons name="keyboard-arrow-right" size={24} color={tema.descricao} />
-      </TouchableOpacity>
-
       <TouchableOpacity
         style={styles.item}
         onPress={() => { setArrobaValue(userData.arroba); setModalArroba(true); }}>
@@ -108,17 +154,17 @@ export default function AlterarUser() {
         <MaterialIcons name="keyboard-arrow-right" size={24} color={tema.descricao} />
       </TouchableOpacity>
 
-      {/* MODAIS */}
-      <UserModal
-        visible={modalNome}
-        title="Edite seu nome"
-        value={nomeValue}
-        onChange={setNomeValue}
-        onCancel={() => setModalNome(false)}
-        onSave={() => handleSave('nome_user', nomeValue, setModalNome)}
-        tema={tema}
-      />
+      <TouchableOpacity
+        style={styles.item}
+        onPress={() => setModalSenha(true)}>
+        <View>
+          <Text style={[styles.label, { color: tema.texto }]}>Senha</Text>
+          <Text style={[styles.value, { color: tema.descricao }]}>********</Text>
+        </View>
+        <MaterialIcons name="keyboard-arrow-right" size={24} color={tema.descricao} />
+      </TouchableOpacity>
 
+      {/* MODAIS */}
       <UserModal
         visible={modalArroba}
         title="Edite seu @"
@@ -138,6 +184,40 @@ export default function AlterarUser() {
         onSave={() => handleSave('email_user', emailValue, setModalEmail)}
         tema={tema}
       />
+
+      <Modal visible={modalSenha} animationType="slide" transparent onRequestClose={() => setModalSenha(false)}>
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalContent, { backgroundColor: tema.modalFundo }]}>
+            <Text style={[styles.modalTitle, { color: tema.texto }]}>Altere sua senha</Text>
+
+            <TextInput
+              style={[styles.input, { backgroundColor: tema.fundo, color: tema.texto }]}
+              placeholder="Senha atual"
+              placeholderTextColor={tema.descricao}
+              secureTextEntry
+              value={senhaAtual}
+              onChangeText={setSenhaAtual}
+            />
+            <TextInput
+              style={[styles.input, { backgroundColor: tema.fundo, color: tema.texto }]}
+              placeholder="Nova senha"
+              placeholderTextColor={tema.descricao}
+              secureTextEntry
+              value={novaSenha}
+              onChangeText={setNovaSenha}
+            />
+
+            <View style={styles.buttonRow}>
+              <Pressable style={[styles.botao, { backgroundColor: tema.azul }]} onPress={() => setModalSenha(false)}>
+                <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Cancelar</Text>
+              </Pressable>
+              <Pressable style={[styles.botao, { backgroundColor: tema.azul }]} onPress={handleSenhaUpdate}>
+                <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Salvar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -168,6 +248,7 @@ function UserModal({ visible, title, value, onChange, onCancel, onSave, tema }) 
     </Modal>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
