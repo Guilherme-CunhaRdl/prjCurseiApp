@@ -9,7 +9,9 @@ import {
   StyleSheet,
   Dimensions,
   Platform,
-  ActivityIndicator
+  ActivityIndicator,
+  RefreshControl
+
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
@@ -36,6 +38,7 @@ export default function Curtei() {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false); // Estado para o refresh
 
   // Buscar dados do banco
   const fetchCurteis = async () => {
@@ -130,6 +133,11 @@ export default function Curtei() {
       }
     }
   }, [isFocused]);
+
+  const recarrecarCurteis = () => {
+        fetchCurteis();
+
+  }
 
   const renderItem = ({ item, index }) => (
     <View style={styles.videoContainer}>
@@ -229,6 +237,7 @@ export default function Curtei() {
 
   return (
     <SafeAreaView style={styles.container}>
+      
       <FlatList
         ref={flatListRef}
         data={stories}
@@ -246,6 +255,13 @@ export default function Curtei() {
           offset: ITEM_HEIGHT * index,
           index,
         })}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={recarrecarCurteis}
+           
+          />
+        }
         overScrollMode="never"
       />
     </SafeAreaView>

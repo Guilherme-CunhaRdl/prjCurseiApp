@@ -361,7 +361,7 @@ export default function Mensagens({ route }) {
                 </View>
               ) : (
                 <View style={styles.listaVazia}>
-                  <Text style={{ color: tema.texto }}>
+                  <Text style={{ color: '#A7A7A7', textAlign: 'center', fontSize: 16, fontWeight: 'bold' }}>
                     Nenhuma conversa encontrada
                   </Text>
                 </View>
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   imagemIcon: {
-    fontSize: 15,
+    fontSize: 13,
   },
   listaMensagens: {
     paddingTop: 8,

@@ -247,7 +247,7 @@ const enviarMensagem = async () => {
           </TouchableOpacity>
 
           <View style={styles.headerInfo}>
-            <TouchableOpacity style={{ width: '100%', flexDirection: 'row' }} onPress={() => navigation.navigate('Perfil', {
+            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }} onPress={() => navigation.navigate('Perfil', {
               idUserPerfil: idEnviador,
               titulo: arrobaEnviador
             })}>

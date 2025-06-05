@@ -14,7 +14,6 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import bcrypt from 'bcryptjs';
 import host from '../../global';
 import { useTema } from "../../context/themeContext";
 
