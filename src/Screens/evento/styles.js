@@ -83,7 +83,7 @@ const getStyles = (tema) => StyleSheet.create({
   },
   data: {
     color:tema.descricao,
-    maxWidth:220,
+    maxWidth:210,
     fontWeight:500,
   },
   link: {

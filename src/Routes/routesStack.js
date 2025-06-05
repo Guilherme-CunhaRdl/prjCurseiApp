@@ -252,8 +252,8 @@ export default function StackRoutes() {
       <Stack.Screen
         name="Evento"
         component={Evento}
-        options={() => ({
-          title: "Perfil",
+           options={({ route }) => ({
+          title: `Evento de @${route.params?.titulo}` || "Perfil",
           headerShown: true,
         })}
       />

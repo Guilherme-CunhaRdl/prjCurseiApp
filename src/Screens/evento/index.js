@@ -1,43 +1,93 @@
-import React from 'react';
-import { SafeAreaView, StyleSheet, Text, View, StatusBar, Image, TouchableOpacity } from 'react-native';
+
+import { SafeAreaView, StyleSheet, Text, View, StatusBar, Image, TouchableOpacity,ActivityIndicator } from 'react-native';
 import host from '../../global';
 import { useTema } from '../../context/themeContext';
 import getStyles from './styles';
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView } from 'react-native';
 import { Linking } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
 
-export default function Home() {
+import axios from 'axios';
+
+export default function evento() {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const rotavalores = route.params;
+  const [capa, setCapa] = useState('');
+  const [titulo, setTitulo] = useState('');
+  const [imgPerfil, setImgPerfil] = useState('');
+  const [nome, setNome] = useState('');
+  const [arroba, setArroba] = useState('');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
+  const [link, setLink] = useState('');
+  const [descricao, setDescricao] = useState('');
+  const [idUser, setIdUser] = useState('');
+    const [loading, setLoading] = useState(true);
   const { tema } = useTema();
   const styles = getStyles(tema);
-  async function abrirLink() {
-    link ='https://www.youtube.com/watch?v=m-JSNTfpsjw'
-    console.log(link)
+
+  async function abrirLink(link) {
+  
     Linking.openURL(link)
   }
+  function converterParaDataBR(dataISO) {
+  if (!dataISO || dataISO.length !== 10) return ''; // validação básica
+
+  const [ano, mes, dia] = dataISO.split('-');
+  return `${dia}/${mes}/${ano}`;
+}
+  async function carregarEvento() {
+    const idEvento = rotavalores.eventoId;
+    response = await axios.get(`http://${host}:8000/api/cursei/evento/${idEvento}`)
+    setCapa(response.data[0].conteudo_post);
+    setTitulo(response.data[0].descricao_post);
+    setImgPerfil(response.data[0].img_user);
+    setNome(response.data[0].nome_user);
+    setArroba(response.data[0].arroba_user);
+    setDataInicio(converterParaDataBR(response.data[0].data_inicio_evento));
+    setDataFim(converterParaDataBR(response.data[0].data_fim_evento));
+    setLink(response.data[0].link_evento);
+    setDescricao(response.data[0].desc_evento);
+    setIdUser(response.data[0].idUser);
+    setLoading(false)
+    console.log(idEvento)
+  }
+  useEffect(() => {
+    carregarEvento()
+  }, []);
+  if (loading) {
+        return (
+            <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: tema.fundo }}>
+                <ActivityIndicator size="large" color={tema.azul} />
+            </SafeAreaView>
+        );
+    }
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#f2f2f2" />
       <ScrollView style={styles.content}>
         <View style={styles.contCapa}>
           <Image style={styles.capa}
-            source={{ uri: `https://i.ytimg.com/vi/8BAMAXmlTEc/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBPgkX4fJG375vA5g8WgeTCs5CyXA` }}
+            source={{ uri: `http://${host}:8000/img/user/imgPosts/${capa}` }}
           />
         </View>
         <View style={styles.infoCont}>
           <View style={styles.tituloCont}>
-            <Text style={styles.titulo}>Inscrições para os cursos da Etec de Guaianasses</Text>
+            <Text style={styles.titulo}>{titulo}</Text>
           </View>
           <View style={styles.infosCont}>
             <View style={styles.infosBox}>
               <View style={styles.imgPerfilCont}>
                 <Image style={styles.imgPerfil}
-                  source={{ uri: `https://i.ytimg.com/vi/8BAMAXmlTEc/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLBPgkX4fJG375vA5g8WgeTCs5CyXA` }}
+                  source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${imgPerfil}` }}
                 />
               </View>
               <View style={styles.IntsInfo}>
-                <Text style={styles.nome}>Ituau teste</Text>
-                <Text style={styles.arroba}>@viado</Text>
+                <Text style={styles.nome}>{nome}</Text>
+                <Text style={styles.arroba}>@{arroba}</Text>
               </View>
             </View>
             <View style={styles.infosBox}>
@@ -48,7 +98,7 @@ export default function Home() {
                 />
               </View>
               <View style={styles.IntsInfo}>
-                <Text style={styles.data}>20/05/2025 as 20:00 até 20/05/2025 as 20:00</Text>
+                <Text style={styles.data}>{dataInicio} até {dataFim}</Text>
               </View>
             </View>
             <View style={styles.infosBox}>
@@ -59,18 +109,18 @@ export default function Home() {
 
                 />
               </View>
-              <TouchableOpacity style={styles.IntsInfo} onPress={()=>abrirLink()}>
+              <TouchableOpacity style={styles.IntsInfo} onPress={() => abrirLink(link)}>
                 <Text style={styles.link}
                   numberOfLines={1}
-                  ellipsizeMode="tail">http://localhost/phpmyadmin/index.php?route=/sql&pos=0&db=bdcursei&table=tb_user</Text>
+                  ellipsizeMode="tail">{link}</Text>
               </TouchableOpacity>
             </View>
           </View>
           <View style={styles.buttonsCont}>
-            <TouchableOpacity style={styles.buttonAzul}>
+            {/* <TouchableOpacity style={styles.buttonAzul}>
               <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#fff' }}> Ativar lembrete</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.buttonVazio}>
+            </TouchableOpacity> */}
+            <TouchableOpacity style={[styles.buttonVazio, {width:'100%'}]} onPress={() => abrirLink(link)}>
               <Text style={{ fontSize: 15, fontWeight: 'bold', color: tema.azul }}> Saber mais</Text>
             </TouchableOpacity>
           </View>
@@ -80,11 +130,8 @@ export default function Home() {
             Mais informações
           </Text>
           <Text style={styles.desc}>
-            🎓 Inscrições Abertas para a ETEC!
-
-            Chegou a hora de dar o primeiro passo rumo ao seu futuro! As inscrições para os cursos técnicos da ETEC já estão abertas. São diversas opções em áreas como TI, Administração, Saúde, Design e muito mais. Não perca essa oportunidade!
-🗓️ Inscreva-se até 24 de junho
-                      </Text>
+              {descricao}
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -31,6 +31,7 @@ import dayjs from "dayjs";
 import host from "../global";
 import { useTema } from "../context/themeContext";
 import styles from "../Screens/VirarInstituicao/styles";
+import { TextInputMask } from 'react-native-masked-text';
 
 
 const ModalPostagem = forwardRef(
@@ -54,10 +55,15 @@ const ModalPostagem = forwardRef(
     const [editar, setEditar] = useState(false);
     const [imagemEdit, setImagemEdit] = useState(null)
     const [instituicao, setInstituicao] = useState(false)
-    const [focoIcone, setFocoIcone] = useState('')
+    const [focoIcone, setFocoIcone] = useState('posts')
     const [nomeEvento, setNomeEvento] = useState('')
     const [linkEvento, setLinkEvento] = useState('')
     const [descEvento, setDescEvento] = useState('')
+    const [dataInicio, setDataInicio] = useState('')
+    const [dataFim, setDataFim] = useState('')
+    const [prelink, setPrelink] = useState('')
+    const [linkPost, setlinkPost] = useState('')
+    const [modalLink, setModalLink] = useState(false)
 
 
 
@@ -104,126 +110,187 @@ const ModalPostagem = forwardRef(
     let lastTap = null;
     async function postar() {
 
-      if(focoIcone ==='eventos'){
-        console.log(nomeEvento,descEvento,linkEvento)
-      }else{
-
-      
-
-
-      if (editar) {
-        const editarPost = new FormData();
-        if (imagem != imagemEdit) {
-          console.log(imagem, imagemEdit)
-          if (imagem.startsWith("data:image")) {
-            // Converter Base64 para Blob
-            const response = await fetch(imagem);
-            const blob = await response.blob();
-            // Gerar um nome único para o arquivo
-            const filename = `image_${Date.now()}.jpg`;
-            // Criar um arquivo a partir do Blob
-            const file = new File([blob], filename, { type: blob.type });
-            // Adicionar o arquivo ao FormData
-            editarPost.append("img", file);
-          } else {
-            // Se não for Base64, assumir que é uma URI local
-            const localUri = imagem;
-            const filename = localUri.split("/").pop(); // Extrair o nome do arquivo da URI
-            const match = /\.(\w+)$/.exec(filename); // Extrair o tipo da imagem
-            const type = match ? `image/${match[1]}` : "image/jpeg"; // Definir o tipo, fallback para "image/jpeg"
-
-            // Criar o objeto de arquivo com a URI local
-            const file = {
-              uri: localUri,
-              type: type,
-              name: filename,
-            };
-
-            // Adicionar o arquivo ao FormData
-            editarPost.append("img", file);
-          }
-        }
-        editarPost.append("descricaoPost", descPost);
-
+      if (focoIcone === 'eventos') {
         const idUser = await AsyncStorage.getItem("idUser");
-        url = `http://${host}:8000/api/cursei/postsUpdate/` + idPost;
+        const url = `http://${host}:8000/api/cursei/evento/${idUser}`;
+
+        const evento = new FormData();
+
+
+        if (capa.startsWith("data:image")) {
+          // Converter Base64 para Blob
+          const response = await fetch(capa);
+          const blob = await response.blob();
+          // Gerar um nome único para o arquivo
+          const filename = `image_${Date.now()}.jpg`;
+          // Criar um arquivo a partir do Blob
+          const file = new File([blob], filename, { type: blob.type });
+          // Adicionar o arquivo ao FormData
+          evento.append("img", file);
+        } else {
+          // Se não for Base64, assumir que é uma URI local
+          const localUri = capa;
+          const filename = localUri.split("/").pop(); // Extrair o nome do arquivo da URI
+          const match = /\.(\w+)$/.exec(filename); // Extrair o tipo da imagem
+          const type = match ? `image/${match[1]}` : "image/jpeg"; // Definir o tipo, fallback para "image/jpeg"
+
+          // Criar o objeto de arquivo com a URI local
+          const file = {
+            uri: localUri,
+            type: type,
+            name: filename,
+          };
+
+          // Adicionar o arquivo ao FormData
+          evento.append("img", file);
+        }
+        evento.append("descEvento", descEvento);
+        evento.append("tituloEvento", nomeEvento);
+        evento.append("link", linkEvento);
+        evento.append("inicio", converterData(dataInicio));
+        evento.append("fim", converterData(dataFim));
+        setFocoIcone('posts')
+        fecharModal();
+
 
         try {
-          const response = await axios.post(url, editarPost, {
+          const response = await axios.post(url, evento, {
             headers: {
               "Content-Type": "multipart/form-data",
             },
           });
 
-          fecharModal();
-          setDescPost('')
-          setImagem(null)
-
-          // if(tela=='perfil'){
-          //   navigation.replace('user');
-          // }
         } catch (error) {
-          console.log("erro ao fazer a postagem :", error);
-        }
+          alert('ERRO')
 
+        }
+        setCapa(null)
+        setDataFim('')
+        setDataInicio('')
+        setLinkEvento('')
+        setNomeEvento('')
+        print(evento)
       } else {
-        const novoPost = new FormData();
-        if (imagem !== null) {
-          if (imagem.startsWith("data:image")) {
-            // Converter Base64 para Blob
-            const response = await fetch(imagem);
-            const blob = await response.blob();
-            // Gerar um nome único para o arquivo
-            const filename = `image_${Date.now()}.jpg`;
-            // Criar um arquivo a partir do Blob
-            const file = new File([blob], filename, { type: blob.type });
-            // Adicionar o arquivo ao FormData
-            novoPost.append("img", file);
-          } else {
-            // Se não for Base64, assumir que é uma URI local
-            const localUri = imagem;
-            const filename = localUri.split("/").pop(); // Extrair o nome do arquivo da URI
-            const match = /\.(\w+)$/.exec(filename); // Extrair o tipo da imagem
-            const type = match ? `image/${match[1]}` : "image/jpeg"; // Definir o tipo, fallback para "image/jpeg"
 
-            // Criar o objeto de arquivo com a URI local
-            const file = {
-              uri: localUri,
-              type: type,
-              name: filename,
-            };
 
-            // Adicionar o arquivo ao FormData
-            novoPost.append("img", file);
+
+
+        if (editar) {
+          const editarPost = new FormData();
+          if (imagem != imagemEdit) {
+            console.log(imagem, imagemEdit)
+            if (imagem.startsWith("data:image")) {
+              // Converter Base64 para Blob
+              const response = await fetch(imagem);
+              const blob = await response.blob();
+              // Gerar um nome único para o arquivo
+              const filename = `image_${Date.now()}.jpg`;
+              // Criar um arquivo a partir do Blob
+              const file = new File([blob], filename, { type: blob.type });
+              // Adicionar o arquivo ao FormData
+              editarPost.append("img", file);
+            } else {
+              // Se não for Base64, assumir que é uma URI local
+              const localUri = imagem;
+              const filename = localUri.split("/").pop(); // Extrair o nome do arquivo da URI
+              const match = /\.(\w+)$/.exec(filename); // Extrair o tipo da imagem
+              const type = match ? `image/${match[1]}` : "image/jpeg"; // Definir o tipo, fallback para "image/jpeg"
+
+              // Criar o objeto de arquivo com a URI local
+              const file = {
+                uri: localUri,
+                type: type,
+                name: filename,
+              };
+
+              // Adicionar o arquivo ao FormData
+              editarPost.append("img", file);
+            }
           }
-        }
-        if (repost) {
-          novoPost.append("repost", idrepost);
-        }
-        novoPost.append("descricaoPost", descPost);
+          editarPost.append("descricaoPost", descPost);
 
-        const idUser = await AsyncStorage.getItem("idUser");
-        url = `http://${host}:8000/api/cursei/posts/` + idUser;
-        console.log(novoPost, url)
-        try {
-          const response = await axios.post(url, novoPost, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-          fecharModal();
-          setDescPost('')
-          setImagem(null)
+          const idUser = await AsyncStorage.getItem("idUser");
+          url = `http://${host}:8000/api/cursei/postsUpdate/` + idPost;
 
-          // if(tela=='perfil'){
-          //   navigation.replace('user');
-          // }
-        } catch {
-          console.log("erro ao fazer a postagem");
-          console.log(novoPost)
+          try {
+            const response = await axios.post(url, editarPost, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
+
+            fecharModal();
+            setDescPost('')
+            setImagem(null)
+
+            // if(tela=='perfil'){
+            //   navigation.replace('user');
+            // }
+          } catch (error) {
+            console.log("erro ao fazer a postagem :", error);
+          }
+
+        } else {
+          const novoPost = new FormData();
+          if (imagem !== null) {
+            if (imagem.startsWith("data:image")) {
+              // Converter Base64 para Blob
+              const response = await fetch(imagem);
+              const blob = await response.blob();
+              // Gerar um nome único para o arquivo
+              const filename = `image_${Date.now()}.jpg`;
+              // Criar um arquivo a partir do Blob
+              const file = new File([blob], filename, { type: blob.type });
+              // Adicionar o arquivo ao FormData
+              novoPost.append("img", file);
+            } else {
+              // Se não for Base64, assumir que é uma URI local
+              const localUri = imagem;
+              const filename = localUri.split("/").pop(); // Extrair o nome do arquivo da URI
+              const match = /\.(\w+)$/.exec(filename); // Extrair o tipo da imagem
+              const type = match ? `image/${match[1]}` : "image/jpeg"; // Definir o tipo, fallback para "image/jpeg"
+
+              // Criar o objeto de arquivo com a URI local
+              const file = {
+                uri: localUri,
+                type: type,
+                name: filename,
+              };
+
+              // Adicionar o arquivo ao FormData
+              novoPost.append("img", file);
+            }
+          }
+          if (repost) {
+            novoPost.append("repost", idrepost);
+          }
+          if (linkPost != ''){
+            novoPost.append("link",linkPost)
+          }
+          novoPost.append("descricaoPost", descPost);
+
+          const idUser = await AsyncStorage.getItem("idUser");
+          url = `http://${host}:8000/api/cursei/posts/` + idUser;
+          console.log(novoPost, url)
+          try {
+            const response = await axios.post(url, novoPost, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
+            fecharModal();
+            setDescPost('')
+            setImagem(null)
+
+            // if(tela=='perfil'){
+            //   navigation.replace('user');
+            // }
+          } catch {
+            console.log("erro ao fazer a postagem");
+            console.log(novoPost)
+          }
         }
       }
-    }
     }
     useEffect(() => {
       const carregarUsuario = async () => {
@@ -246,15 +313,33 @@ const ModalPostagem = forwardRef(
       username: arroba || "você",
     };
 
+    function salvarLink(){
+      setlinkPost(prelink)
+      fecharModalLink()
+      
+    }
+  const fecharModalLink = () => {
+    setModalLink(false)
+  }
     const fecharModal = () => {
+     setCapa(null)
+        setDataFim('')
+        setDataInicio('')
+        setLinkEvento('')
+        setNomeEvento('')
+      setDescPost('')
+      setImagem(null)
+      setFocoIcone('posts')
+      
       setModalVisivel(false);
+
     };
     async function abrirModal(id) {
 
 
       if (id && tipo != 'editar') {
         const idUser = await AsyncStorage.getItem("idUser");
-        console.log(id)
+
         setRepost(true);
         setIdepost(id)
         const url = `http://${host}:8000/api/posts/4/${idUser}/1/0/${id}`;
@@ -324,6 +409,20 @@ const ModalPostagem = forwardRef(
         setCapa(resultado.assets[0].uri);
       }
     };
+    function converterData(dataBR) {
+      // dataBR no formato "DD/MM/YY" (ex: "31/12/24")
+      const partes = dataBR.split('/'); // ["31", "12", "24"]
+
+      if (partes.length !== 3) return null;
+
+      let [dia, mes, ano] = partes;
+
+      // Ajusta ano para 4 dígitos (ex: "24" vira "2024", "00" vira "2000")
+      ano = ano.length === 2 ? '20' + ano : ano;
+
+      // Retorna no formato "YYYY-MM-DD"
+      return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+    }
 
     const { tema } = useTema();
     return (
@@ -487,9 +586,15 @@ const ModalPostagem = forwardRef(
                       ]}>
 
                         <Ionicons style={estilos.inputIcon} name="calendar" />
-                        <TextInput
-                          style={estilos.input}
+                        <TextInputMask
+                          type={'datetime'}
+                          options={{
+                            format: 'DD/MM/YYYY'
+                          }}
+                          value={dataInicio}
+                          onChangeText={setDataInicio}
                           placeholder="00/00/0000"
+                          style={estilos.input}
                         />
                       </View>
                     </View>
@@ -500,9 +605,15 @@ const ModalPostagem = forwardRef(
                       ]}>
 
                         <Ionicons style={estilos.inputIcon} name="calendar" />
-                        <TextInput
-                          style={estilos.input}
+                        <TextInputMask
+                          type={'datetime'}
+                          options={{
+                            format: 'DD/MM/YYYY'
+                          }}
+                          value={dataFim}
+                          onChangeText={setDataFim}
                           placeholder="00/00/0000"
+                          style={estilos.input}
                         />
                       </View>
                     </View>
@@ -558,15 +669,18 @@ const ModalPostagem = forwardRef(
 
                 {instituicao && (
                   <>
-                    <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
+                  {imagem?(
+                    
+                    <TouchableOpacity style={estilos.botaoAcao} onPress={() => setModalLink(true)}>
                       <Icon name="link" size={20} color={tema.azul} />
                       <Text style={{ color: tema.texto }}>Link</Text>
                     </TouchableOpacity>
+                  ):null}
 
-                    <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
+                    {/* <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
                       <Icon name="calendar" size={20} color={tema.azul} />
                       <Text style={{ color: tema.texto }}>Agendar</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                   </>
                 )
 
@@ -574,6 +688,27 @@ const ModalPostagem = forwardRef(
               </View>
             )}
 
+          </View>
+        </Modal>
+        <Modal 
+         style={estilos.modalTelaCheia}
+          animationType="slide"
+          transparent={true}
+          visible={modalLink}
+           onRequestClose={fecharModalLink}
+
+        >
+          <View style = {{backgroundColor:'rgba(0, 0, 0, 0.5)',flex:1,alignItems:'center',justifyContent:'center'}} onPress={fecharModalLink}>
+            <View style= {{backgroundColor:tema.modalFundo,height:170,width:'90%', alignItems:'center',borderRadius:5,justifyContent:'space-between',paddingBlock:10}}>
+              <Text style ={{color:tema.descricao, fontSize:21,fontWeight:500}}>Adicionar link no post</Text>
+               <TextInput
+                          style={[estilos.input, {backgroundColor:'#e0e0e0',borderRadius:5,height:40,width:'90%',paddingInline:15,color:"#666"}]}
+                          placeholder="Url"
+                          value={prelink}
+                          onChangeText={(text) => setPrelink(text)}
+                        />
+                        <TouchableOpacity onPress={salvarLink} style={{backgroundColor:tema.azul,width:'55%',height:35,alignItems:'center',justifyContent:'center',borderRadius:5}}><Text style={{fontWeight:'bold',fontSize:15,color:'#fff'}}>Adicionar</Text></TouchableOpacity>
+            </View>
           </View>
         </Modal>
       </View>
