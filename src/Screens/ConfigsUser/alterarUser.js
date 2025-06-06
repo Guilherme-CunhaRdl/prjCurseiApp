@@ -32,59 +32,22 @@ export default function AlterarUser() {
   const [emailValue, setEmailValue] = useState('');
 
   const { tema } = useTema();
-
   useEffect(() => {
-    console.log('[DEBUG] Iniciando busca de dados do usuário');
-  
-    const fetchUserData = async () => {
-      try {
+        
+    const carregarUsuario = async () => {
         const id = await AsyncStorage.getItem('idUser');
-        console.log(`[DEBUG] ID do usuário local: ${id}`);
-  
-        if (!id) {
-          console.warn('[AVISO] Nenhum ID de usuário encontrado no storage');
-          return;
-        }
-  
-        const url = `http://${host}:8000/api/cursei/user/puxar/${id}`;
-        console.log(`[DEBUG] Endpoint chamado: ${url}`);
-  
-        const response = await axios.get(url);
-        console.log('[DEBUG] Resposta completa da API:', JSON.stringify(response.data, null, 2));
-  
-        const userData = response.data.User;
-        if (!userData) {
-          throw new Error('Estrutura de dados inválida - user não encontrado na resposta');
-        }
-  
-        console.log('[DEBUG] Dados brutos recebidos:', {
-          nome_user: userData.nome_user,
-          senha_user: userData.senha_user,
-          email_user: userData.email_user,
-          arroba_user: userData.arroba_user
-        });
-  
-        setUserData({
-          senha: userData.senha_user,
-          email: userData.email_user,
-          arroba: userData.arroba_user,
-        });
-  
-      } catch (error) {
-        console.error('[ERRO] Detalhes do erro:', {
-          mensagem: error.message,
-          url: error.config?.url,
-          status: error.response?.status,
-          dados: error.response?.data
-        });
-      } finally {
-        setLoading(false);
+      try {
+        const response = await axios.post(`http://${host}:8000/api/user/selecionarUser/${id}`);
+        setUsuario(response.data.User);
+        const usuario = response.data.User;
+        console.log(usuario)
+      } catch (erro) {
+        console.error('Erro ao carregar usuário:', erro);
       }
     };
-  
-    fetchUserData();
-  }, [host]);
-  
+
+    carregarUsuario();
+  }, []);
   const handleSave = async (field, value, setModal) => {
     try {
       const data = {};
