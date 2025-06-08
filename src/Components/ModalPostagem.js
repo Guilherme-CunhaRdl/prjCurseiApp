@@ -40,6 +40,7 @@ const ModalPostagem = forwardRef(
     const [modalVisivel, setModalVisivel] = useState(false);
     const [imagem, setImagem] = useState(null);
     const [capa, setCapa] = useState(null);
+    const [capaEdit, setCapaEdit] = useState(null);
 
     const [imgUser, SetImgUser] = useState("");
     const [arroba, SetArrobaUser] = useState("");
@@ -64,7 +65,7 @@ const ModalPostagem = forwardRef(
     const [prelink, setPrelink] = useState('')
     const [linkPost, setlinkPost] = useState('')
     const [modalLink, setModalLink] = useState(false)
-
+    const [editEvento, setEditEvento] = useState(false)
 
 
     const alterarFoco = (icone) => setFocoIcone(icone)
@@ -110,7 +111,7 @@ const ModalPostagem = forwardRef(
     let lastTap = null;
     async function postar() {
 
-      if (focoIcone === 'eventos') {
+      if (focoIcone === 'eventos' && !editEvento) {
         const idUser = await AsyncStorage.getItem("idUser");
         const url = `http://${host}:8000/api/cursei/evento/${idUser}`;
 
@@ -208,7 +209,9 @@ const ModalPostagem = forwardRef(
             }
           }
           editarPost.append("descricaoPost", descPost);
-
+          if (linkPost != '') {
+            editarPost.append("link", linkPost)
+          }
           const idUser = await AsyncStorage.getItem("idUser");
           url = `http://${host}:8000/api/cursei/postsUpdate/` + idPost;
 
@@ -229,6 +232,66 @@ const ModalPostagem = forwardRef(
           } catch (error) {
             console.log("erro ao fazer a postagem :", error);
           }
+        } else if (editEvento) {
+          const editarEvento = new FormData();
+          if (capa != capaEdit) {
+            console.log(capa, capaEdit)
+            if (capa.startsWith("data:image")) {
+              // Converter Base64 para Blob
+              const response = await fetch(capa);
+              const blob = await response.blob();
+              // Gerar um nome único para o arquivo
+              const filename = `image_${Date.now()}.jpg`;
+              // Criar um arquivo a partir do Blob
+              const file = new File([blob], filename, { type: blob.type });
+              // Adicionar o arquivo ao FormData
+              editarEvento.append("img", file);
+            } else {
+              // Se não for Base64, assumir que é uma URI local
+              const localUri = capa;
+              const filename = localUri.split("/").pop(); // Extrair o nome do arquivo da URI
+              const match = /\.(\w+)$/.exec(filename); // Extrair o tipo da imagem
+              const type = match ? `image/${match[1]}` : "image/jpeg"; // Definir o tipo, fallback para "image/jpeg"
+
+              // Criar o objeto de arquivo com a URI local
+              const file = {
+                uri: localUri,
+                type: type,
+                name: filename,
+              };
+
+              // Adicionar o arquivo ao FormData
+              editarEvento.append("img", file);
+            }
+          }
+          editarEvento.append("descEvento", descEvento);
+          editarEvento.append("tituloEvento", nomeEvento);
+          editarEvento.append("link", linkEvento);
+          editarEvento.append("inicio", converterData(dataInicio));
+          editarEvento.append("fim", converterData(dataFim));
+          editarEvento.append('idEvento', idPost)
+
+
+          url = `http://${host}:8000/api/cursei/eventoUpdate`;
+
+          try {
+            const response = await axios.post(url, editarEvento, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
+
+            fecharModal();
+            setDescPost('')
+            setImagem(null)
+
+            // if(tela=='perfil'){
+            //   navigation.replace('user');
+            // }
+          } catch (error) {
+            console.log("erro ao fazer a postagem :", error);
+          }
+
 
         } else {
           const novoPost = new FormData();
@@ -264,8 +327,8 @@ const ModalPostagem = forwardRef(
           if (repost) {
             novoPost.append("repost", idrepost);
           }
-          if (linkPost != ''){
-            novoPost.append("link",linkPost)
+          if (linkPost != '') {
+            novoPost.append("link", linkPost)
           }
           novoPost.append("descricaoPost", descPost);
 
@@ -313,24 +376,24 @@ const ModalPostagem = forwardRef(
       username: arroba || "você",
     };
 
-    function salvarLink(){
+    function salvarLink() {
       setlinkPost(prelink)
       fecharModalLink()
-      
+
     }
-  const fecharModalLink = () => {
-    setModalLink(false)
-  }
+    const fecharModalLink = () => {
+      setModalLink(false)
+    }
     const fecharModal = () => {
-     setCapa(null)
-        setDataFim('')
-        setDataInicio('')
-        setLinkEvento('')
-        setNomeEvento('')
+      setCapa(null)
+      setDataFim('')
+      setDataInicio('')
+      setLinkEvento('')
+      setNomeEvento('')
       setDescPost('')
       setImagem(null)
       setFocoIcone('posts')
-      
+
       setModalVisivel(false);
 
     };
@@ -352,6 +415,7 @@ const ModalPostagem = forwardRef(
           setRepostArroba(data.arroba_user);
           setRepostDescricao(data.descricao_post);
           setRepostConteudo(data.conteudo_post);
+          
         } catch (error) {
           console.error("Erro ao carregar repost:", error);
         }
@@ -381,6 +445,21 @@ const ModalPostagem = forwardRef(
         );
         setImagemEdit(`http://${host}:8000/img/user/imgPosts/${data.conteudo_post}`)
         setEditar(true)
+        setPrelink(data.link_post)
+      } if (tipo == "editaEvento") {
+        setEditEvento(true)
+        setFocoIcone('eventos')
+
+        response = await axios.get(`http://${host}:8000/api/cursei/evento/${idPost}`)
+        setCapa(`http://${host}:8000/img/user/imgPosts/${response.data[0].conteudo_post}`);
+        setCapaEdit(`http://${host}:8000/img/user/imgPosts/${response.data[0].conteudo_post}`);
+        setNomeEvento(response.data[0].descricao_post);
+        setDataInicio(converterParaDataBR(response.data[0].data_inicio_evento));
+        setDataFim(converterParaDataBR(response.data[0].data_fim_evento));
+        setLinkEvento(response.data[0].link_evento);
+        setDescEvento(response.data[0].desc_evento);
+        console.log(capa)
+
       }
 
       setModalVisivel(true);
@@ -389,7 +468,12 @@ const ModalPostagem = forwardRef(
       abrirModal,
       fecharModal: () => setModalVisivel(false),
     }));
+    function converterParaDataBR(dataISO) {
+      if (!dataISO || dataISO.length !== 10) return ''; // validação básica
 
+      const [ano, mes, dia] = dataISO.split('-');
+      return `${dia}/${mes}/${ano}`;
+    }
     // parte dos eventos
     const abrirGaleriaCapa = async () => {
       const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -446,27 +530,30 @@ const ModalPostagem = forwardRef(
               <TouchableOpacity onPress={fecharModal}>
                 <Icon name="x" size={24} color={tema.icone} />
               </TouchableOpacity>
-              <Text style={[estilos.titulo, { color: tema.texto }]}>Novo Post</Text>
+              <Text style={[estilos.titulo, { color: tema.texto }]}>{editar || editEvento ? "Editar Posts" : "Novo Post"}</Text>
               <TouchableOpacity onPress={postar}>
-                <Text style={[estilos.botaoPublicar, { color: tema.azul }]}>Publicar</Text>
+                <Text style={[estilos.botaoPublicar, { color: tema.azul }]}>{editar || editEvento ? "Editar" : "Publicar"}</Text>
               </TouchableOpacity>
             </View>
 
             {/* Corpo */}
             <ScrollView style={estilos.corpo}>
-              {instituicao && (
+              {!editar && !repost && instituicao && (
                 <View style={[estilos.barraContainer, { borderBottomColor: tema.barra }]}>
-                  <Pressable
-                    onPress={() => alterarFoco('posts')}
-                    style={[
-                      estilos.opcao,
-                      focoIcone === 'posts' ? estilos.opcaoAtiva : estilos.opcaoInativa,
-                    ]}
-                  >
-                    <Text style={{ width: 100, textAlign: 'center', fontSize: 15, fontWeight: '500', color: tema.iconeInativo }}>
-                      Post
-                    </Text>
-                  </Pressable>
+                  {!editEvento ? (
+
+                    <Pressable
+                      onPress={() => alterarFoco('posts')}
+                      style={[
+                        estilos.opcao,
+                        focoIcone === 'posts' ? estilos.opcaoAtiva : estilos.opcaoInativa,
+                      ]}
+                    >
+                      <Text style={{ width: 100, textAlign: 'center', fontSize: 15, fontWeight: '500', color: tema.iconeInativo }}>
+                        Post
+                      </Text>
+                    </Pressable>
+                  ) : null}
 
                   <Pressable
                     onPress={() => alterarFoco('eventos')}
@@ -669,13 +756,13 @@ const ModalPostagem = forwardRef(
 
                 {instituicao && (
                   <>
-                  {imagem?(
-                    
-                    <TouchableOpacity style={estilos.botaoAcao} onPress={() => setModalLink(true)}>
-                      <Icon name="link" size={20} color={tema.azul} />
-                      <Text style={{ color: tema.texto }}>Link</Text>
-                    </TouchableOpacity>
-                  ):null}
+                    {imagem ? (
+
+                      <TouchableOpacity style={estilos.botaoAcao} onPress={() => setModalLink(true)}>
+                        <Icon name="link" size={20} color={tema.azul} />
+                        <Text style={{ color: tema.texto }}>Link</Text>
+                      </TouchableOpacity>
+                    ) : null}
 
                     {/* <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
                       <Icon name="calendar" size={20} color={tema.azul} />
@@ -690,24 +777,24 @@ const ModalPostagem = forwardRef(
 
           </View>
         </Modal>
-        <Modal 
-         style={estilos.modalTelaCheia}
+        <Modal
+          style={estilos.modalTelaCheia}
           animationType="slide"
           transparent={true}
           visible={modalLink}
-           onRequestClose={fecharModalLink}
+          onRequestClose={fecharModalLink}
 
         >
-          <View style = {{backgroundColor:'rgba(0, 0, 0, 0.5)',flex:1,alignItems:'center',justifyContent:'center'}} onPress={fecharModalLink}>
-            <View style= {{backgroundColor:tema.modalFundo,height:170,width:'90%', alignItems:'center',borderRadius:5,justifyContent:'space-between',paddingBlock:10}}>
-              <Text style ={{color:tema.descricao, fontSize:21,fontWeight:500}}>Adicionar link no post</Text>
-               <TextInput
-                          style={[estilos.input, {backgroundColor:'#e0e0e0',borderRadius:5,height:40,width:'90%',paddingInline:15,color:"#666"}]}
-                          placeholder="Url"
-                          value={prelink}
-                          onChangeText={(text) => setPrelink(text)}
-                        />
-                        <TouchableOpacity onPress={salvarLink} style={{backgroundColor:tema.azul,width:'55%',height:35,alignItems:'center',justifyContent:'center',borderRadius:5}}><Text style={{fontWeight:'bold',fontSize:15,color:'#fff'}}>Adicionar</Text></TouchableOpacity>
+          <View style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', flex: 1, alignItems: 'center', justifyContent: 'center' }} onPress={fecharModalLink}>
+            <View style={{ backgroundColor: tema.modalFundo, height: 170, width: '90%', alignItems: 'center', borderRadius: 5, justifyContent: 'space-between', paddingBlock: 10 }}>
+              <Text style={{ color: tema.descricao, fontSize: 21, fontWeight: 500 }}>Adicionar link no post</Text>
+              <TextInput
+                style={[estilos.input, { backgroundColor: '#e0e0e0', borderRadius: 5, height: 40, width: '90%', paddingInline: 15, color: "#666" }]}
+                placeholder="Url"
+                value={prelink}
+                onChangeText={(text) => setPrelink(text)}
+              />
+              <TouchableOpacity onPress={salvarLink} style={{ backgroundColor: tema.azul, width: '55%', height: 35, alignItems: 'center', justifyContent: 'center', borderRadius: 5 }}><Text style={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}>Adicionar</Text></TouchableOpacity>
             </View>
           </View>
         </Modal>

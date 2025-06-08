@@ -280,6 +280,7 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
                       segueUsuario={item.segue_usuario}
                       tipo="postProprio"
                       tema={tema}
+                      evento ={item.data_inicio_evento ? item.evento_id:null}
                     />
                   ) : (
                     <Configuracoes
@@ -316,7 +317,7 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
                     style={styles.postContent}
                   >
                     <Image
-                      style={{ width: '100%', height: '100%', borderRadius: 8 }}
+                      style={{ width: '100%', height: '102%', borderRadius: 8 }}
                       source={{ uri: `http://${host}:8000/img/user/imgPosts/${item.conteudo_post}` }}
                     />
                     {item.data_inicio_evento ? (
@@ -342,7 +343,7 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
                     onPress={() => Linking.openURL(`${item.link_post}`)}
                   >
                     <View style={[styles.contSaberMais, { backgroundColor: tema.modalFundo, borderWidth: 1, borderColor: tema.cinza, borderTopColor: tema.modalFundo }]}>
-                      <Text style={{ color: tema.azul, fontWeight: 500, fontSize: 16 }}>Saber mais</Text>
+                      <Text style={{ color: tema.azul, fontWeight: 500, fontSize: 16 }}>Saiba mais</Text>
                       <Ionicons name="chevron-forward-outline" size={23} color={tema.azul} />
 
                     </View>

@@ -8,9 +8,10 @@ import ModalReportar from './modalReportar';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ModalPostagem from "../ModalPostagem";
 import ModalExcluir from './modalExcluir';
+import evento from '../../Screens/evento';
 
 
-const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo }) => {
+const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo,evento }) => {
 
   const modalRef = useRef();
 
@@ -181,7 +182,12 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo }) => {
         
 
       />
+      {evento ?(
+      <ModalPostagem ref={modalRef} tipo='editaEvento' idPost={evento}/>
+      ):
       <ModalPostagem ref={modalRef} tipo='editar' idPost={idPost}/>
+      }
+      
 
     </View>
   );
