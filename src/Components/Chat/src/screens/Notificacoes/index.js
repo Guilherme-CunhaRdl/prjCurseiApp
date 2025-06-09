@@ -11,6 +11,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import Icon from "react-native-vector-icons/Feather";
 import host from '../../../../../global';
 import { useTema } from '../../../../../context/themeContext';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 
 export default function Notificacoes() {
@@ -65,6 +66,8 @@ export default function Notificacoes() {
               ? `Comentou no seu post:` 
               : item.tipo ==='seguido'?
                'Começou a te seguir.'
+              : item.tipo ==='evento'?
+              `Começou o evento`
               : 'Repostou seu Post'
               }
 
@@ -77,6 +80,7 @@ export default function Notificacoes() {
       ) : item.tipo == 'comentario' ? (
         <Icon name="message-circle" size={25} color="#448FFF" />
       )  : item.tipo ==='seguido'? <Icon name="user-plus" size={25} color="#00E923" />
+      : item.tipo ==='evento'?   <MaterialIcons name="school" size={35} color={tema.azul} />
       :  <Icon name="repeat" size={25} color="#666" />
     }
 

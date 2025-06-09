@@ -61,12 +61,17 @@ const ModalPostagem = forwardRef(
     const [linkEvento, setLinkEvento] = useState('')
     const [descEvento, setDescEvento] = useState('')
     const [dataInicio, setDataInicio] = useState('')
+    const [horaInicio, sethoraInicio] = useState('')
     const [dataFim, setDataFim] = useState('')
+    const [horaFim, sethoraFim] = useState('')
     const [prelink, setPrelink] = useState('')
     const [linkPost, setlinkPost] = useState('')
     const [modalLink, setModalLink] = useState(false)
     const [editEvento, setEditEvento] = useState(false)
-
+    const [modalAgendar, setModalAgendar] = useState(false)
+   const [dataPost, setDataPost] = useState('')
+    const [horaPost, sethoraPost] = useState('')
+    const [agendar, setAgendar] = useState(false)
 
     const alterarFoco = (icone) => setFocoIcone(icone)
     const abrirGaleria = async () => {
@@ -150,8 +155,10 @@ const ModalPostagem = forwardRef(
         evento.append("link", linkEvento);
         evento.append("inicio", converterData(dataInicio));
         evento.append("fim", converterData(dataFim));
+        evento.append("hfim", horaFim);
+        evento.append("hinicio", horaInicio);
         setFocoIcone('posts')
-        fecharModal();
+        fecharModal()
 
 
         try {
@@ -170,7 +177,10 @@ const ModalPostagem = forwardRef(
         setDataInicio('')
         setLinkEvento('')
         setNomeEvento('')
-        print(evento)
+        setDescEvento('')
+        sethoraFim('')
+        sethoraInicio('')
+      
       } else {
 
 
@@ -331,6 +341,10 @@ const ModalPostagem = forwardRef(
             novoPost.append("link", linkPost)
           }
           novoPost.append("descricaoPost", descPost);
+          if(agendar){
+            novoPost.append("hora", horaPost);
+            novoPost.append("data", converterData(dataPost));
+          }
 
           const idUser = await AsyncStorage.getItem("idUser");
           url = `http://${host}:8000/api/cursei/posts/` + idUser;
@@ -384,6 +398,13 @@ const ModalPostagem = forwardRef(
     const fecharModalLink = () => {
       setModalLink(false)
     }
+      const fecharModalAgendar = () => {
+      setModalAgendar(false)
+    }
+    function SaveAgendar(){
+      setAgendar(true)
+      fecharModalAgendar()
+    }
     const fecharModal = () => {
       setCapa(null)
       setDataFim('')
@@ -391,8 +412,14 @@ const ModalPostagem = forwardRef(
       setLinkEvento('')
       setNomeEvento('')
       setDescPost('')
+       setDescEvento('')
+        sethoraFim('')
+        sethoraInicio('')
       setImagem(null)
       setFocoIcone('posts')
+      sethoraPost('')
+      setDataPost('')
+
 
       setModalVisivel(false);
 
@@ -415,7 +442,7 @@ const ModalPostagem = forwardRef(
           setRepostArroba(data.arroba_user);
           setRepostDescricao(data.descricao_post);
           setRepostConteudo(data.conteudo_post);
-          
+
         } catch (error) {
           console.error("Erro ao carregar repost:", error);
         }
@@ -468,6 +495,7 @@ const ModalPostagem = forwardRef(
       abrirModal,
       fecharModal: () => setModalVisivel(false),
     }));
+  
     function converterParaDataBR(dataISO) {
       if (!dataISO || dataISO.length !== 10) return ''; // validação básica
 
@@ -507,6 +535,7 @@ const ModalPostagem = forwardRef(
       // Retorna no formato "YYYY-MM-DD"
       return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
     }
+
 
     const { tema } = useTema();
     return (
@@ -668,40 +697,85 @@ const ModalPostagem = forwardRef(
                     </View>
                     <View>
                       <Text style={[estilos.tituloInput, , { color: tema.iconeInativo }]}>Inicio do evento</Text>
-                      <View style={[
-                        estilos.inputContainer
-                      ]}>
+                      <View style={{ flexDirection: 'row', gap:10 }}>
+                        <View style={[
+                          estilos.inputContainer
+                          ,{width:200}
+                        ]}>
 
-                        <Ionicons style={estilos.inputIcon} name="calendar" />
-                        <TextInputMask
-                          type={'datetime'}
-                          options={{
-                            format: 'DD/MM/YYYY'
-                          }}
-                          value={dataInicio}
-                          onChangeText={setDataInicio}
-                          placeholder="00/00/0000"
-                          style={estilos.input}
-                        />
+                          <Ionicons style={estilos.inputIcon} name="calendar" />
+                          <TextInputMask
+                            type={'datetime'}
+                            options={{
+                              format: 'DD/MM/YYYY'
+                            }}
+                            value={dataInicio}
+                            onChangeText={setDataInicio}
+                            placeholder="00/00/0000"
+                            style={estilos.input}
+                          />
+
+                        </View>
+                             <View style={[
+                          estilos.inputContainer
+                           ,{width:150}
+                        ]}>
+
+                          <Ionicons style={estilos.inputIcon} name="time" />
+                          <TextInputMask
+                            type={'datetime'}
+                            options={{
+                                        format: 'HH:mm',
+
+                            }}
+                            value={sethoraInicio}
+                            onChangeText={sethoraInicio}
+                            placeholder="00:00"
+                            style={estilos.input}
+                          />
+
+                        </View>
                       </View>
                     </View>
                     <View>
                       <Text style={[estilos.tituloInput, , { color: tema.iconeInativo }]}>Termino do evento</Text>
-                      <View style={[
-                        estilos.inputContainer
-                      ]}>
+                      <View style={{ flexDirection: 'row', gap:10 }}>
+                        <View style={[
+                          estilos.inputContainer
+                          ,{width:200}
+                        ]}>
 
-                        <Ionicons style={estilos.inputIcon} name="calendar" />
-                        <TextInputMask
-                          type={'datetime'}
-                          options={{
-                            format: 'DD/MM/YYYY'
-                          }}
-                          value={dataFim}
-                          onChangeText={setDataFim}
-                          placeholder="00/00/0000"
-                          style={estilos.input}
-                        />
+                          <Ionicons style={estilos.inputIcon} name="calendar" />
+                          <TextInputMask
+                            type={'datetime'}
+                            options={{
+                              format: 'DD/MM/YYYY'
+                            }}
+                            value={dataFim}
+                            onChangeText={setDataFim}
+                            placeholder="00/00/0000"
+                            style={estilos.input}
+                          />
+
+                        </View>
+                             <View style={[
+                          estilos.inputContainer
+                           ,{width:150}
+                        ]}>
+
+                          <Ionicons style={estilos.inputIcon} name="time" />
+                          <TextInputMask
+                            type={'datetime'}
+                            options={{
+                                  format: 'HH:mm',
+                            }}
+                            value={horaFim}
+                            onChangeText={sethoraFim}
+                            placeholder="00:00"
+                            style={estilos.input}
+                          />
+
+                        </View>
                       </View>
                     </View>
                     <View>
@@ -764,10 +838,10 @@ const ModalPostagem = forwardRef(
                       </TouchableOpacity>
                     ) : null}
 
-                    {/* <TouchableOpacity style={estilos.botaoAcao} onPress={tirarFoto}>
+                     <TouchableOpacity style={estilos.botaoAcao}onPress={() => setModalAgendar(true)}>
                       <Icon name="calendar" size={20} color={tema.azul} />
                       <Text style={{ color: tema.texto }}>Agendar</Text>
-                    </TouchableOpacity> */}
+                    </TouchableOpacity> 
                   </>
                 )
 
@@ -795,6 +869,62 @@ const ModalPostagem = forwardRef(
                 onChangeText={(text) => setPrelink(text)}
               />
               <TouchableOpacity onPress={salvarLink} style={{ backgroundColor: tema.azul, width: '55%', height: 35, alignItems: 'center', justifyContent: 'center', borderRadius: 5 }}><Text style={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}>Adicionar</Text></TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+         <Modal
+          style={estilos.modalTelaCheia}
+          animationType="slide"
+          transparent={true}
+          visible={modalAgendar}
+          onRequestClose={fecharModalAgendar}
+
+        >
+          <View style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', flex: 1, alignItems: 'center', justifyContent: 'center' }} onPress={fecharModalLink}>
+            <View style={{ backgroundColor: tema.modalFundo, height: 190, width: '95%', alignItems: 'center', borderRadius: 5, justifyContent: 'space-between', paddingBlock: 10 }}>
+              <Text style={{ color: tema.descricao, fontSize: 21, fontWeight: 500 }}>Agendar postagem</Text>
+              <View>
+                      
+                      <View style={{ flexDirection: 'row', gap:10 }}>
+                        <View style={[
+                          estilos.inputContainer
+                          ,{width:180}
+                        ]}>
+
+                          <Ionicons style={estilos.inputIcon} name="calendar" />
+                          <TextInputMask
+                            type={'datetime'}
+                            options={{
+                              format: 'DD/MM/YYYY'
+                            }}
+                            value={dataPost}
+                            onChangeText={setDataPost}
+                            placeholder="00/00/0000"
+                            style={estilos.input}
+                          />
+
+                        </View>
+                             <View style={[
+                          estilos.inputContainer
+                           ,{width:150}
+                        ]}>
+
+                          <Ionicons style={estilos.inputIcon} name="time" />
+                          <TextInputMask
+                            type={'datetime'}
+                            options={{
+                                  format: 'HH:mm',
+                            }}
+                            value={horaPost}
+                            onChangeText={sethoraPost}
+                            placeholder="00:00"
+                            style={estilos.input}
+                          />
+
+                        </View>
+                      </View>
+                    </View>
+              <TouchableOpacity onPress={SaveAgendar} style={{ backgroundColor: tema.azul, width: '55%', height: 35, alignItems: 'center', justifyContent: 'center', borderRadius: 5 }}><Text style={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}>Adicionar</Text></TouchableOpacity>
             </View>
           </View>
         </Modal>

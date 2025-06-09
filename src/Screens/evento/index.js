@@ -8,6 +8,7 @@ import { ScrollView } from 'react-native';
 import { Linking } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import axios from 'axios';
 
@@ -25,7 +26,9 @@ export default function evento() {
   const [link, setLink] = useState('');
   const [descricao, setDescricao] = useState('');
   const [idUser, setIdUser] = useState('');
-    const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [proprio, setproprio] = useState(false);
+  const [ativo,setAtivo] = useState (false);
   const { tema } = useTema();
   const styles = getStyles(tema);
 
@@ -41,6 +44,7 @@ export default function evento() {
 }
   async function carregarEvento() {
     const idEvento = rotavalores.eventoId;
+    
     response = await axios.get(`http://${host}:8000/api/cursei/evento/${idEvento}`)
     setCapa(response.data[0].conteudo_post);
     setTitulo(response.data[0].descricao_post);
@@ -51,13 +55,32 @@ export default function evento() {
     setDataFim(converterParaDataBR(response.data[0].data_fim_evento));
     setLink(response.data[0].link_evento);
     setDescricao(response.data[0].desc_evento);
-    setIdUser(response.data[0].idUser);
+    setIdUser(response.data[0].id_user);
     setLoading(false)
     console.log(idEvento)
+    const idUserSalvo = await AsyncStorage.getItem('idUser');
+
+    if(idUserSalvo == response.data[0].id_user){
+      setproprio(true)
+      console.log("1")
+    }
   }
   useEffect(() => {
     carregarEvento()
   }, []);
+  async function lembrete() {
+      const idUserSalvo = await AsyncStorage.getItem('idUser');
+      try{
+        axios.get(`http://${host}:8000/api/cursei/lembreteEvento/${rotavalores.eventoId}/${idUserSalvo}`)
+        if(ativo){
+          setAtivo(false)
+        }else{
+          setAtivo(true)
+        }
+      }catch{
+        alert(ERRO)
+      }
+  }
   if (loading) {
         return (
             <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: tema.fundo }}>
@@ -117,10 +140,13 @@ export default function evento() {
             </View>
           </View>
           <View style={styles.buttonsCont}>
-            {/* <TouchableOpacity style={styles.buttonAzul}>
-              <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#fff' }}> Ativar lembrete</Text>
-            </TouchableOpacity> */}
-            <TouchableOpacity style={[styles.buttonVazio, {width:'100%'}]} onPress={() => abrirLink(link)}>
+            {!proprio ?(
+             <TouchableOpacity style={ativo? styles.buttonVazio:styles.buttonAzul} onPress={lembrete}>
+              <Text style={{ fontSize: 15, fontWeight: 'bold',  color: ativo ? tema.azul : '#fff'  }}>  {ativo ? 'Desativar lembrete' : 'Ativar lembrete'}</Text>
+            </TouchableOpacity> 
+
+            ):null}
+            <TouchableOpacity style={[styles.buttonVazio , !proprio ? null :{ width: '100%' }]} onPress={() => abrirLink(link)}>
               <Text style={{ fontSize: 15, fontWeight: 'bold', color: tema.azul }}> Saber mais</Text>
             </TouchableOpacity>
           </View>
