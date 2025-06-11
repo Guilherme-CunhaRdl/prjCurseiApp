@@ -15,8 +15,8 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Video from 'react-native-video';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { Video } from 'expo-av';
+import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import host from '../../global';
@@ -27,94 +27,155 @@ const responsiveFontSize = (percentage) => Math.round((width * percentage) / 100
 const responsiveWidth = (percentage) => width * (percentage / 100);
 const responsiveHeight = (percentage) => height * (percentage / 100);
 
-const videoWidth = width * 0.9;
-const videoHeight = (videoWidth * 16) / 9;
+const storyWidth = width * 0.9;
+const storyHeight = (storyWidth * 16) / 9;
 
-const CriarStorys = () => {
-  const [caption, setCaption] = useState('');
-  const [videoUri, setVideoUri] = useState(null);
-  const [thumbUri, setThumbUri] = useState(null);
+const CriarStory = () => {
+  const [conteudo, setConteudo] = useState('');
+  const [mediaUri, setMediaUri] = useState(null);
+  const [mediaType, setMediaType] = useState(null); // 'image' ou 'video'
   const [uploading, setUploading] = useState(false);
-  const scrollViewRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const videoFileRef = useRef(null);
-  const thumbFileRef = useRef(null);
-
+  const mediaFileRef = useRef(null);
+  const scrollViewRef = useRef(null);
   const animatedIndex = useRef(new Animated.Value(0)).current;
+  const videoRef = useRef(null);
+
+
+
+  useEffect(() => {
+    fetch(`http://${host}:8000/api/ping`)
+      .then((res) => res.json())
+      .then((data) => console.log('Conexão OK:', data))
+      .catch((err) => console.error('Erro de conexão:', err));
+  }, []);
+
+
+  useEffect(() => {
+
+    
+    (async () => {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria para selecionar fotos ou vídeos.');
+      }
+    })();
+  }, []);
 
   const scrollToSection = (index) => {
     scrollViewRef.current?.scrollTo({ x: width * index, animated: true });
   };
 
-  const selectVideo = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'video',
-      videoQuality: 'medium',
-      durationLimit: 60,
-    });
-    if (result.assets && result.assets[0].uri) {
-      setVideoUri(result.assets[0].uri);
-      videoFileRef.current = {
-        uri: result.assets[0].uri,
-        type: result.assets[0].type || 'video/mp4',
-        name: result.assets[0].fileName || video_$`{Date.now()}`.mp4,
-      };
-    }
-  };
-
-  const selectThumbnail = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.8,
-    });
-    if (result.assets && result.assets[0].uri) {
-      setThumbUri(result.assets[0].uri);
-      thumbFileRef.current = {
-        uri: result.assets[0].uri,
-        type: result.assets[0].type || 'image/jpeg',
-        name: result.assets[0].fileName || thumb_$`{Date.now()}`.jpg,
-      };
+  const selectMedia = async () => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [9, 16],
+        quality: 0.8,
+      });
+  
+      if (!result.canceled && result.assets?.length > 0) {
+        const asset = result.assets[0];
+        setMediaUri(asset.uri);
+        setMediaType(asset.type);
+        
+  
+        const fileExtension = asset.uri.split('.').pop();
+        const mimeType = asset.type === 'video' ? 
+          `video/${fileExtension}` : 
+          `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`;
+  
+        mediaFileRef.current = {
+          uri: asset.uri,
+          type: mimeType, 
+          name: `story_${Date.now()}.${fileExtension}`,
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao selecionar mídia:', error);
+      Alert.alert('Erro', 'Não foi possível selecionar a mídia');
     }
   };
 
   const handleUpload = async () => {
-    const idUserString = await AsyncStorage.getItem('idUser');
-    const idUser = parseInt(idUserString);
-
-    if (!videoFileRef.current || !thumbFileRef.current) {
-      Alert.alert('Atenção', 'Você precisa selecionar um vídeo e uma thumbnail');
+    if (!mediaFileRef.current) {
+      Alert.alert('Atenção', 'Selecione uma foto ou vídeo');
       return;
     }
-
+  
     setUploading(true);
+  
     try {
+      const idUser = await AsyncStorage.getItem('idUser');
+      if (!idUser) throw new Error('Usuário não logado');
+  
       const formData = new FormData();
-      formData.append('caminho_curtei', videoFileRef.current);
-      formData.append('caminho_curtei_thumb', thumbFileRef.current);
-      formData.append('legenda_curtei', caption);
+      
+      // Adiciona o arquivo corretamente
+      formData.append('conteudo_storyes', {
+        uri: mediaFileRef.current.uri,
+        type: mediaFileRef.current.type, // Ex: 'image/jpeg'
+        name: mediaFileRef.current.name   // Ex: 'story_1234567890.jpeg'
+      });
+      
+      formData.append('legenda', conteudo);
       formData.append('id_user', idUser);
-
-      await axios.post(`http://${host}:8000/api/curtei/upload, formData`, {
+  
+      console.log('Enviando para:', `http://${host}:8000/api/stories/upload`);
+      console.log('Dados do FormData:', {
+        uri: mediaFileRef.current.uri,
+        type: mediaFileRef.current.type,
+        name: mediaFileRef.current.name,
+        legenda: conteudo,
+        id_user: idUser
+      });
+  
+      const response = await fetch(`http://${host}:8000/api/stories/upload`, {
+        method: 'POST',
+        body: formData,
         headers: {
-          'Content-Type': 'multipart/form-data',
           'Accept': 'application/json',
+          // Não definir Content-Type, o RN faz automaticamente
         },
       });
-
-      Alert.alert('Sucesso!', 'Seu vídeo foi publicado com sucesso!');
-      setVideoUri(null);
-      setThumbUri(null);
-      setCaption('');
-      videoFileRef.current = null;
-      thumbFileRef.current = null;
+  
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Erro ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log('Resposta do servidor:', data);
+  
+      Alert.alert('Sucesso!', 'Story publicado com sucesso!');
+      setMediaUri(null);
+      setConteudo('');
       scrollToSection(0);
+  
     } catch (error) {
-      console.error(error);
-      Alert.alert('Erro', 'Não foi possível enviar o vídeo');
+      console.error('Erro completo:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response
+      });
+      
+      Alert.alert(
+        'Erro de Conexão', 
+        `Verifique:
+        1. Se está na mesma rede Wi-Fi
+        2. Se o IP do servidor está correto
+        3. Se o servidor está rodando
+        
+        Detalhes: ${error.message}`
+      );
     } finally {
       setUploading(false);
     }
   };
+
+
+
 
   useEffect(() => {
     Animated.timing(animatedIndex, {
@@ -126,8 +187,12 @@ const CriarStorys = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Novo Story</Text>
+      </View>
+      
       <View style={styles.pageIndicatorContainer}>
-        {[0, 1, 2].map((index) => {
+        {[0, 1].map((index) => {
           const scale = animatedIndex.interpolate({
             inputRange: [index - 1, index, index + 1],
             outputRange: [1, 1.8, 1],
@@ -155,80 +220,97 @@ const CriarStorys = () => {
           );
         })}
       </View>
+      
       <ScrollView
         ref={scrollViewRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ width: width * 3 }}
-        onMomentumScrollEnd={(event) => {
-          const index = Math.round(event.nativeEvent.contentOffset.x / width);
+        contentContainerStyle={{ width: width * 2 }}
+        onMomentumScrollEnd={(e) => {
+          const index = Math.round(e.nativeEvent.contentOffset.x / width);
           setCurrentIndex(index);
         }}
         scrollEventThrottle={16}
       >
+        {/* Página 1 - Seleção de mídia */}
         <View style={styles.page}>
-          {videoUri ? (
+          {mediaUri ? (
             <View style={styles.preview}>
-              <Video source={{ uri: videoUri }} style={styles.media} resizeMode="cover" paused />
-              <TouchableOpacity style={styles.editButton} onPress={selectVideo}>
+              {mediaType === 'video' ? (
+                <Video
+                  ref={videoRef}
+                  source={{ uri: mediaUri }}
+                  style={styles.media}
+                  resizeMode="cover"
+                  isLooping
+                  shouldPlay={false}
+                  useNativeControls
+                />
+              ) : (
+                <Image source={{ uri: mediaUri }} style={styles.media} resizeMode="cover" />
+              )}
+              <TouchableOpacity style={styles.editButton} onPress={selectMedia}>
                 <Icon name="edit" size={25} color="#fff" />
               </TouchableOpacity>
             </View>
           ) : (
-            <UploadPlaceholder icon="videocam" label="Selecionar vídeo" onPress={selectVideo} />
+            <UploadPlaceholder 
+              icon={mediaType === 'video' ? 'videocam' : 'image'} 
+              label="Selecionar foto ou vídeo" 
+              onPress={selectMedia} 
+            />
           )}
-          {videoUri && (
-            <TouchableOpacity style={styles.nextButton} onPress={() => scrollToSection(1)}>
+          {mediaUri && (
+            <TouchableOpacity 
+              style={styles.nextButton} 
+              onPress={() => scrollToSection(1)}
+              disabled={uploading}
+            >
               <Text style={styles.nextText}>Avançar</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        <View style={styles.page}>
-          {thumbUri ? (
-            <View style={styles.preview}>
-              <Image source={{ uri: thumbUri }} style={styles.media} resizeMode="cover" />
-              <TouchableOpacity style={styles.editButton} onPress={selectThumbnail}>
-                <Icon name="edit" size={25} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <UploadPlaceholder icon="image" label="Selecionar thumbnail" onPress={selectThumbnail} />
-          )}
-          {thumbUri && (
-            <TouchableOpacity style={styles.nextButton} onPress={() => scrollToSection(2)}>
-              <Text style={styles.nextText}>Avançar</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
+        {/* Página 2 - Legenda e upload */}
         <View style={styles.page}>
           <Text style={styles.label}>Legenda (opcional)</Text>
           <TextInput
-            placeholder="Conte a história por trás desse vídeo..."
-            value={caption}
-            onChangeText={setCaption}
+            placeholder="Adicione uma legenda ao seu story..."
+            placeholderTextColor="#9CA3AF"
+            value={conteudo}
+            onChangeText={setConteudo}
             maxLength={220}
             multiline
             style={styles.input}
             textAlignVertical="top"
           />
-          <Text style={styles.charCounter}>{caption.length}/220</Text>
-          <TouchableOpacity
-            style={[styles.uploadButton, !(videoUri && thumbUri) && { backgroundColor: '#a5c3f7' }]}
-            onPress={handleUpload}
-            disabled={uploading || !videoUri || !thumbUri}
-          >
-            {uploading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <AntDesign name="upload" size={20} color="#fff" />
-                <Text style={styles.uploadText}>Publicar vídeo</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <Text style={styles.charCounter}>{conteudo.length}/220</Text>
+          
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.backButton, uploading && styles.buttonDisabled]}
+              onPress={() => scrollToSection(0)}
+              disabled={uploading}
+            >
+              <Text style={styles.backButtonText}>Voltar</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.uploadButton, (!mediaUri || uploading) && styles.buttonDisabled]}
+              onPress={handleUpload}
+              disabled={uploading || !mediaUri}
+            >
+              {uploading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <AntDesign name="upload" size={20} color="#fff" />
+                  <Text style={styles.uploadText}>Publicar</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -247,6 +329,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  header: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
   page: {
     width: width,
     alignItems: 'center',
@@ -254,8 +347,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   placeholder: {
-    width: videoWidth,
-    height: videoHeight,
+    width: storyWidth,
+    height: storyHeight,
     borderWidth: 2,
     borderColor: '#3B82F6',
     borderStyle: 'dashed',
@@ -268,13 +361,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#3B82F6',
+    fontWeight: '500',
   },
   preview: {
-    width: videoWidth,
-    height: videoHeight,
+    width: storyWidth,
+    height: storyHeight,
     borderRadius: 15,
     overflow: 'hidden',
     backgroundColor: '#ddd',
+    position: 'relative',
   },
   media: {
     width: '100%',
@@ -302,26 +397,48 @@ const styles = StyleSheet.create({
   },
   label: {
     alignSelf: 'flex-start',
-    fontSize: 18,
+    fontSize: 16,
     color: '#4B5563',
     marginBottom: 10,
+    fontWeight: '500',
   },
   input: {
     width: '100%',
     height: responsiveHeight(20),
-    borderColor: '#ccc',
+    borderColor: '#E5E7EB',
     borderWidth: 1,
     borderRadius: 10,
     padding: 15,
     backgroundColor: '#F9FAFB',
+    color: '#1F2937',
+    fontSize: 16,
   },
   charCounter: {
     alignSelf: 'flex-end',
-    color: '#6B7280',
+    color: '#9CA3AF',
     marginTop: 5,
+    fontSize: 14,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 20,
+  },
+  backButton: {
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
+  },
+  backButtonText: {
+    color: '#4B5563',
+    fontSize: 16,
+    fontWeight: '600',
   },
   uploadButton: {
-    marginTop: 20,
     backgroundColor: '#3B82F6',
     flexDirection: 'row',
     alignItems: 'center',
@@ -329,7 +446,10 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 10,
     gap: 10,
-    width: '100%',
+    flex: 1,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   uploadText: {
     color: '#fff',
@@ -339,8 +459,8 @@ const styles = StyleSheet.create({
   pageIndicatorContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'flex-end',
-    height: responsiveHeight(5),
+    alignItems: 'center',
+    height: 50,
   },
   pageIndicatorDot: {
     width: 10,
@@ -351,4 +471,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CriarStorys;
+export default CriarStory;

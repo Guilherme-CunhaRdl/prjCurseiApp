@@ -188,7 +188,7 @@ export default function Home() {
             ListHeaderComponent={
               instituicao === 1 ? (
                 <View style={styles.storys}>
-                  <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('CriarCurteis')}>
+                  <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('CriarStorys')}>
                     <Image style={styles.imgLogo} source={adicionarLogo} />
                   </Pressable>
                   <Text style={{ color: tema.texto, textAlign: 'center' }}>Seu Story</Text>

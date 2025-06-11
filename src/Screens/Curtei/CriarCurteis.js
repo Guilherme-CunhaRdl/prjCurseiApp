@@ -30,6 +30,17 @@ const responsiveHeight = (percentage) => height * (percentage / 100);
 const videoWidth = width * 0.9;
 const videoHeight = (videoWidth * 16) / 9;
 
+
+const testConnection = async () => {
+  try {
+    const response = await fetch(`http://${host}:8000/ping`);
+    const data = await response.json();
+    console.log('Teste de conexão:', data);
+  } catch (error) {
+    console.error('Falha no teste de conexão:', error);
+  }
+};
+
 const CriarCurteis = () => {
   const [caption, setCaption] = useState('');
   const [videoUri, setVideoUri] = useState(null);
