@@ -28,6 +28,7 @@ import Notificacoes from "../../Components/Chat/src/screens/Notificacoes";
 import host from "../../global";
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Video } from 'expo-av';
 
 import { useTema, temaAtual } from '../../context/themeContext';
 const DATA = [
@@ -94,6 +95,20 @@ export default function Home() {
   const [perfilProprio, setPerfilProprio] = useState(false)
   const [countNotificacoes, setCountNotificacoes] = useState(0);
   const [rodandoApp, setRodandoApp] = useState(false)
+  const [stories, setStories] = useState([]);
+const [loadingStories, setLoadingStories] = useState(true);
+
+async function carregarStories() {
+  try {
+    setLoadingStories(true);
+    const response = await axios.get(`http://${host}:8000/api/stories`);
+    setStories(response.data.data);
+  } catch (error) {
+    console.error('Erro ao carregar stories:', error);
+  } finally {
+    setLoadingStories(false);
+  }
+}
 
   async function carregarPerfil() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -131,15 +146,17 @@ export default function Home() {
   }
 
   useEffect(() => {
-    carregarPerfil()
+    carregarPerfil();
+    carregarStories();
   }, []);
   async function recarregarHome() {
-    var temporario = focoIcone
-    setRefreshing(true)
-    alterarFoco('temporario')
-    await carregarPerfil().finally(() => setRefreshing(false))
-    alterarFoco(temporario)
-    
+  var temporario = focoIcone;
+  setRefreshing(true);
+  alterarFoco('temporario');
+  await Promise.all([carregarPerfil(), carregarStories()]).finally(() => {
+    setRefreshing(false);
+    alterarFoco(temporario);
+  });
   }
 
   const conteudo = (
@@ -180,31 +197,54 @@ export default function Home() {
 
         {/* Storys */}
         <View style={styles.storysContainer}>
-          <FlatList
-            horizontal={true}
-            data={DATA}
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            ListHeaderComponent={
-              instituicao === 1 ? (
-                <View style={styles.storys}>
-                  <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('CriarStorys')}>
-                    <Image style={styles.imgLogo} source={adicionarLogo} />
-                  </Pressable>
-                  <Text style={{ color: tema.texto, textAlign: 'center' }}>Seu Story</Text>
-                </View>
-              ) : null
-            }
-            renderItem={({ item }) => (
-              <View style={styles.storys}>
-                <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('Story')}>
-                  <Image style={styles.imgLogo} source={item.photoURL} />
-                </Pressable>
-                <Text style={{ color: tema.texto, textAlign: 'center' }}>{item.nome}</Text>
-              </View>
-            )}
-            contentContainerStyle={styles.flatListContent}
+        <FlatList
+  horizontal={true}
+  data={stories}
+  showsHorizontalScrollIndicator={false}
+  keyExtractor={(item) => item.id.toString()}
+  ListHeaderComponent={
+    instituicao === 1 ? (
+      <View style={styles.storys}>
+        <Pressable style={styles.circuloStorys} onPress={() => navigation.navigate('CriarStorys')}>
+          <Image style={styles.imgLogo} source={adicionarLogo} />
+        </Pressable>
+        <Text style={{ color: tema.texto, textAlign: 'center' }}>Seu Story</Text>
+      </View>
+    ) : null
+  }
+  renderItem={({ item }) => (
+    <View style={styles.storys}>
+      <Pressable 
+        style={styles.circuloStorys} 
+        onPress={() => navigation.navigate('Story', { story: item })}
+      >
+        {item.tipo_midia === 'video' ? (
+          <Video 
+            source={{ uri: item.url }}
+            style={styles.storyImage}
+            resizeMode="cover"
+            shouldPlay={false}
+            isMuted={true}
           />
+        ) : (
+          <Image 
+            style={styles.storyImage} 
+            source={{ uri: item.url }} 
+          />
+        )}
+      </Pressable>
+      <Text style={{ color: tema.texto, textAlign: 'center' }}>{item.user.nome}</Text>
+    </View>
+  )}
+  contentContainerStyle={styles.flatListContent}
+  ListEmptyComponent={
+    !loadingStories && (
+      <Text style={{ color: tema.texto, textAlign: 'center', padding: 20 }}>
+        Nenhum story disponível
+      </Text>
+    )
+  }
+/>
         </View>
       </View>
 
