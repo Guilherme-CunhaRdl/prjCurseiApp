@@ -28,7 +28,7 @@ export default function Conversa({ route }) {
     idChat,
     isCanal
   } = route.params;
-  console.log(isCanal)
+  console.log(idEnviador, idUserLogado, idChat, isCanal)
   const [campoMensagem, setCampoMensagem] = useState("");
   const [campoMensagemImg, setCampoMensagemImg] = useState("");
   const navigation = useNavigation();
@@ -255,6 +255,11 @@ const enviarMensagem = async () => {
                 source={
                   imgEnviador === null
                     ? require("../../img/metalbat.jpg")
+                    : 
+                    isCanal ?
+                    {
+                      uri: `http://${host}:8000/img/chat/imgCanal/${imgEnviador}`
+                    }
                     : {
                       uri: `http://${host}:8000/img/user/fotoPerfil/${imgEnviador}`,
                     }
@@ -320,7 +325,7 @@ const enviarMensagem = async () => {
               style={styles.input}
 
             >Não pode enviar mensagens</Text>
-
+            
 
           </View>
         )}
@@ -349,6 +354,7 @@ const enviarMensagem = async () => {
                 value={campoMensagem}
                 onChangeText={setCampoMensagem}
               />
+              
             </View>
             <View style={{width: '15%', justifyContent: 'space-between', alignItems: 'center'}}>
               <TouchableOpacity onPress={!isCanal ? () => enviarMensagem() : ''}>

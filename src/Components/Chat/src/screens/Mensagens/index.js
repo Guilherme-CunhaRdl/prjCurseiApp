@@ -156,23 +156,6 @@ export default function Mensagens({ route }) {
   };
 
 
-  
-
-
-  // useEffect(() => {
-  //   if (query.length > 0 && idUser) {
-  //     const contador = setTimeout(() => {
-  //       procurarChat(idUser);
-  //       pesquisarUsuarios(query, idUser);
-  //     }, 500);
-
-  //     return () => clearTimeout(contador);
-  //   } else {
-  //     setChatsPesquisados([]);
-  //     setResultadosUsuarios([]);
-  //     setMostrarResultadosPesquisa(false);
-  //   }
-  // }, [query, idUser]);
 
   const filtrarChats = (chats) => {
     const termo = query.toLowerCase();
@@ -189,6 +172,8 @@ export default function Mensagens({ route }) {
   };
 
   const conversasFiltradas = useMemo(() => {
+        console.log("Filtrando conversas:", conversas, selectedTab, query);
+
     return filtrarChats(conversas);
   }, [conversas, selectedTab, query]);
 
@@ -288,7 +273,7 @@ export default function Mensagens({ route }) {
 
           <FlatList
             data={conversasFiltradas}
-            keyExtractor={(item) => item.id_conversa.toString()}
+            keyExtractor={(item) => item.tipo === 'canal' ? `canal_${item.id_conversa.toString()}`  : `outra_${item.id_conversa.toString()}`}
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => {
@@ -306,9 +291,12 @@ export default function Mensagens({ route }) {
               >
                 <View style={styles.mensagemItem}>
                   <Image
-                    source={{
-                      uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}`,
-                    }}
+                    source={ item.tipo ==='canal' ?
+                       {uri: `http://${host}:8000/img/chat/imgCanal/${item.img}`}
+                        : {uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}`}
+                      
+
+                    }
                     style={styles.avatar}
                   />
                   <View style={styles.mensagemTexto}>
