@@ -236,7 +236,7 @@ const CriarStory = () => {
         {/* Página 1 - Seleção de mídia */}
         <View style={styles.page}>
           {mediaUri ? (
-            <View style={styles.preview}>
+            <ScrollView style={styles.preview}>
               {mediaType === 'video' ? (
                 <Video
                   ref={videoRef}
@@ -253,7 +253,7 @@ const CriarStory = () => {
               <TouchableOpacity style={styles.editButton} onPress={selectMedia}>
                 <Icon name="edit" size={25} color="#fff" />
               </TouchableOpacity>
-            </View>
+            </ScrollView>
           ) : (
             <UploadPlaceholder 
               icon={mediaType === 'video' ? 'videocam' : 'image'} 
