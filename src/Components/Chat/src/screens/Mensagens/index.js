@@ -27,7 +27,7 @@ import Pusher from "pusher-js/react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import colors from "../../../../../colors";
 import host from "../../../../../global";
-import {useTema} from '../../../../../context/themeContext'
+import { useTema } from '../../../../../context/themeContext'
 
 export default function Mensagens({ route }) {
   const navigation = useNavigation();
@@ -38,7 +38,7 @@ export default function Mensagens({ route }) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false); // Estado para o refresh
-  const {tema} = useTema();
+  const { tema } = useTema();
 
   useEffect(() => {
     if (route.params?.novaConversa) {
@@ -156,23 +156,6 @@ export default function Mensagens({ route }) {
   };
 
 
-  
-
-
-  // useEffect(() => {
-  //   if (query.length > 0 && idUser) {
-  //     const contador = setTimeout(() => {
-  //       procurarChat(idUser);
-  //       pesquisarUsuarios(query, idUser);
-  //     }, 500);
-
-  //     return () => clearTimeout(contador);
-  //   } else {
-  //     setChatsPesquisados([]);
-  //     setResultadosUsuarios([]);
-  //     setMostrarResultadosPesquisa(false);
-  //   }
-  // }, [query, idUser]);
 
   const filtrarChats = (chats) => {
     const termo = query.toLowerCase();
@@ -189,19 +172,21 @@ export default function Mensagens({ route }) {
   };
 
   const conversasFiltradas = useMemo(() => {
+    console.log("Filtrando conversas:", conversas, selectedTab, query);
+
     return filtrarChats(conversas);
   }, [conversas, selectedTab, query]);
 
-  const recarregarChats =  useCallback(() => {
+  const recarregarChats = useCallback(() => {
     const pegarInfos = async () => {
-    const id = await AsyncStorage.getItem('idUser')
-    console.log(id)
-    setRefreshing(true);
-    listarChats(id).finally(() => setRefreshing(false));
+      const id = await AsyncStorage.getItem('idUser')
+      console.log(id)
+      setRefreshing(true);
+      listarChats(id).finally(() => setRefreshing(false));
     }
 
     pegarInfos()
-    
+
   }, []);
   return (
     <SafeAreaProvider>
@@ -288,7 +273,7 @@ export default function Mensagens({ route }) {
 
           <FlatList
             data={conversasFiltradas}
-            keyExtractor={(item) => item.id_conversa.toString()}
+            keyExtractor={(item) => item.tipo === 'canal' ? `canal_${item.id_conversa.toString()}` : `outra_${item.id_conversa.toString()}`}
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => {
@@ -306,15 +291,34 @@ export default function Mensagens({ route }) {
               >
                 <View style={styles.mensagemItem}>
                   <Image
-                    source={{
-                      uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}`,
-                    }}
+                    source={item.tipo === 'canal' ?
+                      { uri: `http://${host}:8000/img/chat/imgCanal/${item.img}` }
+                      : { uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}` }
+
+
+                    }
                     style={styles.avatar}
                   />
                   <View style={styles.mensagemTexto}>
-                    <Text style={[styles.nome, { color: tema.texto }]} numberOfLines={1}>
-                      {item.nome}
-                    </Text>
+                    <View style={{ flexDirection: 'row' }}>
+                      <Text style={[styles.nome, { color: tema.texto, paddingRight: 10 }]} numberOfLines={1}>
+                        {item.nome}
+                      </Text>
+                      {item.tipo === 'instituicao' && (
+                        <Ionicons name="school-outline"
+                          style={styles.opcaoIcon}
+                          size={22}
+                          color={colors.azul}
+                        />
+                      )}
+                      {item.tipo === 'canal' && (
+                        <Ionicons name="megaphone-outline"
+                          style={styles.opcaoIcon}
+                          size={22}
+                          color={colors.azul}
+                        />
+                      )}
+                    </View>
                     {item.img_mensagem ? (
                       <View style={styles.ultimaMensagemImg}>
                         <View
@@ -334,12 +338,26 @@ export default function Mensagens({ route }) {
                         </Text>
                       </View>
                     ) : (
-                      <Text
-                        style={[styles.ultimaMensagem, { color: tema.descricao }]}
-                        numberOfLines={1}
-                      >
-                        {item.ultima_mensagem}
-                      </Text>
+                      <>
+                        {item.tipo === 'canal' && !item.conteudo_mensagem ? (
+                          <>
+                            <Text
+                              style={[styles.ultimaMensagem, { color: tema.descricao }]}
+                              numberOfLines={1}
+                            >
+                              Não existe mesagens para ete canal
+                            </Text>
+                          </>
+                        ) : (
+                          <Text
+                            style={[styles.ultimaMensagem, { color: tema.descricao }]}
+                            numberOfLines={1}
+                          >
+                            {item.ultima_mensagem}
+                          </Text>
+                        )}
+
+                      </>
                     )}
                   </View>
                 </View>
