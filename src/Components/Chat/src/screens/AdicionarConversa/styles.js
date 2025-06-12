@@ -81,7 +81,7 @@ export default StyleSheet.create({
       },
       flatlistSeguidores:{
         width: '90%',
-        marginLeft: 20
+        marginLeft: 20,
       },
       boxIcone:{
         borderRadius: 30,
@@ -202,4 +202,49 @@ export default StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
       },
+      barraContainer:{
+    alignSelf: 'center',
+    flexDirection: 'row',
+    width: '97%',
+    height: 60,
+    justifyContent: 'space-around',
+    paddingTop:15,
+    borderBottomWidth: 2,
+    borderColor: '#f9f9f9',
+    // backgroundColor:'red'
+  },
+  opcao:{
+    paddingHorizontal: 9,
+    height: '100%',
+    width: '15%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  opcaoIcon:{
+    fontSize: 30,
+    color: colors.cinza,
+  },
+  opcaoAtiva:{
+    fontSize: 25,
+    color: colors.preto,
+    borderBottomWidth: 2,
+    borderColor: colors.azul,
+    height: '107%',
+
+  },
+  IconeAtivo:{
+    fontSize: 25,
+    color: colors.preto,
+    borderBottomWidth: 0,
+
+  },
+  opcaoInativo:{
+    fontSize: 25,
+    color: colors.cinza,
+    borderBottomWidth: 0,
+  },
+  iconeInativo:{
+    fontSize: 25,
+    color: colors.cinza,
+  },
 })
