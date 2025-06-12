@@ -157,6 +157,7 @@ export default StyleSheet.create({
     borderWidth: 1
 
   },
+  
   userImg: {
 
     width: '100%',
@@ -232,4 +233,99 @@ export default StyleSheet.create({
     fontSize: 25,
     color: colors.cinza,
   },
+
+  storyContainer: {
+    alignItems: 'center',
+    marginRight: 12,
+    width: 78,
+  },
+  storyCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+    backgroundColor: colors.fundoSecundario,
+    position: 'relative',
+  },
+  storyImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  addIcon: {
+    width: 24,
+    height: 24,
+    tintColor: colors.texto,
+  },
+  storyText: {
+    fontSize: 12,
+    textAlign: 'center',
+    maxWidth: 70,
+  },
+  unseenBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.iconeAtivo,
+    borderWidth: 2,
+    borderColor: colors.fundo,
+  },
+  storiesListContent: {
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+  },
+
+  storyContainer: {
+    alignItems: 'center',
+    marginRight: 12,
+    width: 78,
+  },
+  storyCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+    backgroundColor: '#f8f8f8',
+    position: 'relative',
+  },
+  storyImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  addIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#000',
+  },
+  storyText: {
+    fontSize: 12,
+    textAlign: 'center',
+    maxWidth: 70,
+  },
+  unseenBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#3B82F6',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  storiesListContent: {
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+  },
+  
 });

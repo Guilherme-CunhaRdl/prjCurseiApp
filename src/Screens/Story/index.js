@@ -35,12 +35,13 @@ export default function Story() {
 
   const videoRefs = useRef({});
   const flatListRef = useRef(null);
-  const [storiesData, setStoriesData] = useState([]);
-  const [currentUserIndex, setCurrentUserIndex] = useState(0);
+  const { storiesData, initialUserIndex = 0 } = route.params || {};
+  const [currentUserIndex, setCurrentUserIndex] = useState(initialUserIndex);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const progressAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
+  
 
   const currentUser = storiesData[currentUserIndex];
   const currentStory = currentUser?.stories?.[currentStoryIndex];
@@ -73,7 +74,7 @@ export default function Story() {
   };
 
   const formatStoriesData = (stories) => {
-    // Agrupar stories por usuário
+
     const usersMap = {};
     
     stories.forEach(story => {
@@ -91,7 +92,7 @@ export default function Story() {
         tipo_midia: story.tipo_midia,
         legenda: story.legenda,
         data_inicio: story.data_inicio,
-        comments: 0 // Você pode adicionar comentários depois
+        comments: 0 
       });
     });
 
@@ -245,8 +246,8 @@ export default function Story() {
               <View style={styles.overlay}>
                 <View style={styles.contentContainer}>
                   <View style={styles.profileSection}>
-                    <Image style={styles.profileImage} source={{ uri: item.userImage }} />
-                    <Text style={styles.userName}>{item.userName}</Text>
+                    <Image style={styles.profileImage} source={{ uri:item.userImage  }} />
+                    <Text style={styles.userName}>{item.userImage}</Text>
                     <Text style={styles.storyTime}>
                       {new Date(story.data_inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
