@@ -31,20 +31,69 @@ export default function Story() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const route = useRoute();
-  const { story: initialStory } = route.params || {};
+  const { story: initialStory, storiesData: routeStoriesData, initialUserIndex = 0 } = route.params || {};
 
-  const videoRefs = useRef({});
-  const flatListRef = useRef(null);
-  const { storiesData, initialUserIndex = 0 } = route.params || {};
+  // Estados
+  const [storiesData, setStoriesData] = useState(routeStoriesData || []);
+  const [loading, setLoading] = useState(!routeStoriesData); // Só carrega se não vier dados pela rota
   const [currentUserIndex, setCurrentUserIndex] = useState(initialUserIndex);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+
+  // Referências
+  const videoRefs = useRef({});
+  const flatListRef = useRef(null);
   const progressAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
-  
 
+  // Dados atuais
   const currentUser = storiesData[currentUserIndex];
   const currentStory = currentUser?.stories?.[currentStoryIndex];
+
+
+  async function carregarStories() {
+    try {
+      setLoadingStories(true);
+      const response = await axios.get(`http://${host}:8000/api/stories`);
+      
+      const storiesAgrupados = response.data.data.reduce((acc, story) => {
+        const userIndex = acc.findIndex(u => u.user.id === story.user.id);
+        
+        if (userIndex >= 0) {
+          acc[userIndex].stories.push({
+            id: story.id,
+            url: story.url,
+            type: story.tipo_midia,
+            createdAt: story.data_inicio,
+            viewed: false
+          });
+        } else {
+          acc.push({
+            user: {
+              id: story.user.id,
+              name: story.user.nome,
+
+              avatar: story.user.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(story.user.nome)}&background=random`
+            },
+            stories: [{
+              id: story.id,
+              url: story.url,
+              type: story.tipo_midia,
+              createdAt: story.data_inicio,
+              viewed: false
+            }]
+          });
+        }
+        return acc;
+      }, []);
+      
+      setStories(storiesAgrupados);
+    } catch (error) {
+      console.error('Erro ao carregar stories:', error);
+    } finally {
+      setLoadingStories(false);
+    }
+  }
+
 
   const fetchStories = async () => {
     try {
@@ -73,16 +122,18 @@ export default function Story() {
     }
   };
 
-  const formatStoriesData = (stories) => {
 
+  
+
+  const formatStoriesData = (stories) => {
     const usersMap = {};
     
     stories.forEach(story => {
       if (!usersMap[story.user.id]) {
         usersMap[story.user.id] = {
           id: story.user.id,
-          userImage: story.user.foto || 'https://i.pravatar.cc/150',
-          userName: story.user.nome_user,
+          userImage: story.user.foto ? `http://${host}:8000/img/user/fotoPerfil/${story.user.foto}` : 'https://i.pravatar.cc/150',
+          userName: story.user.nome_user || story.user.nome,
           stories: []
         };
       }
@@ -147,7 +198,10 @@ export default function Story() {
   }, [currentUserIndex, storiesData]);
 
   useEffect(() => {
-    fetchStories();
+    if (!routeStoriesData) {
+      fetchStories();
+      carregarStories();
+    }
   }, []);
 
   useEffect(() => {
@@ -156,6 +210,7 @@ export default function Story() {
         videoRefs.current[currentStory.id]?.replayAsync();
       }
       startProgress();
+
     }
   }, [currentStoryIndex, currentUserIndex, isFocused]);
 
@@ -246,8 +301,12 @@ export default function Story() {
               <View style={styles.overlay}>
                 <View style={styles.contentContainer}>
                   <View style={styles.profileSection}>
-                    <Image style={styles.profileImage} source={{ uri:item.userImage  }} />
-                    <Text style={styles.userName}>{item.userImage}</Text>
+                    <Image 
+                      style={styles.profileImage} 
+                      source={{ uri: item.user.avatar }} 
+                      onError={() => item.userImage = 'https://i.pravatar.cc/150'}
+                    />
+                    <Text style={styles.userName}> {item.user.name}</Text>
                     <Text style={styles.storyTime}>
                       {new Date(story.data_inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
@@ -285,7 +344,7 @@ export default function Story() {
     );
   }
 
-  if (!storiesData.length) {
+  if (!storiesData || storiesData.length === 0) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: 'black' }]}>
         <Text style={{ color: 'white' }}>Nenhum story disponível</Text>
@@ -336,23 +395,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: responsiveWidth(2),
-    marginBottom: responsiveHeight(2)
+    marginBottom: responsiveHeight(2),
+    paddingHorizontal: responsiveWidth(4)
   },
   profileImage: {
-    width: responsiveWidth(12),
-    height: responsiveWidth(12),
-    borderRadius: responsiveWidth(6)
+    width: responsiveWidth(10),
+    height: responsiveWidth(10),
+    borderRadius: responsiveWidth(5),
+    borderWidth: 2,
+    borderColor: '#fff'
   },
   userName: {
     color: 'white',
     fontSize: responsiveFontSize(4),
-    fontWeight: '500'
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3
   },
   storyTime: {
-    color: 'white',
-    fontSize: responsiveFontSize(3.5),
-    marginLeft: responsiveWidth(3),
-    opacity: 0.8
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: responsiveFontSize(3),
+    marginLeft: 'auto'
   },
   caption: {
     color: 'white',

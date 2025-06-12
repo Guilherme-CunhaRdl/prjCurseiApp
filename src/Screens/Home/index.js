@@ -281,7 +281,7 @@ export default function Home() {
                       style={[styles.storyText, {color: tema.texto}]}
                       numberOfLines={1}
                     >
-                      {item.user.foto}
+                      {item.user.name}
                     </Text>
                   </Pressable>
                 </View>
