@@ -50,6 +50,8 @@ export default function AddConversa({ route }) {
   const [sugestoes, setSugestoes] = useState([]);
   const [isInstituicao, setIsInstituicao] = useState();
   const [canais, setCanais] = useState([]);
+  const [seguidos, setSeguidos] = useState([]);
+
   const alterarFoco = (campo) => {
     setFocoInput(campo);
   };
@@ -67,7 +69,7 @@ export default function AddConversa({ route }) {
         const respostaSugestoes = await axios.get(
           `http://${host}:8000/api/cursei/chat/adicionarChat/sugestoes/${idUserLogado}`
         );
-         const respostaCanais = await axios.get(
+        const respostaCanais = await axios.get(
           `http://${host}:8000/api/cursei/chat/selecionarCanais/${idUserLogado}`
         );
         const idInst = await AsyncStorage.getItem("idInstituicao");
@@ -214,6 +216,7 @@ export default function AddConversa({ route }) {
       });
 
       console.log(resposta);
+      navigation.navigate('AddConversa')
     } catch (e) {
       console.error(e);
     }
@@ -235,6 +238,54 @@ export default function AddConversa({ route }) {
   const [focoIcone, setFocoIcone] = useState('posts')
   const alterarFocoIcone = (icone) => setFocoIcone(icone)
 
+  const seguirCanal = async (idCanal) => {
+    console.log(seguidos)
+    if(seguidos.includes(idCanal)){
+      return 'não pode0';
+    }
+    console.log(canais, idCanal)
+    const url = `http://${host}:8000/api/cursei/chat/seguirCanal`;
+
+    const data = {
+      idUsuario: idUserLogado,
+      idCanal: idCanal
+    };
+
+
+    console.log('dados', data);
+
+    const resposta = await axios.post(url, data);
+    const dadosApi = resposta.data;
+    if (dadosApi.sucesso) {
+      setSeguidos((prev) => [...prev, idCanal])
+    }
+
+  }
+
+  const deixarSeguir = async (idCanal) => {
+    console.log(seguidos)
+    try{
+
+    
+    if(!seguidos.includes(idCanal)){
+      return 'não pode0';
+    }    const url = `http://${host}:8000/api/cursei/chat/deixarSeguir/${idUserLogado}`;
+    const resposta = await axios.delete(url);
+    const dadosApi = resposta.data;
+    console.log(resposta);
+    if (dadosApi.sucesso) {
+      
+      setSeguidos((prev) => prev.filter(canalId => canalId !== idCanal));
+      
+    }
+    
+    }catch (error){
+      console.log(error)
+    }
+    // if (dadosApi.sucesso) {
+    //   setSeguidos((prev) => [...prev, idCanal])
+    // }
+  }
 
   return (
     <SafeAreaProvider>
@@ -273,168 +324,50 @@ export default function AddConversa({ route }) {
               ]}
             />
           </View>
-          
-          { loading ? (
+
+          {loading ? (
             <View style={{ flex: 1, paddingTop: 50, justifyContent: 'flex-start', alignItems: 'center', backgroundColor: tema.fundo, zIndex: 99, width: '100%', height: '100%' }}>
-                  <ActivityIndicator size="large" color={tema.azul} />
-                </View>
+              <ActivityIndicator size="large" color={tema.azul} />
+            </View>
           ) : (
             <ScrollView>
               {isInstituicao !== '0' ? (
                 <>
-                 <View style={styles.containerAddGrupo}>
-                <TouchableOpacity
-                  style={[styles.boxAddGrupo, { paddingTop: 7, backgroundColor: tema.fundo }]}
-                  onPress={() => modalCriacaoCanal()}
-                >
-                  <View style={styles.conteudoIcone}>
-                    <View style={[styles.boxIcone, { backgroundColor: tema.fundo }]}>
-                      <Icon style={[styles.iconeAdd, { color: tema.icone }]} name="chat-plus-outline" />
-                    </View>
-                  </View>
-                  <View style={styles.conteudoTexto}>
-                    <Text style={{ fontWeight: "500", color: tema.texto }}>
-                      Adicionar Novo Canal
-                    </Text>
-                    <Text style={{ fontSize: 12, color: tema.descricao, paddingRight: 30 }}>
-                      Adicione uma nova conversa ao seu Bate Papo!
-                      {isInstituicao}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.containerAddUsuario}>
-                <View style={{ width: "100%", paddingLeft: 25 }}>
-                  <Text style={{ fontWeight: "500", color: tema.texto }}>Seguidores</Text>
-                </View>
-                <FlatList
-                  data={seguidores}
-                  keyExtractor={(item) => item.id_seguidor}
-                  style={styles.containerSeguidores}
-                  renderItem={({ item }) => (
-                    <View style={styles.flatlistSeguidores}>
-                      <TouchableOpacity
-                        onPress={() => irParaConversa(item.id_seguidor, item.id_seguido, false)}
-                      >
-                        <View style={[styles.boxAddUsuario, { backgroundColor: tema.fundo }]}>
-                          <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                            <View style={styles.boxIcone}>
-                              <Image
-                                style={styles.imgUsuario}
-                                source={{
-                                  uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_seguidor}`,
-                                }}
-                              />
-                            </View>
-                          </View>
-                          <View style={styles.conteudoTexto}>
-                            <Text style={{ fontWeight: "500", color: tema.texto }}>
-                              {item.nome_seguidor}
-                            </Text>
-                            <Text style={{ fontSize: 12, color: tema.descricao }}>
-                              @{item.arroba_seguidor}
-                            </Text>
-                          </View>
+                  <View style={styles.containerAddGrupo}>
+                    <TouchableOpacity
+                      style={[styles.boxAddGrupo, { paddingTop: 7, backgroundColor: tema.fundo }]}
+                      onPress={() => modalCriacaoCanal()}
+                    >
+                      <View style={styles.conteudoIcone}>
+                        <View style={[styles.boxIcone, { backgroundColor: tema.fundo }]}>
+                          <Icon style={[styles.iconeAdd, { color: tema.icone }]} name="chat-plus-outline" />
                         </View>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                  ListEmptyComponent={
-                    <View style={{ padding: 20, alignItems: 'center' }}>
-                      <Text style={{ color: tema.descricao }}>Nenhum Seguidor encontrado.</Text>
-                    </View>
-                  }
-                />
-                <View style={{ width: "100%", paddingLeft: 25 }}>
-                  <Text style={{ fontWeight: "500", color: tema.texto }}>Sugestões</Text>
-                </View>
-                <FlatList
-                  data={sugestoes}
-                  keyExtractor={(item) => item.id}
-                  style={styles.containerSeguidores}
-                  renderItem={({ item }) => (
-                    <View style={styles.flatlistSeguidores}>
-                      <TouchableOpacity onPress={() => irParaConversaSugestoes(item.id, false)}>
-                        <View style={[styles.boxAddUsuario, { backgroundColor: tema.fundo }]}>
-                          <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                            <View style={styles.boxIcone}>
-                              <Image
-                                style={styles.imgUsuario}
-                                source={{
-                                  uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_seguidor}`,
-                                }}
-                              />
-                            </View>
-                          </View>
-                          <View style={styles.conteudoTexto}>
-                            <Text style={{ fontWeight: "500", color: tema.texto }}>
-                              {item.nome_seguidor}
-                            </Text>
-                            <Text style={{ fontSize: 12, color: tema.descricao }}>
-                              @{item.arroba_seguidor}
-                            </Text>
-                          </View>
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                  ListEmptyComponent={
-                    <View style={{ padding: 20, alignItems: 'center' }}>
-                      <Text style={{ color: tema.descricao }}>Nenhuma Sugestão Encontrada.</Text>
-                    </View>
-                  }
-                />
-              </View>
-                </>
-              ) : (
-                <>
-              {/* Barra de opções */}
-              <View style={[styles.barraContainer, { borderBottomColor: 'black' }]}>
-                <Pressable
-                  onPress={() => alterarFocoIcone('posts')}
-                  style={[
-                    styles.opcao,
-                    focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa,
-                  ]}
-                >
-                  <Ionicons
-                    name="grid-outline"
-                    style={styles.opcaoIcon}
-                    size={22}
-                    color={focoIcone === 'posts' ? tema.iconeAtivo : tema.iconeInativo}
-                  />
-                </Pressable>
+                      </View>
+                      <View style={styles.conteudoTexto}>
+                        <Text style={{ fontWeight: "500", color: tema.texto }}>
+                          Adicionar Novo Canal
+                        </Text>
+                        <Text style={{ fontSize: 12, color: tema.descricao, paddingRight: 30 }}>
+                          Adicione uma nova conversa ao seu Bate Papo!
+                          {isInstituicao}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
 
-                <Pressable
-                  onPress={() => alterarFocoIcone('instituicao')}
-                  style={[
-                    styles.opcao,
-                    focoIcone === 'instituicao' ? styles.opcaoAtiva : styles.opcaoInativa,
-                  ]}
-                >
-                  <Ionicons
-                    name="school-outline"
-                    style={styles.opcaoIcon}
-                    size={22}
-                    color={focoIcone === 'instituicao' ? tema.iconeAtivo : tema.iconeInativo}
-                  />
-                </Pressable>
-              </View>
-
-              <ScrollView>
-                {focoIcone !== 'instituicao' ? (
                   <View style={styles.containerAddUsuario}>
                     <View style={{ width: "100%", paddingLeft: 25 }}>
-                      <Text style={{ fontWeight: "500", color: tema.texto }}>Conexões</Text>
+                      <Text style={{ fontWeight: "500", color: tema.texto }}>Seguidores</Text>
                     </View>
                     <FlatList
-                      data={conexoes}
-                      keyExtractor={(item) => item.id_seguidor ? item.id_seguidor : item.id}
+                      data={seguidores}
+                      keyExtractor={(item) => item.id_seguidor}
                       style={styles.containerSeguidores}
                       renderItem={({ item }) => (
                         <View style={styles.flatlistSeguidores}>
-                          <TouchableOpacity onPress={() => irParaConversa(item.id_seguidor, item.id_seguido, true)}>
+                          <TouchableOpacity
+                            onPress={() => irParaConversa(item.id_seguidor, item.id_seguido, false)}
+                          >
                             <View style={[styles.boxAddUsuario, { backgroundColor: tema.fundo }]}>
                               <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
                                 <View style={styles.boxIcone}>
@@ -458,10 +391,9 @@ export default function AddConversa({ route }) {
                           </TouchableOpacity>
                         </View>
                       )}
-                      scrollEnabled={false}
                       ListEmptyComponent={
-                        <View style={{ padding: 20, height: 80, alignItems: 'center' }}>
-                          <Text style={{ color: tema.descricao }}>Nenhuma Conexão Encontrada.</Text>
+                        <View style={{ padding: 20, alignItems: 'center' }}>
+                          <Text style={{ color: tema.descricao }}>Nenhum Seguidor encontrado.</Text>
                         </View>
                       }
                     />
@@ -498,75 +430,210 @@ export default function AddConversa({ route }) {
                           </TouchableOpacity>
                         </View>
                       )}
-                      scrollEnabled={false}
                       ListEmptyComponent={
-                        <View style={{ padding: 20, height: 80, alignItems: 'center' }}>
+                        <View style={{ padding: 20, alignItems: 'center' }}>
                           <Text style={{ color: tema.descricao }}>Nenhuma Sugestão Encontrada.</Text>
                         </View>
                       }
                     />
                   </View>
-                ) : (
-                  <>
-                  <View style={styles.containerAddUsuario}>
-                <View style={{ width: "100%", paddingLeft: 25 }}>
-                  <Text style={{ fontWeight: "500", color: tema.texto }}>Canais</Text>
-                </View>
-                <FlatList
-                  data={canais}
-                  keyExtractor={(item) => item.canal_id}
-                  style={styles.containerSeguidores}
-                  renderItem={({ item }) => (
-                    <View style={styles.flatlistSeguidores}>
-                      <TouchableOpacity
-                        onPress={() => irParaConversa(item.id_seguidor, item.id_seguido, false)}
-                      >
-                        <View style={[styles.boxAddUsuario, { backgroundColor: tema.fundo }]}>
-                          <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
-                            <View style={styles.boxIcone}>
-                              <Image
-                                style={styles.imgUsuario}
-                                source={{
-                                  uri: `http://${host}:8000/img/user/fotoPerfil/${item.canal_img}`,
-                                }}
-                              />
-                            </View>
-                          </View>
-                          <View style={styles.conteudoTexto}>
-                            <Text style={{ fontWeight: "500", color: tema.texto }}>
-                              {item.canal_nome}
-                            </Text>
-                            <Text style={{ fontSize: 12, color: tema.descricao }}>
-                              {item.canal_descricao}
-                            </Text>
-                          </View>
+                </>
+              ) : (
+                <>
+                  {/* Barra de opções */}
+                  <View style={[styles.barraContainer, { borderBottomColor: 'black' }]}>
+                    <Pressable
+                      onPress={() => alterarFocoIcone('posts')}
+                      style={[
+                        styles.opcao,
+                        focoIcone === 'posts' ? styles.opcaoAtiva : styles.opcaoInativa,
+                      ]}
+                    >
+                      <Ionicons
+                        name="grid-outline"
+                        style={styles.opcaoIcon}
+                        size={22}
+                        color={focoIcone === 'posts' ? tema.iconeAtivo : tema.iconeInativo}
+                      />
+                    </Pressable>
+
+                    <Pressable
+                      onPress={() => alterarFocoIcone('instituicao')}
+                      style={[
+                        styles.opcao,
+                        focoIcone === 'instituicao' ? styles.opcaoAtiva : styles.opcaoInativa,
+                      ]}
+                    >
+                      <Ionicons
+                        name="school-outline"
+                        style={styles.opcaoIcon}
+                        size={22}
+                        color={focoIcone === 'instituicao' ? tema.iconeAtivo : tema.iconeInativo}
+                      />
+                    </Pressable>
+                  </View>
+
+                  <ScrollView>
+                    {focoIcone !== 'instituicao' ? (
+                      <View style={styles.containerAddUsuario}>
+                        <View style={{ width: "100%", paddingLeft: 25 }}>
+                          <Text style={{ fontWeight: "500", color: tema.texto }}>Conexões</Text>
                         </View>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                  ListEmptyComponent={
-                    <View style={{ padding: 20, alignItems: 'center' }}>
-                      <Text style={{ color: tema.descricao }}>Nenhum Canal encontrado.</Text>
-                    </View>
-                  }
-                  scrollEnabled={false}
-                />
-                </View>
-                  </>
+                        <FlatList
+                          data={conexoes}
+                          keyExtractor={(item) => item.id_seguidor ? item.id_seguidor : item.id}
+                          style={styles.containerSeguidores}
+                          renderItem={({ item }) => (
+                            <View style={styles.flatlistSeguidores}>
+                              <TouchableOpacity onPress={() => irParaConversa(item.id_seguidor, item.id_seguido, true)}>
+                                <View style={[styles.boxAddUsuario, { backgroundColor: tema.fundo }]}>
+                                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                                    <View style={styles.boxIcone}>
+                                      <Image
+                                        style={styles.imgUsuario}
+                                        source={{
+                                          uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_seguidor}`,
+                                        }}
+                                      />
+                                    </View>
+                                  </View>
+                                  <View style={styles.conteudoTexto}>
+                                    <Text style={{ fontWeight: "500", color: tema.texto }}>
+                                      {item.nome_seguidor}
+                                    </Text>
+                                    <Text style={{ fontSize: 12, color: tema.descricao }}>
+                                      @{item.arroba_seguidor}
+                                    </Text>
+                                  </View>
+                                </View>
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                          scrollEnabled={false}
+                          ListEmptyComponent={
+                            <View style={{ padding: 20, height: 80, alignItems: 'center' }}>
+                              <Text style={{ color: tema.descricao }}>Nenhuma Conexão Encontrada.</Text>
+                            </View>
+                          }
+                        />
+                        <View style={{ width: "100%", paddingLeft: 25 }}>
+                          <Text style={{ fontWeight: "500", color: tema.texto }}>Sugestões</Text>
+                        </View>
+                        <FlatList
+                          data={sugestoes}
+                          keyExtractor={(item) => item.id}
+                          style={styles.containerSeguidores}
+                          renderItem={({ item }) => (
+                            <View style={styles.flatlistSeguidores}>
+                              <TouchableOpacity onPress={() => irParaConversaSugestoes(item.id, false)}>
+                                <View style={[styles.boxAddUsuario, { backgroundColor: tema.fundo }]}>
+                                  <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                                    <View style={styles.boxIcone}>
+                                      <Image
+                                        style={styles.imgUsuario}
+                                        source={{
+                                          uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_seguidor}`,
+                                        }}
+                                      />
+                                    </View>
+                                  </View>
+                                  <View style={styles.conteudoTexto}>
+                                    <Text style={{ fontWeight: "500", color: tema.texto }}>
+                                      {item.nome_seguidor}
+                                    </Text>
+                                    <Text style={{ fontSize: 12, color: tema.descricao }}>
+                                      @{item.arroba_seguidor}
+                                    </Text>
+                                  </View>
+                                </View>
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                          scrollEnabled={false}
+                          ListEmptyComponent={
+                            <View style={{ padding: 20, height: 80, alignItems: 'center' }}>
+                              <Text style={{ color: tema.descricao }}>Nenhuma Sugestão Encontrada.</Text>
+                            </View>
+                          }
+                        />
+                      </View>
+                    ) : (
+                      <>
+                        <View style={styles.containerAddUsuario}>
+                          <View style={{ width: "100%", paddingLeft: 25 }}>
+                            <Text style={{ fontWeight: "500", color: tema.texto }}>Canais</Text>
+                          </View>
+                          <FlatList
+                            data={canais}
+                            keyExtractor={(item) => item.canal_id}
+                            style={styles.containerSeguidores}
+                            renderItem={({ item }) => (
+                              <View style={styles.flatlistSeguidores}>
+                                <TouchableOpacity
+                                  onPress={() => irParaConversa(item.id_seguidor, item.id_seguido, false)}
+                                >
+                                  <View style={[styles.boxAddUsuario, { backgroundColor: tema.fundo }]}>
+                                    <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
+                                      <View style={styles.boxIcone}>
+                                        <Image
+                                          style={styles.imgUsuario}
+                                          source={{
+                                            uri: `http://${host}:8000/img/chat/imgCanal/${item.canal_imagem}`,
+                                          }}
+                                        />
+                                      </View>
+                                    </View>
+                                    <View style={styles.conteudoTexto}>
+                                      <View style={styles.rowNomeSeguir}>
+                                        <Text style={{ fontWeight: "500", color: tema.texto }}>
+                                          {item.canal_nome}
+                                        </Text>
+                                        <TouchableOpacity
+                                          style={[
+                                            styles.botaoSeguir,
+                                            seguidos.includes(item.canal_id) &&  styles.botaoSeguido
+                                          ]}
+                                          onPress={() => seguidos.includes(item.canal_id) ? deixarSeguir(item.canal_id) : seguirCanal(item.canal_id)}
+                                        >
+                                          <Text style={[styles.textSeguir,seguidos.includes(item.canal_id) && {color: tema.texto } ]}>
+                                            {seguidos.includes(item.canal_id) ? 'Seguindo' : 'Seguir'}
+                                          </Text>
+                                          {!seguidos.includes(item.canal_id) && (
+                                            <Ionicons name="add-outline" size={15} color={tema.textoBotao} />
+                                          )}
+                                        </TouchableOpacity>
+                                      </View>
+                                      <Text style={{ fontSize: 12, color: tema.descricao }}>
+                                        {item.canal_descricao}
+                                      </Text>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                              </View>
+                            )}
+                            ListEmptyComponent={
+                              <View style={{ padding: 20, alignItems: 'center' }}>
+                                <Text style={{ color: tema.descricao }}>Nenhum Canal encontrado.</Text>
+                              </View>
+                            }
+                            scrollEnabled={false}
+                          />
+                        </View>
+                      </>
 
-                )}
+                    )}
 
 
 
 
-              </ScrollView>
-            </>
+                  </ScrollView>
+                </>
               )}
-             
+
             </ScrollView>
           )}
 
-          
+
         </View>
       </PaperProvider>
 

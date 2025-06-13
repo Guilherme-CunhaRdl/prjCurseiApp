@@ -75,6 +75,37 @@ export default StyleSheet.create({
         height: '100%',
         flexDirection: 'column'
       },
+      rowNomeSeguir:{
+        flexDirection: 'row',
+        width: '100%',
+        alignItems: 'center',
+         justifyContent: 'space-between'
+      },
+      botaoSeguir:{
+        padding: 7,
+        width: 80,
+        borderRadius: 100,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.azul,
+        flexDirection: 'row',
+        borderWidth: 1,
+        borderColor: colors.azul
+      },
+      botaoSeguido:{
+        padding: 7,
+        width: 80,
+        borderRadius: 100,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: colors.preto,
+        flexDirection: 'row'
+      },
+      textSeguir:{
+        color: colors.branco
+      },
       containerSeguidores:{
         width: '100%',
         
