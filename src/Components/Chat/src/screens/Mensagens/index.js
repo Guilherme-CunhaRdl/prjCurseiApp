@@ -360,7 +360,7 @@ export default function Mensagens({ route }) {
                       </View>
                     ) : (
                       <>
-                        {item.tipo === 'canal' && !item.conteudo_mensagem ? (
+                        {item.tipo === 'canal' && !item.ultima_mensagem ? (
                           <>
                             <Text
                               style={[styles.ultimaMensagem, { color: tema.descricao }]}
