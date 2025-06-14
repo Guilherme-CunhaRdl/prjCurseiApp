@@ -44,7 +44,7 @@ export default function Conversa({ route }) {
       );
 
       const respostaCanal = await axios.get(
-        `http://${host}:8000/api/cursei/chat/mensagensCanal/${idEnviador}`
+        `http://${host}:8000/api/cursei/chat/mensagensCanal/${idEnviador}/${idChat}`
       )
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
@@ -54,7 +54,7 @@ export default function Conversa({ route }) {
       } else if (respostaCanal.data.mensagensCanal && respostaCanal.data.mensagensCanal.length > 0 && isCanal) {
         await setMensagens(respostaCanal.data.mensagensCanal);
         console.log(respostaCanal.data.mensagensCanal)
-        console.log(idCriador)
+        console.log(idChat)
       }
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
@@ -233,6 +233,36 @@ export default function Conversa({ route }) {
       };
 
   console.log(idUserLogado)
+
+  const enviarMensagemCanal = async () => {
+
+    let mensagem = campoMensagem.trim();
+
+      if (!mensagem) return;
+
+      setCampoMensagem("");
+      console.log(idChat)
+      try {
+        const resposta = await axios.post(
+          `http://${host}:8000/api/cursei/chat/enviarMensagem/canal/semImagem`,
+          {
+            idChat: idChat,
+            conteudoMensagem: mensagem,
+            idEnviador: idUserLogado,
+            
+          }
+        );
+        console.log(resposta)
+      
+      } catch (erro) {
+        console.error("Erro ao enviar mensagem:", error);
+      }finally{
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: false });
+        }, 150);
+      }
+    
+  }
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -267,9 +297,22 @@ export default function Conversa({ route }) {
                 }
                 style={styles.avatar}
               />
-              <View>
+              <View style={styles.viewCabecalho}>
+                <View style={{width: '30%'}}>
                 <Text style={styles.nome}>{nomeEnviador}</Text>
+                
                 <Text style={styles.usuario}>@{arrobaEnviador}</Text>
+                </View>
+                {isCanal && (
+
+                <View style={styles.viewBotaoSeguir}>
+                  <TouchableOpacity style={styles.botaoSeguir}>
+                  <Text style={styles.textSeguir}>
+                    Seguir
+                  </Text>
+                </TouchableOpacity>
+                </View>
+                )}
               </View>
             </TouchableOpacity>
           </View>
@@ -331,42 +374,52 @@ export default function Conversa({ route }) {
           </View>
         )}
         {isCanal && idEnviador == idUserLogado && (
-          <View style={styles.inputContainer}>
-            <View style={{flexDirection:'row', width: '15%', justifyContent: 'space-around', alignItems: 'center'}}>
-              <TouchableOpacity onPress={() => tirarFotoParaEnvio()}>
-                <Image
-                  source={require("../../img/Camera.png")}
-                  style={styles.iconSmall}
-                />
-              </TouchableOpacity>
+  <View style={styles.inputContainer}>
+    {/* Ícones à esquerda */}
+    <View style={styles.iconsLeft}>
+      <TouchableOpacity 
+        onPress={() => tirarFotoParaEnvio()}
+        style={styles.iconButton}
+      >
+        <Image
+          source={require("../../img/Camera.png")}
+          style={styles.iconSmall}
+        />
+      </TouchableOpacity>
 
-              <TouchableOpacity onPress={abrirDocumentos}>
-                <Image
-                  source={require("../../img/gallery.png")}
-                  style={styles.iconSmall}
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={{width: '70%', justifyContent: 'space-between', alignItems: 'center'}}>
-              <TextInput
-                style={styles.input}
-                placeholder="Escreva sua Mensagem..."
-                placeholderTextColor="#A7A7A7"
-                value={campoMensagem}
-                onChangeText={setCampoMensagem}
-              />
-              
-            </View>
-            <View style={{width: '15%', justifyContent: 'space-between', alignItems: 'center'}}>
-              <TouchableOpacity onPress={!isCanal ? () => enviarMensagem() : ''}>
-                <Image
-                  source={require("../../img/enviar.png")}
-                  style={styles.iconSmall}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+      <TouchableOpacity 
+        onPress={abrirDocumentos}
+        style={styles.iconButton}
+      >
+        <Image
+          source={require("../../img/gallery.png")}
+          style={styles.iconSmall}
+        />
+      </TouchableOpacity>
+    </View>
+
+    {/* Campo de texto central */}
+    <TextInput
+      style={styles.input}
+      placeholder="Escreva sua Mensagem..."
+      placeholderTextColor="#A7A7A7"
+      value={campoMensagem}
+      onChangeText={setCampoMensagem}
+      multiline
+    />
+
+    {/* Ícone de enviar à direita */}
+    <TouchableOpacity 
+      onPress={!isCanal ? enviarMensagem : enviarMensagemCanal}
+      style={styles.sendButton}
+    >
+      <Image
+        source={require("../../img/enviar.png")}
+        style={styles.iconSmall}
+      />
+    </TouchableOpacity>
+  </View>
+)}
         {!isCanal && (
           <View style={styles.inputContainer}>
             <View style={{flexDirection:'row', width: '15%', justifyContent: 'space-around', alignItems: 'center'}}>
@@ -493,10 +546,52 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginRight: 8,
   },
+  viewCabecalho:{
+    width: '100%',
+    flexDirection: 'row'
+
+  },
   nome: {
     fontWeight: "bold",
     fontSize: 14,
   },
+  rowNomeSeguir:{
+        flexDirection: 'row',
+        width: '90%',
+        alignItems: 'center',
+         justifyContent: 'space-between'
+      },
+      viewBotaoSeguir:{
+        width: '100%',
+        paddingRight: 40,
+        justifyContent: 'flex-end',
+        alignItems: 'center'
+      },
+      botaoSeguir:{
+        padding: 7,
+        width: 80,
+        borderRadius: 100,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.azul,
+        flexDirection: 'row',
+        borderWidth: 1,
+        borderColor: colors.azul
+      },
+      botaoSeguido:{
+        padding: 7,
+        width: 80,
+        borderRadius: 100,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: colors.preto,
+        flexDirection: 'row'
+      },
+      textSeguir:{
+        color: colors.branco
+      },
   usuario: {
     fontSize: 12,
     color: "#666",
