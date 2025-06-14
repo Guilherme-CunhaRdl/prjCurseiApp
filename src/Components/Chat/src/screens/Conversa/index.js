@@ -75,6 +75,7 @@ export default function Conversa({ route }) {
         },
       },
     });
+    console.log(idChat)
     const canal = pusher.subscribe(`chat_mensagem.${idChat}`);
 
     canal.bind("nova_mensagem", (data) => {
@@ -92,33 +93,33 @@ export default function Conversa({ route }) {
   }, []);
 
 
-const enviarMensagem = async () => {
-    let mensagem = campoMensagem.trim();
+  const enviarMensagem = async () => {
+      let mensagem = campoMensagem.trim();
 
-    if (!mensagem) return;
+      if (!mensagem) return;
 
-    setCampoMensagem("");
-    console.log(idChat)
-    try {
-      const resposta = await axios.post(
-        `http://${host}:8000/api/cursei/chat/enviarMensagem/semImagem`,
-        {
-          idChat: idChat,
-          conteudoMensagem: mensagem,
-          idEnviador: idUserLogado,
-          
-        }
-      );
-      console.log(idUserLogado, idEnviador)
-     
-    } catch (erro) {
-      console.error("Erro ao enviar mensagem:", error);
-    }finally{
-       setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: false });
-      }, 150);
-    }
-  };
+      setCampoMensagem("");
+      console.log(idChat)
+      try {
+        const resposta = await axios.post(
+          `http://${host}:8000/api/cursei/chat/enviarMensagem/semImagem`,
+          {
+            idChat: idChat,
+            conteudoMensagem: mensagem,
+            idEnviador: idUserLogado,
+            
+          }
+        );
+        console.log(idUserLogado, idEnviador)
+      
+      } catch (erro) {
+        console.error("Erro ao enviar mensagem:", error);
+      }finally{
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: false });
+        }, 150);
+      }
+    };
 
   const enviarMensagemFoto = async () => {
     try {

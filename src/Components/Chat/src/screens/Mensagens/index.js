@@ -89,71 +89,92 @@ export default function Mensagens({ route }) {
 
 
 
-  const conectarCanal = async (novosChats) => {
-    if (!window.pusherInstance) {
-      window.pusherInstance = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
-        cluster: "mt1",
-        wsHost: `${host}`,
-        wsPort: 6001,
-        forceTLS: false,
-        enabledTransports: ["ws"],
-        authEndpoint: `http://${host}:8000/broadcasting/auth`,
-        auth: {
-          headers: {
-            Authorization: "Bearer SEU_TOKEN_AQUI",
-          },
+ const conectarCanal = async (novosChats) => {
+  if (!window.pusherInstance) {
+    window.pusherInstance = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
+      cluster: "mt1",
+      wsHost: `${host}`,
+      wsPort: 6001,
+      forceTLS: false,
+      enabledTransports: ["ws"],
+      authEndpoint: `http://${host}:8000/broadcasting/auth`,
+      auth: {
+        headers: {
+          Authorization: "Bearer SEU_TOKEN_AQUI",
         },
-      });
-    }
-
-    const ordenarConversas = (conversas) => {
-      return [...conversas].sort((a, b) =>
-        new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
-      );
-    };
-
-    const transformarMensagem = (msg) => ({
-      id_conversa: msg.id_chat,
-      id_remetente: msg.id_enviador,
-      nome: msg.nome_enviador,
-      arroba: msg.arroba_enviador,
-      img: msg.img_enviador,
-      ultima_mensagem: msg.ultima_mensagem,
-      img_mensagem: msg.img_mensagem,
-      status_mensagem: msg.status_mensagem,
-      updated_at: msg.created_at || new Date().toISOString()
+      },
     });
+  }
 
-    novosChats.forEach((chat) => {
-      if (!window.pusherInstance.channel(`trazer_chats.${chat.id_conversa}`)) {
-        const canal = window.pusherInstance.subscribe(`trazer_chats.${chat.id_conversa}`);
-
-        canal.bind("chats", (data) => {
-          if (!data?.msgs?.length) return;
-
-          data.msgs.forEach((msg) => {
-            const mensagemFormatada = transformarMensagem(msg);
-
-            setConversas(prev => {
-              const chatIndex = prev.findIndex(c => c.id_conversa === mensagemFormatada.id_conversa);
-
-              if (chatIndex !== -1) {
-                const updated = [...prev];
-                updated[chatIndex] = {
-                  ...updated[chatIndex],
-                  ...mensagemFormatada,
-                  updated_at: mensagemFormatada.updated_at
-                };
-                return ordenarConversas(updated);
-              }
-
-              return prev;
-            });
-          });
-        });
-      }
-    });
+  const ordenarConversas = (conversas) => {
+    return [...conversas].sort((a, b) =>
+      new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+    );
   };
+
+  // Modificada para não incluir dados do remetente
+  const transformarMensagem = (msg) => ({
+    id_conversa: msg.id_chat,
+    ultima_mensagem: msg.ultima_mensagem,
+    img_mensagem: msg.img_mensagem,
+    status_mensagem: msg.status_mensagem,
+    updated_at: msg.created_at || new Date().toISOString()
+  });
+
+  // Limpa canais anteriores para evitar duplicação
+  novosChats.forEach(chat => {
+    if (window.pusherInstance.channel(`trazer_chats.${chat.id_conversa}`)) {
+      window.pusherInstance.unsubscribe(`trazer_chats.${chat.id_conversa}`);
+    }
+  });
+
+  novosChats.forEach((chat) => {
+    const canal = window.pusherInstance.subscribe(`trazer_chats.${chat.id_conversa}`);
+    console.log(`Inscrito no canal trazer_chats.${chat.id_conversa}`);
+
+    canal.bind("chats", (data) => {
+      if (!data?.msgs?.length) return;
+
+      setConversas(prev => {
+        const novasConversas = [...prev];
+        let precisaOrdenar = false;
+
+        data.msgs.forEach((msg) => {
+          const mensagemFormatada = transformarMensagem(msg);
+          const chatIndex = novasConversas.findIndex(
+            c => c.id_conversa === mensagemFormatada.id_conversa
+          );
+
+          if (chatIndex !== -1) {
+            // Atualiza apenas os campos da mensagem, mantendo os dados originais do chat
+            novasConversas[chatIndex] = {
+              ...novasConversas[chatIndex],
+              ultima_mensagem: mensagemFormatada.ultima_mensagem,
+              img_mensagem: mensagemFormatada.img_mensagem,
+              status_mensagem: mensagemFormatada.status_mensagem,
+              updated_at: mensagemFormatada.updated_at
+            };
+            precisaOrdenar = true;
+          } else {
+            // Caso seja uma nova conversa (raro, mas pode acontecer)
+            novasConversas.push({
+              id_conversa: mensagemFormatada.id_conversa,
+              id_remetente: msg.id_enviador,
+              nome: msg.nome_enviador,
+              arroba: msg.arroba_enviador,
+              img: msg.img_enviador,
+              tipo: msg.tipo,
+              ...mensagemFormatada
+            });
+            precisaOrdenar = true;
+          }
+        });
+
+        return precisaOrdenar ? ordenarConversas(novasConversas) : novasConversas;
+      });
+    });
+  });
+};
 
 
 
@@ -302,7 +323,7 @@ export default function Mensagens({ route }) {
                   <View style={styles.mensagemTexto}>
                     <View style={{ flexDirection: 'row' }}>
                       <Text style={[styles.nome, { color: tema.texto, paddingRight: 10 }]} numberOfLines={1}>
-                        {item.nome}
+                        {item.nome} {item.id_conversa}
                       </Text>
                       {item.tipo === 'instituicao' && (
                         <Ionicons name="school-outline"

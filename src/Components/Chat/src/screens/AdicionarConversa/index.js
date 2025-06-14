@@ -569,9 +569,18 @@ export default function AddConversa({ route }) {
                             style={styles.containerSeguidores}
                             renderItem={({ item }) => (
                               <View style={styles.flatlistSeguidores}>
-                                <TouchableOpacity
-                                  onPress={() => irParaConversa(item.id_seguidor, item.id_seguido, false)}
-                                >
+                                <TouchableOpacity onPress={() => {
+                                const navData = {
+                                  idUserLogado: idUserLogado,
+                                  idEnviador: item.canal_criador_id,
+                                  imgEnviador: item.canal_imagem,
+                                  nomeEnviador: item.canal_nome,
+                                  arrobaEnviador: item.arroba_remetente,
+                                  idChat: item.canal_id,
+                                  isCanal: true,
+                                };
+                                navigation.navigate("Conversa", navData);
+                              }}>
                                   <View style={[styles.boxAddUsuario, { backgroundColor: tema.fundo }]}>
                                     <View style={[styles.conteudoIcone, { marginRight: 8 }]}>
                                       <View style={styles.boxIcone}>
