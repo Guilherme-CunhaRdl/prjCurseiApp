@@ -62,7 +62,8 @@ export default function Conversa({ route }) {
   };
 
   useEffect(() => {
-    const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
+    if(!isCanal){
+const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
       wsHost: `${host}`,
       wsPort: 6001,
@@ -87,6 +88,34 @@ export default function Conversa({ route }) {
       canal.unbind_all();
       canal.unsubscribe();
     };
+    }else{
+      const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
+      cluster: "mt1",
+      wsHost: `${host}`,
+      wsPort: 6001,
+      forceTLS: false,
+      enabledTransports: ["ws"],
+      authEndpoint: `http://${host}:8000/broadcasting/auth`,
+      auth: {
+        headers: {
+          Authorization: "Bearer SEU_TOKEN_AQUI",
+        },
+      },
+    });
+    console.log(idChat)
+    const canal = pusher.subscribe(`mensagem_canal.${idChat}`);
+
+    canal.bind("enviar_msg_canal", (data) => {
+      setMensagens((prev) => [...prev, data.mensagem]);
+      console.log(data.mensagem)
+    });
+
+    return () => {
+      canal.unbind_all();
+      canal.unsubscribe();
+    };
+    }
+    
   }, []);
   useEffect(() => {
     abrirConversaInicio();
