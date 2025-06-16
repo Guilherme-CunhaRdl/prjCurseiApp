@@ -18,29 +18,31 @@ import host from '../../global';
 import { useTema } from "../../context/themeContext";
 
 export default function AlterarUser() {
-  const [userData, setUserData] = useState({ senha: '', email: '', arroba: '' });
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [modalSenha, setModalSenha] = useState(false);
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
   const [modalArroba, setModalArroba] = useState(false);
   const [modalEmail, setModalEmail] = useState(false);
+  const [usuario, setUsuario] = useState(null);
+  const [erroSenha, setErroSenha] = useState('');
 
   const [arrobaValue, setArrobaValue] = useState('');
   const [emailValue, setEmailValue] = useState('');
 
   const { tema } = useTema();
+
   useEffect(() => {
-        
     const carregarUsuario = async () => {
-        const id = await AsyncStorage.getItem('idUser');
+      const id = await AsyncStorage.getItem('idUser');
+      setUserId(id);
       try {
-        const response = await axios.post(`http://${host}:8000/api/user/selecionarUser/${id}`);
+        const response = await axios.post(`http://${host}:8000/api/cursei/user/selecionarUser/${id}`);
         setUsuario(response.data.User);
-        const usuario = response.data.User;
-        console.log(usuario)
+        setLoading(false);
       } catch (erro) {
         console.error('Erro ao carregar usuário:', erro);
       }
@@ -48,38 +50,52 @@ export default function AlterarUser() {
 
     carregarUsuario();
   }, []);
+
   const handleSave = async (field, value, setModal) => {
     try {
       const data = {};
       data[field] = value;
-      await axios.post(`http://${host}:8000/api/cursei/user/${userId}`, data);
-      setUserData(prev => ({ ...prev, [field.replace('_user', '')]: value }));
+      await axios.post(`http://${host}:8000/api/cursei/user/atualizar/${userId}`, data);
+      setUsuario(prev => ({ ...prev, [field]: value }));
       setModal(false);
     } catch (error) {
       console.error('Erro ao salvar:', error);
+      alert('Erro ao atualizar. Verifique os dados e tente novamente.');
     }
   };
 
   const handleSenhaUpdate = async () => {
+    if (novaSenha !== confirmarSenha) {
+      setErroSenha('As senhas não coincidem');
+      return;
+    }
+    
+    if (novaSenha.length < 6) {
+      setErroSenha('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
     try {
-      const response = await axios.get(`http://${host}:8000/api/cursei/user/${userId}`);
-      const hash = response.data.User.senha_user;
+      const response = await axios.post(`http://${host}:8000/api/cursei/user/verificarSenha`, {
+        userId,
+        senhaAtual
+      });
 
-      const senhaCorreta = await bcrypt.compare(senhaAtual, hash);
-
-      if (!senhaCorreta) {
-        alert('Senha atual incorreta.');
+      if (!response.data.valido) {
+        setErroSenha('Senha atual incorreta');
         return;
       }
 
-      await axios.post(`http://${host}:8000/api/cursei/user/${userId}`, {
-        senha_user: novaSenha,
+      await axios.post(`http://${host}:8000/api/cursei/user/atualizar/${userId}`, {
+        senha: novaSenha
       });
 
       alert('Senha alterada com sucesso!');
       setModalSenha(false);
       setSenhaAtual('');
       setNovaSenha('');
+      setConfirmarSenha('');
+      setErroSenha('');
     } catch (error) {
       console.error('Erro ao atualizar a senha:', error);
       alert('Erro ao atualizar a senha. Tente novamente.');
@@ -94,24 +110,28 @@ export default function AlterarUser() {
     );
   }
 
+  if (!usuario) {
+    return null;
+  }
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: tema.fundo }]}>
       <TouchableOpacity
         style={styles.item}
-        onPress={() => { setArrobaValue(userData.arroba); setModalArroba(true); }}>
+        onPress={() => { setArrobaValue(usuario.arroba); setModalArroba(true); }}>
         <View>
           <Text style={[styles.label, { color: tema.texto }]}>Arroba</Text>
-          <Text style={[styles.value, { color: tema.descricao }]}>{userData.arroba}</Text>
+          <Text style={[styles.value, { color: tema.descricao }]}>@{usuario.arroba_user}</Text>
         </View>
         <MaterialIcons name="keyboard-arrow-right" size={24} color={tema.descricao} />
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.item}
-        onPress={() => { setEmailValue(userData.email); setModalEmail(true); }}>
+        onPress={() => { setEmailValue(usuario.email); setModalEmail(true); }}>
         <View>
-          <Text style={[styles.label, { color: tema.texto }]}>Email do usuário</Text>
-          <Text style={[styles.value, { color: tema.descricao }]}>{userData.email}</Text>
+          <Text style={[styles.label, { color: tema.texto }]}>Email</Text>
+          <Text style={[styles.value, { color: tema.descricao }]}>{usuario.email_user}</Text>
         </View>
         <MaterialIcons name="keyboard-arrow-right" size={24} color={tema.descricao} />
       </TouchableOpacity>
@@ -129,28 +149,31 @@ export default function AlterarUser() {
       {/* MODAIS */}
       <UserModal
         visible={modalArroba}
-        title="Edite seu @"
+        title="Editar arroba"
         value={arrobaValue}
         onChange={setArrobaValue}
         onCancel={() => setModalArroba(false)}
-        onSave={() => handleSave('arroba_user', arrobaValue, setModalArroba)}
+        onSave={() => handleSave('arroba', arrobaValue, setModalArroba)}
         tema={tema}
+        placeholder="Digite seu novo @ (sem o símbolo)"
       />
 
       <UserModal
         visible={modalEmail}
-        title="Mude o email vinculado à sua conta"
+        title="Alterar email"
         value={emailValue}
         onChange={setEmailValue}
         onCancel={() => setModalEmail(false)}
-        onSave={() => handleSave('email_user', emailValue, setModalEmail)}
+        onSave={() => handleSave('email', emailValue, setModalEmail)}
         tema={tema}
+        placeholder="Digite seu novo email"
+        keyboardType="email-address"
       />
 
       <Modal visible={modalSenha} animationType="slide" transparent onRequestClose={() => setModalSenha(false)}>
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, { backgroundColor: tema.modalFundo }]}>
-            <Text style={[styles.modalTitle, { color: tema.texto }]}>Altere sua senha</Text>
+            <Text style={[styles.modalTitle, { color: tema.texto }]}>Alterar senha</Text>
 
             <TextInput
               style={[styles.input, { backgroundColor: tema.fundo, color: tema.texto }]}
@@ -160,6 +183,7 @@ export default function AlterarUser() {
               value={senhaAtual}
               onChangeText={setSenhaAtual}
             />
+            
             <TextInput
               style={[styles.input, { backgroundColor: tema.fundo, color: tema.texto }]}
               placeholder="Nova senha"
@@ -168,12 +192,30 @@ export default function AlterarUser() {
               value={novaSenha}
               onChangeText={setNovaSenha}
             />
+            
+            <TextInput
+              style={[styles.input, { backgroundColor: tema.fundo, color: tema.texto }]}
+              placeholder="Confirmar nova senha"
+              placeholderTextColor={tema.descricao}
+              secureTextEntry
+              value={confirmarSenha}
+              onChangeText={setConfirmarSenha}
+            />
+            
+            {erroSenha ? <Text style={styles.erroText}>{erroSenha}</Text> : null}
 
             <View style={styles.buttonRow}>
-              <Pressable style={[styles.botao, { backgroundColor: tema.azul }]} onPress={() => setModalSenha(false)}>
-                <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Cancelar</Text>
+              <Pressable 
+                style={[styles.botao, { backgroundColor: tema.cancelar }]} 
+                onPress={() => {
+                  setModalSenha(false);
+                  setErroSenha('');
+                }}>
+                <Text style={[styles.buttonText, { color: tema.texto }]}>Cancelar</Text>
               </Pressable>
-              <Pressable style={[styles.botao, { backgroundColor: tema.azul }]} onPress={handleSenhaUpdate}>
+              <Pressable 
+                style={[styles.botao, { backgroundColor: tema.azul }]} 
+                onPress={handleSenhaUpdate}>
                 <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Salvar</Text>
               </Pressable>
             </View>
@@ -184,7 +226,17 @@ export default function AlterarUser() {
   );
 }
 
-function UserModal({ visible, title, value, onChange, onCancel, onSave, tema }) {
+function UserModal({ 
+  visible, 
+  title, 
+  value, 
+  onChange, 
+  onCancel, 
+  onSave, 
+  tema, 
+  placeholder = "", 
+  keyboardType = "default" 
+}) {
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onCancel}>
       <View style={styles.modalContainer}>
@@ -195,11 +247,13 @@ function UserModal({ visible, title, value, onChange, onCancel, onSave, tema }) 
             value={value}
             onChangeText={onChange}
             autoFocus
+            placeholder={placeholder}
             placeholderTextColor={tema.descricao}
+            keyboardType={keyboardType}
           />
           <View style={styles.buttonRow}>
-            <Pressable style={[styles.botao, { backgroundColor: tema.azul }]} onPress={onCancel}>
-              <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Cancelar</Text>
+            <Pressable style={[styles.botao, { backgroundColor: tema.cancelar }]} onPress={onCancel}>
+              <Text style={[styles.buttonText, { color: tema.texto }]}>Cancelar</Text>
             </Pressable>
             <Pressable style={[styles.botao, { backgroundColor: tema.azul }]} onPress={onSave}>
               <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Salvar</Text>
@@ -211,65 +265,73 @@ function UserModal({ visible, title, value, onChange, onCancel, onSave, tema }) 
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-  },
-  item: {
-    paddingVertical: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  value: {
-    fontSize: 13,
-    marginTop: 2,
+    padding: 16,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  item: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  value: {
+    fontSize: 14,
+    marginTop: 4,
+  },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#000000aa',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
     width: '80%',
     padding: 20,
-    borderRadius: 8,
-    elevation: 5,
+    borderRadius: 10,
   },
   modalTitle: {
     fontSize: 18,
-    marginBottom: 10,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   input: {
-    borderRadius: 6,
-    marginBottom: 15,
-    fontSize: 16,
-    padding: 10,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 20,
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
   },
   botao: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: 5,
+    minWidth: '45%',
+    alignItems: 'center',
   },
   buttonText: {
     fontWeight: 'bold',
+  },
+  erroText: {
+    color: 'red',
+    marginBottom: 10,
     textAlign: 'center',
   },
 });
