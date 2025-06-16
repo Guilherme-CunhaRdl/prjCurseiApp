@@ -46,7 +46,7 @@ export default function StackRoutes() {
       }}
 
     >
-
+   
        <Stack.Screen
         name="Splash"
         component={Splash}

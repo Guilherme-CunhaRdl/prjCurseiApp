@@ -9,7 +9,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import ModalPostagem from "../ModalPostagem";
 import ModalExcluir from './modalExcluir';
 import evento from '../../Screens/evento';
-
+import ModalImpulsionar from './ModalImpulsionar';
 
 const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo,evento }) => {
 
@@ -53,6 +53,7 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo,evento }) 
       data = [
         { label: `Editar post`, value: 'Editar', icon: 'create-outline' ,cor:'#666'},
         { label: `Excluir post`, value: 'Excluir', icon: 'alert-circle-outline' ,cor:'red'},
+        { label: `Impulsionar post`, value: 'Impulsionar', icon: 'star-outline' ,cor:'#448FFF'},
       ]
       break;
 
@@ -67,6 +68,7 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo,evento }) 
   const [modalBloquearVisible, setModalBloquearVisible] = useState(false);
   const [modalReportarVisible, setModalReportarVisible] = useState(false);
   const [modalExcluirVisible, setModalExcluirVisible] = useState(false);
+  const [modalImpulsionarVisible, setModalImpulsionarVisible] = useState(false);
 
   const buttonRef = useRef(null);
 
@@ -101,6 +103,9 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo,evento }) 
       break;
        case 'Excluir':
         setModalExcluirVisible(true);
+        break;
+         case 'Impulsionar':
+        setModalImpulsionarVisible(true);
         break;
       default:
         break;
@@ -177,6 +182,14 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo,evento }) 
           <ModalExcluir
         visible={modalExcluirVisible}
         onClose={() => setModalExcluirVisible(false)}
+        arroba={arroba}
+        idPost={idPost}
+        
+
+      />
+           <ModalImpulsionar
+        visible={modalImpulsionarVisible}
+        onClose={() => setModalImpulsionarVisible(false)}
         arroba={arroba}
         idPost={idPost}
         
