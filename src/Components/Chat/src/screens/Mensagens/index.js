@@ -90,6 +90,8 @@ export default function Mensagens({ route }) {
 
 
  const conectarCanal = async (novosChats) => {
+  try{
+
   if (!window.pusherInstance) {
     window.pusherInstance = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
@@ -112,7 +114,6 @@ export default function Mensagens({ route }) {
     );
   };
 
-  // Modificada para não incluir dados do remetente
   const transformarMensagem = (msg) => ({
     id_conversa: msg.id_chat,
     ultima_mensagem: msg.ultima_mensagem,
@@ -121,7 +122,6 @@ export default function Mensagens({ route }) {
     updated_at: msg.created_at || new Date().toISOString()
   });
 
-  // Limpa canais anteriores para evitar duplicação
   novosChats.forEach(chat => {
     if (window.pusherInstance.channel(`trazer_chats.${chat.id_conversa}`)) {
       window.pusherInstance.unsubscribe(`trazer_chats.${chat.id_conversa}`);
@@ -146,7 +146,6 @@ export default function Mensagens({ route }) {
           );
 
           if (chatIndex !== -1) {
-            // Atualiza apenas os campos da mensagem, mantendo os dados originais do chat
             novasConversas[chatIndex] = {
               ...novasConversas[chatIndex],
               ultima_mensagem: mensagemFormatada.ultima_mensagem,
@@ -156,7 +155,6 @@ export default function Mensagens({ route }) {
             };
             precisaOrdenar = true;
           } else {
-            // Caso seja uma nova conversa (raro, mas pode acontecer)
             novasConversas.push({
               id_conversa: mensagemFormatada.id_conversa,
               id_remetente: msg.id_enviador,
@@ -174,6 +172,10 @@ export default function Mensagens({ route }) {
       });
     });
   });
+}
+catch(erro){
+  console.log(erro)
+}
 };
 
 
@@ -358,7 +360,29 @@ export default function Mensagens({ route }) {
                           Imagem
                         </Text>
                       </View>
-                    ) : (
+                    ) : item.id_post ?  (
+                      <>
+                        {item.tipo === 'canal' && !item.ultima_mensagem ? (
+                          <>
+                            <Text
+                              style={[styles.ultimaMensagem, { color: tema.descricao }]}
+                              numberOfLines={1}
+                            >
+                              Não existe mesagens para ete canal
+                            </Text>
+                          </>
+                        ) : (
+                          <Text
+                            style={[styles.ultimaMensagem, { color: tema.descricao }]}
+                            numberOfLines={1}
+                          >
+                            Post
+                          </Text>
+                        )}
+
+                      </>
+                    ) :
+                    (
                       <>
                         {item.tipo === 'canal' && !item.ultima_mensagem ? (
                           <>
@@ -379,7 +403,7 @@ export default function Mensagens({ route }) {
                         )}
 
                       </>
-                    )}
+                    ) }
                   </View>
                 </View>
               </TouchableOpacity>

@@ -83,7 +83,7 @@ export default function Home() {
   const [rodandoApp, setRodandoApp] = useState(false);
   const [stories, setStories] = useState([]);
   const [loadingStories, setLoadingStories] = useState(true);
-
+  const [chats, setChats] = useState([])
   async function verificarInteresses() {
     try {
       const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -176,6 +176,34 @@ export default function Home() {
       setTimeout(() => setLoading(false), 1500);
     }
   }
+
+   useEffect(() => {
+    
+    let id = null;    
+    console.log(id)
+     const trazerChats = async (userId) => {
+      id = await AsyncStorage.getItem('idUser')
+  try {
+    console.log(userId)
+        const resposta = await axios.get(
+          `http://${host}:8000/api/cursei/chat/recebidor/${id}/todas/0`
+        )
+        console.log(resposta)
+        setChats(resposta.data.conversas)
+        return resposta.data.conversas;
+  
+      } catch (error) {
+        console.error("Erro ao buscar mensagens:", error);
+        return "deu erro";
+      } 
+  
+      
+    }
+      trazerChats(id)
+  
+    } , []);
+  
+   
 
   async function recarregarHome() {
     const temporario = focoIcone;
@@ -336,7 +364,7 @@ export default function Home() {
       <View style={styles.feedContainer}>
         <View style={styles.postContainer}>
           {focoIcone === 'posts' ? (
-            <Post key="post-0" />
+            <Post key="post-0" conversas={chats} />
           ) : focoIcone === 'instituicao' ? (
             <Post key="post-1" tipo="instituicao" />
           ) : null}
@@ -366,7 +394,7 @@ export default function Home() {
       ) : conteudo}
 
       {/* Botão de postar */}
-      <ModalPostagem tipo='post' />
+      <ModalPostagem tipo='post'  />
     </SafeAreaView>
   );
 }

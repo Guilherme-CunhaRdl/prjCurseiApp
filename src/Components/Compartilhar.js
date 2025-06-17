@@ -1,14 +1,19 @@
-import React, { useRef } from 'react';
-import { TouchableOpacity, Share, Alert, Modal, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { TouchableOpacity, Share, Alert, Modal, StyleSheet, Text, View, FlatList, Image, Pressable } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
 import host from '../global';
-
+import colors from '../colors';
+import { TextInput } from 'react-native-paper';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 //conteudo seria o post
-export default function Compartilhar({ conteudo }) {
+export default function Compartilhar({ conteudo, chats, imgPost, idPost, idUserLogado }) {
   const modalRef = useRef(null);
   const [visivel, setVisivel] = React.useState(false);
-
+  const [chatsSelecionados, setChatsSelecionados] = useState([]);
+  const [campoMsg, setCampoMsg] = useState('');
+  console.log(idPost) 
   const opcoes = [
 
     {
@@ -30,6 +35,8 @@ export default function Compartilhar({ conteudo }) {
       descricao: 'Mais opções'
     },
   ];
+
+ 
 
   const compartilhar = async (opcao) => {
     try {
@@ -59,8 +66,49 @@ export default function Compartilhar({ conteudo }) {
     modalRef.current?.fadeOutDown(300).then(() => setVisivel(false));
   };
 
+  const selecionarCompartilhamento = (item) => {
+    if(chatsSelecionados.includes(item)){
+      setChatsSelecionados(chatsSelecionados.filter(i => i !== item))
+    }else{
+      setChatsSelecionados([...chatsSelecionados, item])
+    }
+  }
+
+ const enviarPost = async () => {
+  const mensagem = campoMsg.trim();
+  const id = await AsyncStorage.getItem('idUser');
+console.log('idLogado', id)
+  if (chatsSelecionados.length === 0) return;
+
+  try {
+    await Promise.all(
+      chatsSelecionados.map(async (idChat) => {
+        await axios.post(`http://${host}:8000/api/cursei/chat/enviarMensagem/semImagem`, {
+          idChat: idChat,
+          conteudoMensagem: mensagem,
+          idEnviador: id,
+          idPost: idPost
+        });
+      })
+    );
+
+    setCampoMsg('');
+    setChatsSelecionados([]);
+    fecharModal();
+
+    Alert.alert('Sucesso', 'Post enviado com sucesso!');
+
+  } catch (error) {
+    console.error("Erro ao enviar mensagens:", error);
+    Alert.alert('Erro', 'Falha ao enviar o post');
+  }
+};
+
+
+
   return (
     <>
+    
       {/* Ícone no post */}
       <TouchableOpacity
         onPress={abrirModal}
@@ -95,7 +143,45 @@ export default function Compartilhar({ conteudo }) {
               </TouchableOpacity>
               <Text style={styles.titulo}>Compartilhar post</Text>
             </View>
+            <View>
+              <View style={styles.containerChat}>
+      <FlatList 
+        horizontal={true}
+        data={chats}
+        showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.tipo === 'canal' ? `canal_${item.id_conversa.toString()}` : `outra_${item.id_conversa.toString()}`}
+        renderItem={({item}) =>(
+          
+            <>
+              <TouchableOpacity style={[styles.boxChat, 
+                chatsSelecionados.includes(item.id_conversa) && styles.boxSelecionado]}
+                 onPress={() => selecionarCompartilhamento(item.id_conversa)}>
+                <View style={[styles.boxImagem]}>
+                  <View style={styles.circuloImagem}>
+                    <Image 
+                    style={styles.imagemChat}
+                    resizeMode={'cover'}
+                      source={item.tipo === 'canal' ?
+                      { uri: `http://${host}:8000/img/chat/imgCanal/${item.img}` }
+                      : { uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}` }
+                    }
+                    />
+            </View>
 
+            </View>
+            <View style={{width: '100%'}}>
+              <Text style={{textAlign: 'center', color: chatsSelecionados.includes(item.id_conversa) && colors.branco}}>{item.nome}</Text>
+            </View>
+            </TouchableOpacity>
+            </>
+        )}
+      />
+                          </View>
+
+    </View>
+    {!chatsSelecionados[0] ? 
+    
+    (
             <View style={styles.opcoes}>
               {opcoes.map((opcao, index) => (
                 <TouchableOpacity
@@ -114,7 +200,33 @@ export default function Compartilhar({ conteudo }) {
                 </TouchableOpacity>
               ))}
             </View>
+
+    )
+    :
+    
+            <View style={styles.containerEnviarMsg}>
+            <View style={styles.boxInputImg}>
+            <TextInput
+                style={styles.input}
+                placeholder="Escreva sua Mensagem..."
+                placeholderTextColor="#A7A7A7"
+                value={campoMsg}
+                onChangeText={(text) => {
+                  setCampoMsg(text)
+                }}
+              />            
+              <Image style={styles.imagemPostPreview} source={ { uri : `http://${host}:8000/img/user/imgPosts/${imgPost}`} }/>
+            </View>
+            <View>
+              <Pressable style={styles.botaoEnviar} onPress={enviarPost}>
+                <Text style={{fontWeight: '700', fontSize: 17, color: colors.branco}}>Enviar</Text>
+              </Pressable>
+            </View>
+          </View>
+    
+    }
           </Animatable.View>
+          
         </View>
       </Modal>
     </>
@@ -186,4 +298,77 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     marginTop: 2,
   },
+  containerChat:{
+    height: 150,
+    width: '100%',
+    padding: 10,
+    // borderBottomWidth: 1,
+    // borderBottomColor: '000'
+  },
+  boxChat:{
+    width : 100,
+    height: '100%',
+   marginInline: 3,
+   padding: 10
+  },
+  boxSelecionado:{
+    width : 100,
+    height: '100%',
+   marginInline: 3,
+   padding: 10,
+   backgroundColor: colors.azul,
+   borderRadius: 10
+  },
+  boxImagem:{
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '70%'
+  },
+  circuloImagem:{
+    borderRadius: 100,
+    width: 80,
+    height: 80
+  },
+  imagemChat:{
+    height: '100%',
+    width: '100%',
+    borderRadius: 100,
+    
+  },
+  containerEnviarMsg:{
+    paddingBlock: 10,
+    width: '100%'
+  },
+  boxInputImg:{
+    padding: 10,
+    height: 80,
+    alignItems: 'center',
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+   input: {
+    fontSize: 14,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    color: "#000",
+    width: '70%',
+    borderWidth: 0
+  },
+  imagemPostPreview:{
+    borderRadius: 10,
+    height: 75,
+    width: 75
+  },
+  botaoEnviar:{
+    width: '100%',
+    padding: 10,
+    backgroundColor: colors.azul,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    marginTop: 15
+  }
+
 });

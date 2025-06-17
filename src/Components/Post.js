@@ -23,7 +23,7 @@ import { Linking } from 'react-native';
 //La no controllerApi eu criei um case 12: pra trazer os posts mais recentes, trocando o orderBy so por created_at
 
 
-export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesquisaMaisRecente }) {
+export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesquisaMaisRecente, conversas }) {
   const navigation = useNavigation();
   const [perfilProprio, setPerfilProprio] = useState(false)
   const [loading, setLoading] = useState(false);
@@ -434,7 +434,7 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
                 </TouchableOpacity>
 
                 <View style={styles.containerShare}>
-                  <Compartilhar tema={tema} />
+                  <Compartilhar tema={tema} chats={conversas} imgPost={item.conteudo_post} idPost={item.id_post}  />
                 </View>
 
                 <ModalPostagem ref={modalRef} idPostRepost={true} />

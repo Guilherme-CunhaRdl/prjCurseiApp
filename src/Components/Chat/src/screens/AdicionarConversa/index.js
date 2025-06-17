@@ -80,7 +80,7 @@ export default function AddConversa({ route }) {
         setConexoes(respostaConexoes.data.conexoes);
         setSugestoes(respostaSugestoes.data.sugestoes)
         setCanais(respostaCanais.data.canais)
-        console.log(respostaConexoes)
+        console.log('canais ', respostaCanais)
       } catch (e) {
         console.log(e)
       } finally {
@@ -192,7 +192,7 @@ export default function AddConversa({ route }) {
   const criarCanal = async () => {
     const canal = new FormData();
 
-    if (imagemCanal.startsWith("data:image")) {
+    if (imagemCanal && imagemCanal.startsWith("data:image")) {
       const resposta = await fetch(imagemCanal);
       const blob = await resposta.blob();
 
@@ -216,7 +216,7 @@ export default function AddConversa({ route }) {
       });
 
       console.log(resposta);
-      navigation.navigate('AddConversa')
+      navigation.navigate('AddConversa' , { idUserLogado: idUser });
     } catch (e) {
       console.error(e);
     }

@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
   Modal,
+  Pressable,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -370,9 +371,41 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
                   style={styles.imgMensagem}
                   resizeMode="cover"
                 />
-              ) : null}
+              ) : item.id_post ? (
+                <>
+                <Pressable  onPress={() => navigation.navigate('PostUnico', {
+                    idPost: item.id_post,
+                    titulo: item.arroba_user_postou
+                  })}>
+                <View style={styles.headerPost}>
+                  <Image
+                  source={{
+                    uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user_postou}`,
+                  }}
+                  style={styles.imgPerfil}
+                  resizeMode="cover"
+                />
+                  <Text style={{color: colors.branco, }}>{item.nome_user_postou}</Text>
+                </View>
 
-              {item.conteudo_mensagem ? (
+                <Image
+                  source={{
+                    uri: `http://${host}:8000/img/user/imgPosts/${item.cont_post}`,
+                  }}
+                  style={styles.imgMensagem}
+                  resizeMode="cover"
+                />
+                
+                <View style={styles.footerPost}>
+                  <Text style={{color: colors.branco, }}>{item.desc_post}</Text>
+                </View>
+                
+                </Pressable>
+
+                </>
+              ) :
+              
+              (
                 <View style={styles.viewTextoMsg}>
                   <Text style={[
                     item.id_enviador == idUserLogado
@@ -382,7 +415,11 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
                     {item.conteudo_mensagem}
                   </Text>
                 </View>
-              ) : null}
+              )
+              
+              }
+
+              
             </View>
           )}
           contentContainerStyle={styles.chatContent}
@@ -639,7 +676,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 4,
     marginBottom: 10,
-    maxWidth: "75%",
+    maxWidth: "62%",
     shadowColor: colors.preto,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
@@ -652,7 +689,7 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 8,
     marginBottom: 10,
-    maxWidth: "75%",
+    maxWidth: "62%",
   },
   viewTextoMsg: {
     padding: 3,
@@ -756,5 +793,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  
+  headerPost:{
+    padding: 8,
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  imgPerfil:{
+    height: 30,
+    width: 30,
+    borderRadius: 100,
+    marginRight: 10
+  },
+  footerPost:{
+    width: '100%',
+    padding: 10
+  }
 });
