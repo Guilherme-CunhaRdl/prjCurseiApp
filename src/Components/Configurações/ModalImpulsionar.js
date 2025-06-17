@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTema } from '../../context/themeContext';
 import { shadow } from 'react-native-paper';
+import host from '../../global';
 
 
 const ModalImpulsionar = ({ visible, onClose, arroba, idPost }) => {
@@ -55,6 +56,30 @@ const ModalImpulsionar = ({ visible, onClose, arroba, idPost }) => {
     inputRange: [0, 100],
     outputRange: ['0%', '100%'],
   });
+
+
+  async function impulsionar() {
+    var Dias = 0
+    if(selecionado == 1){
+      Dias = 1
+    }else if(selecionado ==2){
+      Dias = 3
+    }else{
+      Dias = 7
+    }
+    const dados = {
+      idPost:idPost,
+      dias:Dias
+    }
+  try{
+      const result = axios.post(`http://${host}:8000/api/cursei/posts/impulsionar`,dados)
+      setParte(4)
+  }catch(error){
+    alert('Erro de conexão')
+    
+  }
+    
+  }
   return (
     <Modal
       isVisible={visible}
@@ -67,7 +92,7 @@ const ModalImpulsionar = ({ visible, onClose, arroba, idPost }) => {
       animationInTiming={800}
       animationOutTiming={800}
     >
-      <View style={styles.modal}>
+      <View style={[styles.modal,{backgroundColor:tema.modalFundo}]}>
         {parte == 1 ? (
 
 
@@ -77,17 +102,17 @@ const ModalImpulsionar = ({ visible, onClose, arroba, idPost }) => {
                 <Ionicons
                   name={'close'}
                   size={28}
-                  color={'#000'}
+                  color={tema.texto}
                 />
               </TouchableOpacity>
             </View>
-            <Text style={styles.titulo}>Impulsionar seu post</Text>
+            <Text style={[styles.titulo,{color:tema.texto}]}>Impulsione seu post</Text>
             <View style={styles.rowCards}>
               <Pressable
                 onPress={() => setSelecionado(1)}
                 style={[
                   styles.cardContainer,
-                  { backgroundColor: selecionado === 1 ? tema.azul : tema.fundo },
+                  { backgroundColor: selecionado === 1 ? tema.azul : tema.modalFundo },
                 ]}
               >
                 <View style={styles.card}>
@@ -115,7 +140,7 @@ const ModalImpulsionar = ({ visible, onClose, arroba, idPost }) => {
                 onPress={() => setSelecionado(2)}
                 style={[
                   styles.cardContainer,
-                  { backgroundColor: selecionado === 2 ? tema.azul : tema.fundo },
+                  { backgroundColor: selecionado === 2 ? tema.azul : tema.modalFundo },
                 ]}
               >
                 <View style={styles.card}>
@@ -143,7 +168,7 @@ const ModalImpulsionar = ({ visible, onClose, arroba, idPost }) => {
                 onPress={() => setSelecionado(3)}
                 style={[
                   styles.cardContainer,
-                  { backgroundColor: selecionado === 3 ? tema.azul : tema.fundo },
+                  { backgroundColor: selecionado === 3 ? tema.azul : tema.modalFundo },
                 ]}
               >
                 <View style={styles.card}>
@@ -185,26 +210,26 @@ const ModalImpulsionar = ({ visible, onClose, arroba, idPost }) => {
             <View style={styles.backgroundBar}>
               <Animated.View style={[styles.progressBar, { width: widthInterpolated }]} />
             </View>
-            <Text style={{ marginTop: 5, fontWeight: 600, fontSize: 20 }}>Gerando código pix</Text>
+            <Text style={{ marginTop: 5, fontWeight: 600, fontSize: 20,color:tema.texto }}>Gerando código Pix</Text>
           </View>
         ) : parte == 3 ? (
 
           <View style={{ alignItems: 'center' }}>
-            <Text style={[styles.titulo, { marginTop: 10 }]}>Pague via pix</Text>
+            <Text style={[styles.titulo, { marginTop: 10 ,color:tema.texto}]}>Pague via Pix</Text>
             <View style={{ backgroundColor: '#fff', height: 140, width: 140, marginTop: 5 }}>
               <Image
                 source={{ uri: "https://pngimg.com/d/qr_code_PNG33.png" }}
                 style={{ width: '100%', height: '100%' }}
               />
             </View>
-            <TouchableOpacity style={{ width: 150, backgroundColor: tema.azul, height: 30, justifyContent: 'center', alignItems: 'center', borderRadius: 5 }} onPress={Clipboard.setString('00020126580014BR.GOV.BCB.PIX0110cursei202752040000530398654051.005802BR5920CURSEI OFICIAL LTDA6009SÃO PAULO62070503***6304ABCD')}>
+            <TouchableOpacity style={{ width: 150, backgroundColor: tema.azul, height: 30, justifyContent: 'center', alignItems: 'center', borderRadius: 5,marginTop:2 }} onPress={Clipboard.setString('00020126580014BR.GOV.BCB.PIX0110cursei202752040000530398654051.005802BR5920CURSEI OFICIAL LTDA6009SÃO PAULO62070503***6304ABCD')}>
               <Text style={{ color: '#fff', fontWeight: 'bold' }}>Copiar Código Pix</Text>
             </TouchableOpacity>
             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-evenly', marginTop: 35 }}>
               <TouchableOpacity style={{ backgroundColor: 'transparent', borderWidth: 2, borderColor: tema.azul, width: '45%', alignItems: 'center', borderRadius: 5, paddingBlock: 1, }} onPress={() => voltar()}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: tema.azul }}>Voltar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={{ backgroundColor: tema.azul, borderWidth: 2, borderColor: tema.azul, width: '45%', alignItems: 'center', borderRadius: 5, paddingBlock: 1 }} onPress={() => setParte(4)}>
+              <TouchableOpacity style={{ backgroundColor: tema.azul, borderWidth: 2, borderColor: tema.azul, width: '45%', alignItems: 'center', borderRadius: 5, paddingBlock: 1 }} onPress={() => impulsionar()}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}>Continuar</Text>
               </TouchableOpacity>
             </View>
@@ -267,7 +292,7 @@ const styles = StyleSheet.create({
   },
 
   cardContainer: {
-    elevation: 4,
+    elevation: 2,
     borderRadius: 10,
     width: '30%',
 
