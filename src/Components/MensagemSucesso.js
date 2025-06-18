@@ -4,6 +4,7 @@ import Modal from 'react-native-modal';
 import { Dropdown } from 'react-native-element-dropdown';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import host from '../global';
+import { useTema } from '../context/themeContext';
 const motivosDenuncia = [
   { value: '1', label: 'Conteúdo ofensivo', icon: 'warning' },
   { value: '2', label: 'Spam ou conteúdo enganoso', icon: 'disconnect' },
@@ -17,6 +18,7 @@ const ModalReportar = ({ visible, onClose }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const selectedItem = motivosDenuncia.find(item => item.value === motivo);
+  const {tema} = useTema();
 
   const handleConfirmar = () => {
     onClose(); // Fecha o modal atual
@@ -30,30 +32,27 @@ const ModalReportar = ({ visible, onClose }) => {
         onBackdropPress={onClose}
         onBackButtonPress={onClose}
         animationIn="slideInLeft"
-        animationOut="slidaeOutLeft"
+        animationOut="slideOutLeft"
         backdropTransitionInTiming={500}
         backdropTransitionOutTiming={500}
         animationInTiming={800}
         animationOutTiming={800}
       >
-        <View style={styles.modal}>
+        <View style={[styles.modal, { backgroundColor: tema.modalFundo }]}>
           <View style={styles.modalTexto}>
-          <Text style={styles.descItem}>
-                <AntDesign name='checkcircle' size={80}  color={'#228B22'}/>
+            <Text style={[styles.descItem]}>
+              <AntDesign name='checkcircle' size={80} color={tema.azul} />
             </Text>
-
-            <Text style={styles.texto}>Cadastro Realizado com Sucesso</Text>
-           
+  
+            <Text style={[styles.texto, { color: tema.texto }]}>
+              Cadastro Realizado com Sucesso
+            </Text>
           </View>
-
-          
         </View>
       </Modal>
-
     </>
   );
-};
-
+  }  
 const styles = StyleSheet.create({
   modal: {
     backgroundColor: 'white',
