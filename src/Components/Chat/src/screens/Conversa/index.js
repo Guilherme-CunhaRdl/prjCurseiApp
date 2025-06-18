@@ -19,7 +19,7 @@ import Pusher from "pusher-js/react-native";
 import colors from "../../../../../colors";
 import Icon from "react-native-vector-icons/Feather";
 import host from "../../../../../global";
-
+import EnviarPostPv from '../../../../EnviarPostNv';  
 export default function Conversa({ route }) {
   const {
     idUserLogado,
@@ -38,7 +38,7 @@ export default function Conversa({ route }) {
   const flatListRef = useRef(null);
   const [modalFoto, setModalFoto] = useState(false);
   const [imagemMensagem, setImagemMensagem] = useState();
-  
+  const [postPv, setPostPv] = useState(false);
 
   const abrirConversaInicio = async () => {
     try {
@@ -49,9 +49,7 @@ export default function Conversa({ route }) {
       const respostaCanal = await axios.get(
         `http://${host}:8000/api/cursei/chat/mensagensCanal/${idEnviador}/${idChat}`
       )
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: false });
-      }, 300);
+      
       if (resposta.data.chats && resposta.data.chats.length > 0 && !isCanal) {
         await setMensagens(resposta.data.chats);
       } else if (respostaCanal.data.mensagensCanal && respostaCanal.data.mensagensCanal.length > 0 && isCanal) {
@@ -61,6 +59,10 @@ export default function Conversa({ route }) {
       }
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
+    }finally{
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: false });
+      }, 1000);
     }
   };
 
@@ -160,9 +162,19 @@ export default function Conversa({ route }) {
         });
       }
 
-
-      // Envio da requisição
-      const resposta = await axios.post(
+      let resposta = '';
+      isCanal ?  resposta = await axios.post(
+        `http://${host}:8000/api/cursei/chat/enviarMensagem/canal/comImagem`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          transformRequest: () => formData,
+        }
+      )
+       : 
+        resposta = await axios.post(
         `http://${host}:8000/api/cursei/chat/enviarMensagem/comImagem`,
         formData,
         {
@@ -172,6 +184,7 @@ export default function Conversa({ route }) {
           transformRequest: () => formData,
         }
       );
+      
 
       console.log("Mensagem enviada:", resposta.data);
       setCampoMensagemImg("");
@@ -205,7 +218,7 @@ export default function Conversa({ route }) {
     if (!resultado.canceled) {
       const uri = resultado.assets[0].uri;
       setImagemMensagem(uri);
-      console.log("URI selecionada:", imagemMensagem); // <-- use o valor diretamente
+      console.log("URI selecionada:", imagemMensagem);
       setModalFoto(true);
     }
   };
@@ -283,7 +296,7 @@ export default function Conversa({ route }) {
     
   }
 
- 
+
 
   return (
     <SafeAreaProvider>
@@ -300,7 +313,7 @@ export default function Conversa({ route }) {
           </TouchableOpacity>
 
           <View style={styles.headerInfo}>
-            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }} onPress={() => navigation.navigate('Perfil', {
+            <TouchableOpacity style={{ width: '70%', flexDirection: 'row', alignItems: 'center' }} onPress={() => navigation.navigate('Perfil', {
               idUserPerfil: idEnviador,
               titulo: arrobaEnviador
             })}>
@@ -320,13 +333,16 @@ export default function Conversa({ route }) {
                 style={styles.avatar}
               />
               <View style={styles.viewCabecalho}>
-                <View style={{width: '30%'}}>
+                <View style={{width: '100%'}}>
                 <Text style={styles.nome}>{nomeEnviador}</Text>
                 
                 <Text style={styles.usuario}>@{arrobaEnviador}</Text>
                 </View>
-                {isCanal && (
+                </View>
+                </TouchableOpacity>
 
+                {isCanal && idEnviador != idUserLogado && (
+                  
                 <View style={styles.viewBotaoSeguir}>
                   <TouchableOpacity style={styles.botaoSeguir}>
                   <Text style={styles.textSeguir}>
@@ -335,8 +351,6 @@ export default function Conversa({ route }) {
                 </TouchableOpacity>
                 </View>
                 )}
-              </View>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -356,6 +370,7 @@ export default function Conversa({ route }) {
               ]}
             >
               {item.foto_enviada ? (
+                <>
                 <Image
                   source={{
                     uri: `http://${host}:8000/img/chat/fotosChat/${item.foto_enviada}`,
@@ -363,6 +378,19 @@ export default function Conversa({ route }) {
                   style={styles.imgMensagem}
                   resizeMode="cover"
                 />
+                {item.conteudo_mensagem && (
+                <View style={styles.viewTextoMsg}>
+                  <Text style={[
+                    item.id_enviador == idUserLogado
+                      ? styles.textoMsgEnviado
+                      : styles.textoMsgRecebido
+                  ]}>
+                    {item.conteudo_mensagem}
+                  </Text>
+                  
+                </View>
+                )}
+                </>
               ) : item.id_post ? (
                 <>
                 <Pressable  onPress={() => navigation.navigate('PostUnico', {
@@ -428,8 +456,7 @@ export default function Conversa({ route }) {
 
             <Text
               style={styles.input}
-
-            >Não pode enviar mensagens</Text>
+>Não pode enviar mensagens</Text>
             
 
           </View>
@@ -437,7 +464,7 @@ export default function Conversa({ route }) {
         {isCanal && idEnviador == idUserLogado && (
   <View style={styles.inputContainer}>
     {/* Ícones à esquerda */}
-    <View style={styles.iconsLeft}>
+    <View style={styles.viewIcones}>
       <TouchableOpacity 
         onPress={() => tirarFotoParaEnvio()}
         style={styles.iconButton}
@@ -460,6 +487,7 @@ export default function Conversa({ route }) {
     </View>
 
     {/* Campo de texto central */}
+    <View style={{width: '65%', alignItems: 'center'}}>
     <TextInput
       style={styles.input}
       placeholder="Escreva sua Mensagem..."
@@ -470,22 +498,35 @@ export default function Conversa({ route }) {
       }}
       
     />
-
+    </View>
     {/* Ícone de enviar à direita */}
+    <View style={styles.viewSendButton}>
+    {campoMensagem.length > 0 ?( 
     <TouchableOpacity 
       onPress={!isCanal ? enviarMensagem : enviarMensagemCanal}
       style={styles.sendButton}
     >
-      <Image
-        source={require("../../img/enviar.png")}
-        style={styles.iconSmall}
-      />
+  
+        <Image
+          source={require("../../img/enviar.png")}
+          style={styles.iconSmall}
+        />
+
     </TouchableOpacity>
+            )
+        :  
+              (
+                <EnviarPostPv />
+              )
+    }
+    </View>
   </View>
 )}
+
+
         {!isCanal && (
           <View style={styles.inputContainer}>
-            <View style={{flexDirection:'row', width: '15%', justifyContent: 'space-around', alignItems: 'center'}}>
+            <View style={styles.viewIcones}>
               <TouchableOpacity onPress={() => tirarFotoParaEnvio()}>
                 <Image
                   source={require("../../img/Camera.png")}
@@ -500,7 +541,7 @@ export default function Conversa({ route }) {
                 />
               </TouchableOpacity>
             </View>
-            <View style={{width: '70%', justifyContent: 'space-between', alignItems: 'center'}}>
+            <View style={{width: '65%', alignItems: 'center', backgroundColor: 'red'  }}>
               <TextInput
                 style={styles.input}
                 placeholder="Escreva sua Mensagem..."
@@ -511,14 +552,26 @@ export default function Conversa({ route }) {
                 }}
               />
             </View>
-            <View style={{width: '15%', justifyContent: 'space-between', alignItems: 'center'}}>
-              <TouchableOpacity onPress={!isCanal ? () => enviarMensagem() : ''}>
-                <Image
-                  source={require("../../img/enviar.png")}
-                  style={styles.iconSmall}
-                />
-              </TouchableOpacity>
-            </View>
+            <View style={styles.viewSendButton}>
+    {campoMensagem.length > 0 ?( 
+    <TouchableOpacity 
+      onPress={!isCanal ? enviarMensagem : enviarMensagemCanal}
+      style={styles.sendButton}
+    >
+  
+        <Image
+          source={require("../../img/enviar.png")}
+          style={styles.iconSmall}
+        />
+
+    </TouchableOpacity>
+            )
+        :  
+              (
+                <EnviarPostPv />
+              )
+    }
+    </View>
           </View>
         )}
 
@@ -532,7 +585,7 @@ export default function Conversa({ route }) {
           <View style={styles.containerModalFoto}>
             <View style={styles.boxModalFoto}>
               <View style={styles.cabecalhoModalFoto}>
-                <TouchableOpacity onPress={!isCanal ? () => setModalFoto(false) : ''}>
+                <TouchableOpacity onPress={() => setModalFoto(false) }>
                   <Icon name="x" size={22} color={colors.azul} />
                 </TouchableOpacity>
                 <Text
@@ -562,7 +615,7 @@ export default function Conversa({ route }) {
               <View style={styles.boxMsgModalFoto}>
                 <View style={[styles.inputContainerModal, { width: "90%", height: 45 }]}>
              
-            <View style={{width: '90%', justifyContent: 'space-between', alignItems: 'center'}}>
+            <View style={{width: '70%', justifyContent: 'space-between', alignItems: 'center'}}>
               <TextInput
                 style={styles.input}
                 placeholder="Escreva sua Mensagem..."
@@ -570,13 +623,12 @@ export default function Conversa({ route }) {
                 value={campoMensagemImg}
                 onChangeText={(text) => {
                   setCampoMensagemImg(text);
-                  handleTyping();
                 }}
                 
               />
             </View>
             <View style={{width: '10%', justifyContent: 'space-between', alignItems: 'center'}}>
-              <TouchableOpacity onPress={!isCanal ? () => enviarMensagemFoto() : ''}>
+              <TouchableOpacity onPress={() => enviarMensagemFoto()}>
                 <Image
                   source={require("../../img/enviar.png")}
                   style={styles.iconSmall}
@@ -616,9 +668,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   viewCabecalho:{
-    width: '100%',
+    width: '80%',
     flexDirection: 'row'
-
   },
   nome: {
     fontWeight: "bold",
@@ -631,10 +682,9 @@ const styles = StyleSheet.create({
          justifyContent: 'space-between'
       },
       viewBotaoSeguir:{
-        width: '100%',
-        paddingRight: 40,
+        width: '30%',
         justifyContent: 'flex-end',
-        alignItems: 'center'
+        alignItems: 'center',
       },
       botaoSeguir:{
         padding: 7,
@@ -712,7 +762,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#efefef",
     justifyContent: 'space-between',
-
     padding: 4,
     margin: 16,
     borderRadius: 16,
@@ -727,13 +776,27 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     width: '100%'
   },
+  viewIcones:{
+    flexDirection:'row',
+    backgroundColor: 'blue', 
+    width: '20%', 
+    justifyContent: 'space-around', 
+    alignItems: 'center'
+
+  },
   input: {
     fontSize: 14,
     paddingVertical: 4,
     paddingHorizontal: 8,
     color: "#000",
-    width: '90%',
-height: 40    
+    width: '100%',
+    backgroundColor: 'red',
+  height: 50    
+  },
+  viewSendButton:{
+    width: '15%',
+    alignItems: 'flex-end',
+    backgroundColor: 'blue'
   },
   containerModalFoto: {
     flex: 1,
@@ -813,5 +876,11 @@ height: 40
     width: '100%',
     padding: 10
   },
-  
+  sendButton:{
+    width: 45,
+    height: 45,
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 });
