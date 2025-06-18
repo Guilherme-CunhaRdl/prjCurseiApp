@@ -24,8 +24,14 @@ export default function SegurancaUser() {
         const id = await AsyncStorage.getItem('idUser');
         setUserId(id);
 
-        const response = await axios.get(`${API_BASE_URL}/api/cursei/user/${id}`);
-        setDoisFatoresAtivo(response.data.dois_fatores_user ?? false);
+        const response = await axios.post(`${API_BASE_URL}/api/cursei/user/selecionarUser/${id}`);
+        usuario = response.data.User;
+        const valorDoisFatores = usuario.dois_fatores_user;
+
+        // Corrigindo o tipo para booleano
+        const doisFatoresBoolean = valorDoisFatores === true || valorDoisFatores === 1 || valorDoisFatores === 'true';
+        setDoisFatoresAtivo(doisFatoresBoolean);
+
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
         Alert.alert('Erro', 'Não foi possível carregar as configurações de segurança');
