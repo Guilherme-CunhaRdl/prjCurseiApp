@@ -10,7 +10,6 @@ import Icon from "react-native-vector-icons/Feather";
 import dayjs from 'dayjs';
 import host from '../global';
 import {useTema} from '../context/themeContext';
-import { temaClaro } from '../themes';
 
 export default function Comentario({ idPost }) {
   const {tema} = useTema();
@@ -153,23 +152,27 @@ export default function Comentario({ idPost }) {
     useEffect(() => {
 
     },);
-
     return (
       <View style={styles.itemComentario}>
-        <Pressable style={styles.cabecalhoComentario} onPress={() => {
-          navigation.navigate('Perfil', {
-            idUserPerfil: idUserComent,
-            titulo: usuario
-          }); fecharModal()
-        }}>
-
+        <Pressable
+          style={styles.cabecalhoComentario}
+          onPress={() => {
+            navigation.navigate('Perfil', {
+              idUserPerfil: idUserComent,
+              titulo: usuario
+            });
+            fecharModal();
+          }}
+        >
           <Image source={{ uri: foto }} style={styles.fotoUsuario} />
           <View style={styles.infoUsuario}>
-            <Text style={styles.nomeUsuario}>@{usuario}</Text>
-            <Text style={styles.tempo}> • {tempoCriacao}</Text>
+            <Text style={[styles.nomeUsuario, { color: tema.texto }]}>@{usuario}</Text>
+            <Text style={[styles.tempo, { color: tema.descricao }]}> • {tempoCriacao}</Text>
           </View>
         </Pressable>
-        <Text style={styles.textoComentario}>{texto}</Text>
+  
+        <Text style={[styles.textoComentario, { color: tema.texto }]}>{texto}</Text>
+  
         <View style={styles.acoesComentario}>
           <Pressable
             style={styles.botaoCurtir}
@@ -178,28 +181,29 @@ export default function Comentario({ idPost }) {
             <Ionicons
               name={curtido ? "heart" : "heart-outline"}
               size={14}
-              color={curtido ? "#ff0000" : "#666"}
+              color={curtido ? tema.vermelho : tema.descricao}
             />
-            <Text style={[styles.contadorCurtidas, curtido && styles.curtido]}>
+            <Text style={[
+              styles.contadorCurtidas,
+              { color: curtido ? tema.vermelho : tema.texto }
+            ]}>
               {curtidas}
             </Text>
           </Pressable>
-
         </View>
       </View>
     );
   });
+  
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={{flexGrow:1,width:20}}
+        style={{ flexGrow: 1, width: 20 }}
         onPress={abrirModal}
       >
-        <Icon name="message-circle" size={20} color="#666" />
-
-
+        <Icon name="message-circle" size={20} color={tema.iconeInativo} />
       </TouchableOpacity>
-
+  
       <Modal
         animationType="fade"
         transparent={true}
@@ -207,73 +211,82 @@ export default function Comentario({ idPost }) {
         onRequestClose={fecharModal}
       >
         <View style={styles.fundoModal}>
-
-
           <KeyboardAvoidingView
             style={styles.containerTeclado}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Adicione isso
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
             <Animatable.View
               ref={refConteudoModal}
               animation="slideInUp"
               duration={300}
-              style={[styles.conteudoModal ,{backgroundColor:tema.modalFundo}]}
+              style={[styles.conteudoModal, { backgroundColor: tema.modalFundo }]}
             >
-
-
               <View style={styles.cabecalhoModal}>
                 <TouchableOpacity
                   style={styles.botaoFechar}
                   onPress={fecharModal}
                 >
-                  <Ionicons name="close" size={24} color="#666" />
+                  <Ionicons name="close" size={24} color={tema.iconeInativo} />
                 </TouchableOpacity>
-                <Text style={[styles.tituloModal ,{color:tema.iconeInativo}]}>Comentários</Text>
+                <Text style={[styles.tituloModal, { color: tema.texto }]}>Comentários</Text>
                 <View style={styles.espacadorCabecalho} />
               </View>
-
-              {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 99, width: '100%', height: '100%', backgroundColor: 'transparent' }}>
-                <ActivityIndicator size="large" color="#3498db" />
-              </View>
-              ) : (!loading && comentarios?.length === 0 ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 99, width: '100%', height: '100%', backgroundColor: 'transparency' }}>
-                <Text style={{ fontSize: 20, color: '#666', fontWeight: 600 }}>Ainda não há comentários</Text>
-              </View>
-              ) : <ScrollView style={styles.listaComentarios}>
-                {comentarios.map((comentario) => (
-                  <ItemComentario
-                    key={comentario.id}
-                    id={comentario.id}
-                    usuario={comentario.usuario}
-                    tempoCriacao={comentario.tempoCriacao} // Corrigido aqui
-                    texto={comentario.texto}
-                    curtidas={comentario.curtidas}
-                    curtido={comentario.curtido}
-                    foto={comentario.foto}
-                    idUserComent={comentario.idUserComent}
-                  />
-                ))}
-
-              </ScrollView>)
-              }
-
-              <View style={[styles.containerInput ,{backgroundColor:tema.modalFundo ,borderTopColor: tema.linha}]}>
+  
+              {loading ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+                  <ActivityIndicator size="large" color={tema.azul} />
+                </View>
+              ) : (!loading && comentarios?.length === 0 ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+                  <Text style={{ fontSize: 20, color: tema.descricao, fontWeight: '600' }}>
+                    Ainda não há comentários
+                  </Text>
+                </View>
+              ) : (
+                <ScrollView style={styles.listaComentarios}>
+                  {comentarios.map((comentario) => (
+                    <ItemComentario
+                      key={comentario.id}
+                      id={comentario.id}
+                      usuario={comentario.usuario}
+                      tempoCriacao={comentario.tempoCriacao}
+                      texto={comentario.texto}
+                      curtidas={comentario.curtidas}
+                      curtido={comentario.curtido}
+                      foto={comentario.foto}
+                      idUserComent={comentario.idUserComent}
+                      tema={tema} // Tema passando para os itens
+                    />
+                  ))}
+                </ScrollView>
+              ))}
+  
+              <View style={[
+                styles.containerInput,
+                {
+                  backgroundColor: tema.modalFundo,
+                  borderTopColor: tema.cinza
+                }
+              ]}>
                 <TextInput
-                  style={[styles.inputComentario ,{backgroundColor:tema.modalFundo}]}
+                  style={[
+                    styles.inputComentario,
+                    { backgroundColor: tema.modalFundo, color: tema.texto }
+                  ]}
                   placeholder="Escreva seu comentário..."
-                  placeholderTextColor="#999"
+                  placeholderTextColor={tema.descricao}
                   value={comentario}
                   onChangeText={setComentario}
                   onSubmitEditing={adicionarComentario}
                   keyboardType='text'
                 />
-
+  
                 <TouchableOpacity
                   style={styles.botaoEnviar}
                   onPress={adicionarComentario}
                 >
-                  <Ionicons name="send" size={20} color="#4a69bd" />
+                  <Ionicons name="send" size={20} color={tema.azul} />
                 </TouchableOpacity>
-
               </View>
             </Animatable.View>
           </KeyboardAvoidingView>
@@ -281,6 +294,7 @@ export default function Comentario({ idPost }) {
       </Modal>
     </View>
   );
+  
 }
 
 const styles = StyleSheet.create({

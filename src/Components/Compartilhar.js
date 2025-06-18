@@ -7,12 +7,14 @@ import colors from '../colors';
 import { TextInput } from 'react-native-paper';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTema } from '../context/themeContext';
 //conteudo seria o post
 export default function Compartilhar({ conteudo, chats, imgPost, idPost, idUserLogado }) {
   const modalRef = useRef(null);
   const [visivel, setVisivel] = React.useState(false);
   const [chatsSelecionados, setChatsSelecionados] = useState([]);
   const [campoMsg, setCampoMsg] = useState('');
+  const {tema} = useTema();
   console.log(idPost) 
   const opcoes = [
 
@@ -106,82 +108,86 @@ console.log('idLogado', id)
 
 
 
-  return (
-    <>
-    
-      {/* Ícone no post */}
-      <TouchableOpacity
-        onPress={abrirModal}
-        style={styles.icone}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="arrow-redo-outline" size={20} color="#666" />
-      </TouchableOpacity>
+return (
+  <>
+    {/* Ícone no post */}
+    <TouchableOpacity
+      onPress={abrirModal}
+      style={styles.icone}
+      activeOpacity={0.7}
+    >
+      <Ionicons name="arrow-redo-outline" size={20} color={tema.iconeInativo} />
+    </TouchableOpacity>
 
-      {/* Modal */}
-      <Modal
-        transparent
-        visible={visivel}
-        onRequestClose={fecharModal}
-      >
-        <View style={styles.fundoModal}>
-          <TouchableOpacity
+    {/* Modal */}
+    <Modal
+      transparent
+      visible={visivel}
+      onRequestClose={fecharModal}
+    >
+      <View style={styles.fundoModal}>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={fecharModal}
+        />
 
-            activeOpacity={1}
-            onPress={fecharModal}
-          />
-
-          <Animatable.View
-            ref={modalRef}
-            animation="fadeInUp"
-            duration={300}
-            style={styles.modal}
-          >
-            <View style={styles.cabecalho}>
-              <TouchableOpacity onPress={fecharModal} style={styles.botaoFechar}>
-                <Ionicons name="close" size={24} color="#000" />
-              </TouchableOpacity>
-              <Text style={styles.titulo}>Compartilhar post</Text>
-            </View>
-            <View>
-              <View style={styles.containerChat}>
-      <FlatList 
-        horizontal={true}
-        data={chats}
-        showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.tipo === 'canal' ? `canal_${item.id_conversa.toString()}` : `outra_${item.id_conversa.toString()}`}
-        renderItem={({item}) =>(
-          
-            <>
-              <TouchableOpacity style={[styles.boxChat, 
-                chatsSelecionados.includes(item.id_conversa) && styles.boxSelecionado]}
-                 onPress={() => selecionarCompartilhamento(item.id_conversa)}>
-                <View style={[styles.boxImagem]}>
-                  <View style={styles.circuloImagem}>
-                    <Image 
-                    style={styles.imagemChat}
-                    resizeMode={'cover'}
-                      source={item.tipo === 'canal' ?
-                      { uri: `http://${host}:8000/img/chat/imgCanal/${item.img}` }
-                      : { uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}` }
-                    }
-                    />
-            </View>
-
-            </View>
-            <View style={{width: '100%'}}>
-              <Text style={{textAlign: 'center', color: chatsSelecionados.includes(item.id_conversa) && colors.branco}}>{item.nome}</Text>
-            </View>
+        <Animatable.View
+          ref={modalRef}
+          animation="fadeInUp"
+          duration={300}
+          style={[styles.modal, { backgroundColor: tema.modalFundo }]}
+        >
+          <View style={styles.cabecalho}>
+            <TouchableOpacity onPress={fecharModal} style={styles.botaoFechar}>
+              <Ionicons name="close" size={24} color={tema.iconeInativo} />
             </TouchableOpacity>
-            </>
-        )}
-      />
-                          </View>
+            <Text style={[styles.titulo, { color: tema.texto }]}>Compartilhar post</Text>
+          </View>
 
-    </View>
-    {!chatsSelecionados[0] ? 
-    
-    (
+          <View>
+            <View style={styles.containerChat}>
+              <FlatList 
+                horizontal={true}
+                data={chats}
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item) => item.tipo === 'canal' ? `canal_${item.id_conversa.toString()}` : `outra_${item.id_conversa.toString()}`}
+                renderItem={({item}) => (
+                  <>
+                    <TouchableOpacity
+                      style={[
+                        styles.boxChat, 
+                        chatsSelecionados.includes(item.id_conversa) && styles.boxSelecionado
+                      ]}
+                      onPress={() => selecionarCompartilhamento(item.id_conversa)}
+                    >
+                      <View style={styles.boxImagem}>
+                        <View style={styles.circuloImagem}>
+                          <Image 
+                            style={styles.imagemChat}
+                            resizeMode={'cover'}
+                            source={item.tipo === 'canal' ?
+                              { uri: `http://${host}:8000/img/chat/imgCanal/${item.img}` } :
+                              { uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}` }
+                            }
+                          />
+                        </View>
+                      </View>
+                      <View style={{ width: '100%' }}>
+                        <Text style={{
+                          textAlign: 'center',
+                          color: chatsSelecionados.includes(item.id_conversa) ? tema.textoBotao : tema.texto
+                        }}>
+                          {item.nome}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </>
+                )}
+              />
+            </View>
+          </View>
+
+          {!chatsSelecionados[0] ? (
             <View style={styles.opcoes}>
               {opcoes.map((opcao, index) => (
                 <TouchableOpacity
@@ -189,50 +195,54 @@ console.log('idLogado', id)
                   style={styles.opcao}
                   onPress={() => compartilhar(opcao.nome)}
                 >
-                  <View style={[styles.iconeOpcao, { backgroundColor: opcao.cor + '15' }]}>
+                  <View style={[
+                    styles.iconeOpcao,
+                    { backgroundColor: opcao.cor + '15' }
+                  ]}>
                     <Ionicons name={opcao.icone} size={24} color={opcao.cor} />
                   </View>
                   <View style={styles.textos}>
-                    <Text style={styles.nome}>{opcao.nome}</Text>
-                    <Text style={styles.descricao}>{opcao.descricao}</Text>
+                    <Text style={{ color: tema.texto }}>{opcao.nome}</Text>
+                    <Text style={{ color: tema.descricao }}>{opcao.descricao}</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                  <Ionicons name="chevron-forward" size={18} color={tema.iconeInativo} />
                 </TouchableOpacity>
               ))}
             </View>
-
-    )
-    :
-    
+          ) : (
             <View style={styles.containerEnviarMsg}>
-            <View style={styles.boxInputImg}>
-            <TextInput
-                style={styles.input}
-                placeholder="Escreva sua Mensagem..."
-                placeholderTextColor="#A7A7A7"
-                value={campoMsg}
-                onChangeText={(text) => {
-                  setCampoMsg(text)
-                }}
-              />            
-              <Image style={styles.imagemPostPreview} source={ { uri : `http://${host}:8000/img/user/imgPosts/${imgPost}`} }/>
+              <View style={styles.boxInputImg}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: tema.texto, backgroundColor: tema.modalFundo }
+                  ]}
+                  placeholder="Escreva sua Mensagem..."
+                  placeholderTextColor={tema.descricao}
+                  value={campoMsg}
+                  onChangeText={(text) => setCampoMsg(text)}
+                />
+                <Image
+                  style={styles.imagemPostPreview}
+                  source={{ uri: `http://${host}:8000/img/user/imgPosts/${imgPost}` }}
+                />
+              </View>
+              <View>
+                <Pressable style={[
+                  styles.botaoEnviar,
+                  { backgroundColor: tema.azul }
+                ]} onPress={enviarPost}>
+                  <Text style={{ fontWeight: '700', fontSize: 17, color: tema.textoBotao }}>Enviar</Text>
+                </Pressable>
+              </View>
             </View>
-            <View>
-              <Pressable style={styles.botaoEnviar} onPress={enviarPost}>
-                <Text style={{fontWeight: '700', fontSize: 17, color: colors.branco}}>Enviar</Text>
-              </Pressable>
-            </View>
-          </View>
-    
-    }
-          </Animatable.View>
-          
-        </View>
-      </Modal>
-    </>
-  );
-};
-
+          )}
+        </Animatable.View>
+      </View>
+    </Modal>
+  </>
+);
+}
 
 const styles = StyleSheet.create({
   fundoModal: {
