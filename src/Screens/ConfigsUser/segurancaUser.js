@@ -24,8 +24,9 @@ export default function SegurancaUser() {
         const id = await AsyncStorage.getItem('idUser');
         setUserId(id);
 
-        const response = await axios.post(`${API_BASE_URL}/api/cursei/user/atualizar/${id}`);
-        const valorDoisFatores = response.data.dois_fatores_user;
+        const response = await axios.post(`${API_BASE_URL}/api/cursei/user/selecionarUser/${id}`);
+        usuario = response.data.User;
+        const valorDoisFatores = usuario.dois_fatores_user;
 
         // Corrigindo o tipo para booleano
         const doisFatoresBoolean = valorDoisFatores === true || valorDoisFatores === 1 || valorDoisFatores === 'true';
