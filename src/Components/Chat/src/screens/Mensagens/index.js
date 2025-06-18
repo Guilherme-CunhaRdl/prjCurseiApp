@@ -89,95 +89,87 @@ export default function Mensagens({ route }) {
 
 
 
- const conectarCanal = async (novosChats) => {
-  try{
-
-  if (!window.pusherInstance) {
-    window.pusherInstance = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
-      cluster: "mt1",
-      wsHost: `${host}`,
-      wsPort: 6001,
-      forceTLS: false,
-      enabledTransports: ["ws"],
-      authEndpoint: `http://${host}:8000/broadcasting/auth`,
-      auth: {
-        headers: {
-          Authorization: "Bearer SEU_TOKEN_AQUI",
-        },
-      },
-    });
-  }
-
-  const ordenarConversas = (conversas) => {
-    return [...conversas].sort((a, b) =>
-      new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
-    );
-  };
-
-  const transformarMensagem = (msg) => ({
-    id_conversa: msg.id_chat,
-    ultima_mensagem: msg.ultima_mensagem,
-    img_mensagem: msg.img_mensagem,
-    status_mensagem: msg.status_mensagem,
-    updated_at: msg.created_at || new Date().toISOString()
-  });
-
-  novosChats.forEach(chat => {
-    if (window.pusherInstance.channel(`trazer_chats.${chat.id_conversa}`)) {
-      window.pusherInstance.unsubscribe(`trazer_chats.${chat.id_conversa}`);
-    }
-  });
-
-  novosChats.forEach((chat) => {
-    const canal = window.pusherInstance.subscribe(`trazer_chats.${chat.id_conversa}`);
-    console.log(`Inscrito no canal trazer_chats.${chat.id_conversa}`);
-
-    canal.bind("chats", (data) => {
-      if (!data?.msgs?.length) return;
-
-      setConversas(prev => {
-        const novasConversas = [...prev];
-        let precisaOrdenar = false;
-
-        data.msgs.forEach((msg) => {
-          const mensagemFormatada = transformarMensagem(msg);
-          const chatIndex = novasConversas.findIndex(
-            c => c.id_conversa === mensagemFormatada.id_conversa
-          );
-
-          if (chatIndex !== -1) {
-            novasConversas[chatIndex] = {
-              ...novasConversas[chatIndex],
-              ultima_mensagem: mensagemFormatada.ultima_mensagem,
-              img_mensagem: mensagemFormatada.img_mensagem,
-              status_mensagem: mensagemFormatada.status_mensagem,
-              updated_at: mensagemFormatada.updated_at
-            };
-            precisaOrdenar = true;
-          } else {
-            novasConversas.push({
-              id_conversa: mensagemFormatada.id_conversa,
-              id_remetente: msg.id_enviador,
-              nome: msg.nome_enviador,
-              arroba: msg.arroba_enviador,
-              img: msg.img_enviador,
-              tipo: msg.tipo,
-              ...mensagemFormatada
-            });
-            precisaOrdenar = true;
-          }
-        });
-
-        return precisaOrdenar ? ordenarConversas(novasConversas) : novasConversas;
+  const conectarCanal = async (novosChats) => {
+    try{
+      Pusher.logToConsole = true;
+      window.pusherInstance = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
+        cluster: "mt1",
+        wsHost: `${host}`,
+        wsPort: 6001,
+        forceTLS: false,
+        enabledTransports: ["ws"],
+       
       });
-    });
-  });
-}
-catch(erro){
-  console.log(erro)
-}
-};
+    
 
+    const ordenarConversas = (conversas) => {
+      return [...conversas].sort((a, b) =>
+        new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+      );
+    };
+
+    const transformarMensagem = (msg) => ({
+      id_conversa: msg.id_chat,
+      id_remetente: msg.id_enviador,
+      ultima_mensagem: msg.ultima_mensagem,
+      img_mensagem: msg.img_mensagem,
+      status_mensagem: msg.status_mensagem,
+      updated_at: msg.created_at || new Date().toISOString()
+    });
+    
+    novosChats.forEach((chat) => {
+      let tipoChat = chat.tipo; 
+      const isCanal = tipoChat === 'canal';
+      const isInstituicao = tipoChat === 'instituicao';
+      const tipoEsperado = isCanal ? 'canal' : isInstituicao ? 'instituicao' : 'privado';
+      console.log('tipo esperado', tipoEsperado)
+      let eventoCanal = isCanal ? 'receber_mensagens_canais' : 'chats';
+      let channelName = isCanal ? `view_canais.${chat.id_conversa}` : `trazer_chats.${chat.id_conversa}`;
+
+      console.log('evento canal', eventoCanal)
+      if (!window.pusherInstance.channels[channelName]) {
+        const canal = window.pusherInstance.subscribe(channelName);
+
+        canal.bind(eventoCanal, (data) => {
+          console.log('data recebida do evento', data);
+          if (!data?.msgs?.length) return;
+
+          data.msgs.forEach((msg) => {
+            const mensagemFormatada = transformarMensagem(msg);
+
+           setConversas(prev => {
+      const chatIndex = prev.findIndex(c =>
+        c.id_conversa === mensagemFormatada.id_conversa &&
+        (
+          tipoEsperado !== 'privado'
+            ? c.tipo === tipoEsperado
+            : true // aceita qualquer tipo para privado
+        )
+      );
+
+      if (chatIndex !== -1) {
+        const updated = [...prev];
+        updated[chatIndex] = {
+          ...updated[chatIndex],
+          ...mensagemFormatada,
+          updated_at: mensagemFormatada.updated_at
+        };
+        return ordenarConversas(updated);
+      }
+
+      return prev;
+    });
+            
+            
+          });
+        });
+        
+      }
+    });
+  }catch(error){
+    console.log('erro ao conectar canal', error)
+  }
+  };
 
 
   const filtrarChats = (chats) => {
@@ -195,7 +187,6 @@ catch(erro){
   };
 
   const conversasFiltradas = useMemo(() => {
-    console.log("Filtrando conversas:", conversas, selectedTab, query);
 
     return filtrarChats(conversas);
   }, [conversas, selectedTab, query]);
@@ -362,23 +353,14 @@ catch(erro){
                       </View>
                     ) : item.id_post ?  (
                       <>
-                        {item.tipo === 'canal' && !item.ultima_mensagem ? (
-                          <>
-                            <Text
-                              style={[styles.ultimaMensagem, { color: tema.descricao }]}
-                              numberOfLines={1}
-                            >
-                              Não existe mesagens para ete canal
-                            </Text>
-                          </>
-                        ) : (
+                        
                           <Text
                             style={[styles.ultimaMensagem, { color: tema.descricao }]}
                             numberOfLines={1}
                           >
                             Post
                           </Text>
-                        )}
+                        
 
                       </>
                     ) :

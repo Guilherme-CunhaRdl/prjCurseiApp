@@ -19,6 +19,7 @@ import Pusher from "pusher-js/react-native";
 import colors from "../../../../../colors";
 import Icon from "react-native-vector-icons/Feather";
 import host from "../../../../../global";
+
 export default function Conversa({ route }) {
   const {
     idUserLogado,
@@ -37,6 +38,7 @@ export default function Conversa({ route }) {
   const flatListRef = useRef(null);
   const [modalFoto, setModalFoto] = useState(false);
   const [imagemMensagem, setImagemMensagem] = useState();
+  
 
   const abrirConversaInicio = async () => {
     try {
@@ -63,8 +65,7 @@ export default function Conversa({ route }) {
   };
 
   useEffect(() => {
-    if(!isCanal){
-const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
+    const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
       wsHost: `${host}`,
       wsPort: 6001,
@@ -77,47 +78,33 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
         },
       },
     });
-    console.log(idChat)
-    const canal = pusher.subscribe(`chat_mensagem.${idChat}`);
 
-    canal.bind("nova_mensagem", (data) => {
+
+    const messageChannel = isCanal 
+      ? pusher.subscribe(`mensagem_canal.${idChat}`)
+      : pusher.subscribe(`chat_mensagem.${idChat}`);
+
+   
+
+    const messageEvent = isCanal ? "enviar_msg_canal" : "nova_mensagem";
+    messageChannel.bind(messageEvent, (data) => {
       setMensagens((prev) => [...prev, data.mensagem]);
-      console.log(data.mensagem)
+      console.log(data.mensagem);
+      
+     
     });
+
+   
 
     return () => {
-      canal.unbind_all();
-      canal.unsubscribe();
+      
+      // Desconectar canais
+      messageChannel.unbind_all();
+      messageChannel.unsubscribe();
+      pusher.disconnect();
     };
-    }else{
-      const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
-      cluster: "mt1",
-      wsHost: `${host}`,
-      wsPort: 6001,
-      forceTLS: false,
-      enabledTransports: ["ws"],
-      authEndpoint: `http://${host}:8000/broadcasting/auth`,
-      auth: {
-        headers: {
-          Authorization: "Bearer SEU_TOKEN_AQUI",
-        },
-      },
-    });
-    console.log(idChat)
-    const canal = pusher.subscribe(`mensagem_canal.${idChat}`);
+  }, [idChat, isCanal, idUserLogado, nomeEnviador]);
 
-    canal.bind("enviar_msg_canal", (data) => {
-      setMensagens((prev) => [...prev, data.mensagem]);
-      console.log(data.mensagem)
-    });
-
-    return () => {
-      canal.unbind_all();
-      canal.unsubscribe();
-    };
-    }
-    
-  }, []);
   useEffect(() => {
     abrirConversaInicio();
   }, []);
@@ -127,6 +114,8 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       let mensagem = campoMensagem.trim();
 
       if (!mensagem) return;
+
+    
 
       setCampoMensagem("");
       console.log(idChat)
@@ -141,9 +130,9 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
           }
         );
         console.log(idUserLogado, idEnviador)
-      
+        
       } catch (erro) {
-        console.error("Erro ao enviar mensagem:", error);
+        console.log("Erro ao enviar mensagem:", erro);
       }finally{
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: false });
@@ -293,6 +282,9 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       }
     
   }
+
+ 
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -426,6 +418,9 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
           style={{ flex: 1 }}
         />
 
+      
+        
+
         {isCanal && idEnviador != idUserLogado && (
           <View style={styles.inputContainer}>
 
@@ -470,8 +465,10 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       placeholder="Escreva sua Mensagem..."
       placeholderTextColor="#A7A7A7"
       value={campoMensagem}
-      onChangeText={setCampoMensagem}
-      multiline
+      onChangeText={(text) => {
+        setCampoMensagem(text);
+      }}
+      
     />
 
     {/* Ícone de enviar à direita */}
@@ -509,7 +506,9 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
                 placeholder="Escreva sua Mensagem..."
                 placeholderTextColor="#A7A7A7"
                 value={campoMensagem}
-                onChangeText={setCampoMensagem}
+                onChangeText={(text) => {
+                  setCampoMensagem(text);
+                }}
               />
             </View>
             <View style={{width: '15%', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -569,7 +568,11 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
                 placeholder="Escreva sua Mensagem..."
                 placeholderTextColor="#A7A7A7"
                 value={campoMensagemImg}
-                onChangeText={setCampoMensagemImg}
+                onChangeText={(text) => {
+                  setCampoMensagemImg(text);
+                  handleTyping();
+                }}
+                
               />
             </View>
             <View style={{width: '10%', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -729,7 +732,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     color: "#000",
-    width: '90%'
+    width: '90%',
+height: 40    
   },
   containerModalFoto: {
     flex: 1,
@@ -808,5 +812,6 @@ const styles = StyleSheet.create({
   footerPost:{
     width: '100%',
     padding: 10
-  }
+  },
+  
 });

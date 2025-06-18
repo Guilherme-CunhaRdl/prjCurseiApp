@@ -216,7 +216,7 @@ export default function AddConversa({ route }) {
       });
 
       console.log(resposta);
-      navigation.navigate('AddConversa' , { idUserLogado: idUser });
+      navigation.navigate('AddConversa' , { idUserLogado: idUserLogado });
     } catch (e) {
       console.error(e);
     }
@@ -291,7 +291,7 @@ export default function AddConversa({ route }) {
     <SafeAreaProvider>
       <PaperProvider>
         <View style={[styles.container, { backgroundColor: tema.fundo }]}>
-          <Appbar.Header style={[styles.header, { backgroundColor: tema.fundo }]}>
+        <Appbar.Header style={[styles.header, { backgroundColor: tema.fundo }]}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Image
                 source={require("../../img/voltar.png")}
@@ -648,7 +648,7 @@ export default function AddConversa({ route }) {
 
       <Modal style={styles.containerModal} visible={visibleCriar} animationType="slide">
         <View style={[styles.containerModal, { backgroundColor: tema.modalFundo }]}>
-          <View style={[styles.headerModal, { backgroundColor: tema.barra }]}>
+          <View style={[styles.headerModal, { backgroundColor: tema.fundo }]}>
             <TouchableOpacity onPress={() => setVisibleCriar(false)}>
               <Image
                 source={require("../../img/voltar.png")}
