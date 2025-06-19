@@ -244,29 +244,42 @@ export default function StackRoutes() {
               fontWeight: 'bold',
               color: '#000'
             }}>
-              Adicione um Destaque!
+              Selecione uma capa para o seu destaque!
             </Text>
           ),
           headerTitleAlign: 'center',
         }}
       />
 
-      <Stack.Screen
-        name="CriarDestaques"
-        component={CriarDestaques}
-        options={{
-          headerTitle: () => (
-            <Text style={{
-              fontSize: 18,
-              fontWeight: 'bold',
-              color: '#000'
-            }}>
-              Adicione um Destaque!
-            </Text>
-          ),
-          headerTitleAlign: 'center',
-        }}
-      />
+    <Stack.Screen
+      name="CriarDestaques"
+      component={CriarDestaques}
+      options={({ navigation, route }) => ({
+        headerTitle: () => (
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#000' }}>
+            Adicione um Destaque!
+          </Text>
+        ),
+        headerTitleAlign: 'center',
+        headerRight: () => (
+          route.params?.selectedCount > 0 && (
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('SelecionarCapa', {
+                  selectedItems: route.params.selectedItems,
+                  itemsData: route.params.itemsData,
+                });
+              }}
+            >
+              <Text style={{ color: '#3897f0', fontWeight: '600' }}>
+                Próximo ({route.params.selectedCount})
+              </Text>
+            </TouchableOpacity>
+          )
+        )
+      })}
+    />
+
       <Stack.Screen
         name="Evento"
         component={Evento}

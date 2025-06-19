@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -35,37 +35,57 @@ export default function CriarDestaques({ navigation }) {
   const [preview, setPreview] = useState(null);
 
   const toggleItemSelection = (itemId) => {
-    setSelectedItems(prev =>
-      prev.includes(itemId)
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
+    setSelectedItems(prev => {
+      if (prev.includes(itemId)) {
+        return prev.filter(id => id !== itemId);
+      } else {
+        return [...prev, itemId];
+      }
+    });
   };
 
   const handleProceed = () => {
     navigation.navigate('SelecionarCapa', {
       selectedItems,
-      itemsData: storiesData.filter(item => selectedItems.includes(item.id))
+      itemsData: storiesData.filter(item => selectedItems.includes(item.id)),
     });
   };
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          disabled={selectedItems.length === 0}
+          onPress={handleProceed}
+          style={[
+            styles.headerButton,
+            selectedItems.length === 0 && styles.headerButtonDisabled,
+          ]}
+        >
+          <Text style={styles.headerButtonText}>
+            Próximo ({selectedItems.length})
+          </Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, selectedItems]);
 
   const renderItem = ({ item }) => {
     const isSelected = selectedItems.includes(item.id);
+    const orderNumber = isSelected ? selectedItems.indexOf(item.id) + 1 : '';
+
     return (
       <TouchableOpacity
         activeOpacity={0.9}
-        style={[
-          styles.storyItem,
-          { width: itemWidth },
-          isSelected && styles.selectedItem,
-        ]}
+        style={[styles.storyItem, { width: itemWidth }]}
         onPress={() => toggleItemSelection(item.id)}
         onLongPress={() => setPreview(item.thumbnail)}
       >
-        <Image
-          source={{ uri: item.thumbnail }}
-          style={styles.thumbnail}
-        />
+        <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
+        <View style={styles.checkOverlay}>
+          <View style={[styles.checkBox, isSelected && styles.checkBoxSelected]}>
+            <Text style={styles.checkNumber}>{orderNumber}</Text>
+          </View>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -82,22 +102,7 @@ export default function CriarDestaques({ navigation }) {
         contentContainerStyle={styles.listContent}
       />
 
-      <View style={styles.buttonWrapper}>
-        <TouchableOpacity
-          style={[
-            styles.proceedButton,
-            selectedItems.length === 0 && styles.disabledButton
-          ]}
-          onPress={handleProceed}
-          disabled={selectedItems.length === 0}
-        >
-          <Text style={styles.proceedButtonText}>
-            Próximo ({selectedItems.length})
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Modal de preview */}
+      {/* Modal preview */}
       <Modal visible={!!preview} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setPreview(null)}>
           <Image source={{ uri: preview }} style={styles.previewImage} />
@@ -114,13 +119,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#333',
-  },
   storyItem: {
     aspectRatio: 0.66,
     borderWidth: 0.3,
@@ -132,34 +130,43 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-  selectedItem: {
-    borderColor: '#3897f0',
-    borderWidth: 3,
-    opacity: 0.85,
+  checkOverlay: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
-  proceedButton: {
+  checkBox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: '#fff',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkBoxSelected: {
     backgroundColor: '#3897f0',
-    paddingVertical: 14,
-    paddingHorizontal: 30,
-    borderRadius: 30,
-    alignItems: 'center',
-    elevation: 2,
+    borderColor: '#3897f0',
   },
-  disabledButton: {
-    backgroundColor: '#ccc',
-  },
-  proceedButtonText: {
+  checkNumber: {
     color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
+    fontSize: 12,
+    fontWeight: 'bold',
   },
-  buttonWrapper: {
+  headerButton: {
+    marginRight: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 25,
-    marginTop: 10,
+    backgroundColor:'none'
   },
-  listContent: {
-    paddingBottom: 30,
+
+  headerButtonText: {
+    color: '#3897f0',
+    fontWeight: '600',
+    fontSize: 14,
   },
   modalOverlay: {
     flex: 1,
