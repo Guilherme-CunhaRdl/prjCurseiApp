@@ -27,7 +27,8 @@ import Story from '../Screens/Story/index.js';
 import CriarStorys from '../Screens/Story/CriarStorys.js';
 import Destaques from '../Screens/Destaque/index.js';
 import CriarDestaques from '../Screens/Destaque/CriarDestaques.js';
-import Evento from '../Screens/evento'
+import Evento from '../Screens/evento';
+import SelecionarCapa from '../Screens/Destaque/SelecionarCapa.js';
 const Stack = createNativeStackNavigator();
 
 export default function StackRoutes() {
@@ -234,6 +235,23 @@ export default function StackRoutes() {
       />
 
       <Stack.Screen
+        name="SelecionarCapa"
+        component={SelecionarCapa}
+        options={{
+          headerTitle: () => (
+            <Text style={{
+              fontSize: 18,
+              fontWeight: 'bold',
+              color: '#000'
+            }}>
+              Adicione um Destaque!
+            </Text>
+          ),
+          headerTitleAlign: 'center',
+        }}
+      />
+
+      <Stack.Screen
         name="CriarDestaques"
         component={CriarDestaques}
         options={{
@@ -243,7 +261,7 @@ export default function StackRoutes() {
               fontWeight: 'bold',
               color: '#000'
             }}>
-              Crie um Destaque!
+              Adicione um Destaque!
             </Text>
           ),
           headerTitleAlign: 'center',
