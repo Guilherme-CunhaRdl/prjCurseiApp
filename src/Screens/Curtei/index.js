@@ -10,15 +10,17 @@ import {
   Dimensions,
   Platform,
   ActivityIndicator,
-  RefreshControl
-
+  RefreshControl,
+  Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Video } from 'expo-av';
 import axios from 'axios';
 import host from '../../global';
+import ComentarioCurtei from '../../Components/ComentarioCurtei';
 
 const { height, width } = Dimensions.get('window');
 const ITEM_HEIGHT = height;
@@ -38,107 +40,115 @@ export default function Curtei() {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [refreshing, setRefreshing] = useState(false); // Estado para o refresh
+  const [refreshing, setRefreshing] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [showComments, setShowComments] = useState(false);
+  const [selectedCurteiId, setSelectedCurteiId] = useState(null);
 
-  // Buscar dados do banco
+  // Carregar dados do usuário e curteis
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const storedId = await AsyncStorage.getItem('idUser');
+        if (storedId) setUserId(storedId);
+        await fetchCurteis();
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        setError('Erro ao carregar dados');
+      }
+    };
+    
+    loadData();
+  }, [isFocused]);
+
+  // Função para curtir/descurtir vídeos
+  const handleCurtir = async (curteiId, isLiked) => {
+    if (!userId) {
+      Alert.alert('Ação necessária', 'Você precisa estar logado para curtir');
+      return;
+    }
+
+    try {
+      const endpoint = isLiked 
+        ? `http://${host}:8000/api/curtei/${curteiId}/descurtir`
+        : `http://${host}:8000/api/curtei/${curteiId}/curtir`;
+
+      await axios.post(endpoint, { id_user: userId }, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      // Atualização otimista
+      setStories(prev => prev.map(item => 
+        item.id === curteiId.toString() ? {
+          ...item,
+          likes: isLiked ? Math.max(0, item.likes - 1) : item.likes + 1,
+          liked: !isLiked
+        } : item
+      ));
+    } catch (error) {
+      console.error('Erro na curtida:', error);
+      Alert.alert('Erro', 'Não foi possível atualizar a curtida');
+    }
+  };
+
+  // Buscar curteis da API
   const fetchCurteis = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://${host}:8000/api/curtei/videos`);
+      setRefreshing(true);
       
-      // Verificar a estrutura da resposta
-      if (!response.data || !response.data.videos || !Array.isArray(response.data.videos)) {
-        console.error('Formato inesperado da API:', response.data);
-        throw new Error('Formato de resposta inesperado da API');
-      }
+      const [videosResponse, likesResponse] = await Promise.all([
+        axios.get(`http://${host}:8000/api/curtei/videos`),
+        userId ? axios.get(`http://${host}:8000/api/curtidas/usuario/${userId}`) : Promise.resolve(null)
+      ]);
 
-      // Mapear os dados para o formato esperado
-      const enrichedStories = response.data.videos.map(curtei => ({
-        id: curtei.id.toString(),
-        videoUrl: curtei.video_url,
-        // Usar exatamente o mesmo padrão que no componente Perfil
-        userImage: curtei.usuario.foto,
-        institutionName: curtei.usuario.nome,
-        description: curtei.legenda,
-        likes: 0,
-        comments: 0
+      const videos = videosResponse.data.videos || [];
+      const userLikes = likesResponse?.data?.curtidas?.map(c => c.id_curtei.toString()) || [];
+
+      const enrichedStories = videos.map(video => ({
+        id: video.id.toString(),
+        videoUrl: video.video_url,
+        thumbUrl: video.thumb_url,
+        userImage: video.usuario?.foto,
+        institutionName: video.usuario?.nome,
+        description: video.legenda,
+        likes: video.curtidas_count || 0,
+        comments: video.comentarios_count || 0,
+        liked: userLikes.includes(video.id.toString())
       }));
       
       setStories(enrichedStories);
+      setError(null);
     } catch (err) {
-      console.error('Erro ao buscar curteis:', err);
-      setError('Não foi possível carregar os curteis');
+      console.error('Erro ao carregar curteis:', err);
+      setError('Não foi possível carregar os vídeos');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    fetchCurteis();
-  }, []);
-
+  // Controle de scroll e vídeos
   const handleScrollEnd = (e) => {
     const offsetY = e.nativeEvent.contentOffset.y;
-    const maxOffset = (stories.length - 1) * ITEM_HEIGHT;
-    const clampedOffset = Math.min(Math.max(offsetY, 0), maxOffset);
-    const index = Math.round(clampedOffset / ITEM_HEIGHT);
+    const index = Math.round(Math.min(Math.max(offsetY, 0), (stories.length - 1) * ITEM_HEIGHT) / ITEM_HEIGHT);
 
     if (currentIndex !== index) {
-      // Pausar todos os vídeos
-      videoRefs.current.forEach((ref, i) => {
-        if (ref && ref.pauseAsync) {
-          ref.pauseAsync();
-        }
-      });
-
-      // Tocar o vídeo atual
-      const currentVideo = videoRefs.current[index];
-      if (currentVideo && currentVideo.playAsync) {
-        currentVideo.playAsync();
-      }
-
+      videoRefs.current.forEach((ref, i) => ref?.setStatusAsync({ shouldPlay: i === index }));
       setCurrentIndex(index);
-      flatListRef.current?.scrollToOffset({
-        offset: index * ITEM_HEIGHT,
-        animated: true,
-      });
     }
   };
 
-  const handleScroll = (e) => {
-    const offsetY = e.nativeEvent.contentOffset.y;
-    const maxOffset = (stories.length - 1) * ITEM_HEIGHT;
-
-    if (offsetY > maxOffset) {
-      flatListRef.current?.scrollToOffset({
-        offset: maxOffset,
-        animated: false,
-      });
-    }
-  };
-
+  // Pausar vídeos quando a tela perde foco
   useEffect(() => {
     if (!isFocused) {
-      // Pausar todos os vídeos quando sair da tela
-      videoRefs.current.forEach((ref) => {
-        if (ref?.pauseAsync) {
-          ref.pauseAsync();
-        }
-      });
+      videoRefs.current.forEach(ref => ref?.pauseAsync());
     } else {
-      // Tocar o vídeo atual quando voltar para a tela
-      const currentVideo = videoRefs.current[currentIndex];
-      if (currentVideo?.playAsync) {
-        currentVideo.playAsync();
-      }
+      videoRefs.current[currentIndex]?.playAsync();
     }
   }, [isFocused]);
 
-  const recarrecarCurteis = () => {
-        fetchCurteis();
-
-  }
-
+  // Renderização do item do FlatList
   const renderItem = ({ item, index }) => (
     <View style={styles.videoContainer}>
       <Video
@@ -151,10 +161,9 @@ export default function Curtei() {
         useNativeControls={false}
         shouldPlay={index === currentIndex}
       />
-      <LinearGradient
-        colors={['transparent', 'rgba(0, 0, 0, 0.7)']}
-        style={styles.overlay}
-      >
+      
+      <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.7)']} style={styles.overlay}>
+        {/* Cabeçalho */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={responsiveFontSize(7)} color="white" />
@@ -165,14 +174,14 @@ export default function Curtei() {
           </TouchableOpacity>
         </View>
 
+        {/* Informações do usuário */}
         <View style={styles.contentContainer}>
           <View style={styles.profileSection}>
             <Image
               style={styles.profileImage}
-              source={
-                item.userImage
-                  ? { uri: `http://${host}:8000/img/user/fotoPerfil/${item.userImage}` }
-                  : require('../../../assets/userDeslogado.png')
+              source={item.userImage 
+                ? { uri: item.userImage } 
+                : require('../../../assets/userDeslogado.png')
               }
             />
             <Text style={styles.institutionName}>{item.institutionName}</Text>
@@ -184,18 +193,33 @@ export default function Curtei() {
             </Text>
           )}
         </View>
+
+        {/* Botões de ação */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.button}>
-            <Ionicons name="heart-outline" size={responsiveFontSize(6)} color="white" />
-            <Text style={styles.buttonText}>{item.likes}</Text>
+          <TouchableOpacity style={styles.button} onPress={() => handleCurtir(item.id, item.liked)}>
+            <Ionicons 
+              name={item.liked ? "heart" : "heart-outline"}  
+              size={responsiveFontSize(6)}  
+              color={item.liked ? "#FF0000" : "white"}  
+            />
+            <Text style={[styles.buttonText, item.liked && styles.likedText]}>{item.likes}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
+          
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={() => {
+              setSelectedCurteiId(item.id);
+              setShowComments(true);
+            }}
+          >
             <Ionicons name="chatbubble-outline" size={responsiveFontSize(6)} color="white" />
             <Text style={styles.buttonText}>{item.comments}</Text>
           </TouchableOpacity>
+          
           <TouchableOpacity style={styles.button}>
             <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
           </TouchableOpacity>
+          
           <TouchableOpacity style={styles.button}>
             <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
           </TouchableOpacity>
@@ -204,6 +228,7 @@ export default function Curtei() {
     </View>
   );
 
+  // Estados de carregamento e erro
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
@@ -227,7 +252,10 @@ export default function Curtei() {
     return (
       <SafeAreaView style={styles.emptyContainer}>
         <Text style={styles.emptyText}>Nenhum curtei disponível</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('CriarCurteis')} style={styles.createButton}>
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('CriarCurteis')} 
+          style={styles.createButton}
+        >
           <Ionicons name="camera-outline" size={responsiveFontSize(7)} color="white" />
           <Text style={styles.createText}>Criar seu primeiro curtei</Text>
         </TouchableOpacity>
@@ -237,7 +265,6 @@ export default function Curtei() {
 
   return (
     <SafeAreaView style={styles.container}>
-      
       <FlatList
         ref={flatListRef}
         data={stories}
@@ -249,7 +276,6 @@ export default function Curtei() {
         showsVerticalScrollIndicator={false}
         onMomentumScrollEnd={handleScrollEnd}
         onScrollEndDrag={handleScrollEnd}
-        onScroll={handleScroll}
         getItemLayout={(data, index) => ({
           length: ITEM_HEIGHT,
           offset: ITEM_HEIGHT * index,
@@ -258,16 +284,26 @@ export default function Curtei() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={recarrecarCurteis}
-           
+            onRefresh={fetchCurteis}
           />
         }
         overScrollMode="never"
+      />
+
+      {/* Modal de Comentários */}
+      <ComentarioCurtei 
+        idCurtei={selectedCurteiId} 
+        isVisible={showComments}
+        onClose={() => {
+          setShowComments(false);
+          fetchCurteis();
+        }}
       />
     </SafeAreaView>
   );
 }
 
+// Estilos (mantidos os mesmos)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -341,6 +377,9 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: responsiveFontSize(3),
     marginTop: responsiveHeight(0.5),
+  },
+  likedText: {
+    color: '#FF0000',
   },
   loadingContainer: {
     flex: 1,

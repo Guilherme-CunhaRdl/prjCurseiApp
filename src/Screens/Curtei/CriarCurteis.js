@@ -52,6 +52,8 @@ const CriarCurteis = () => {
   const thumbFileRef = useRef(null);
   const videoRef = useRef(null);
   const animatedIndex = useRef(new Animated.Value(0)).current;
+  const thumbWidth = width * 0.9;
+  const thumbHeight = (thumbWidth * 16) / 9;
 
   useEffect(() => {
     (async () => {
@@ -93,10 +95,10 @@ const CriarCurteis = () => {
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [16, 9],
+        aspect: [9, 16],
         quality: 0.8,
       });
-
+  
       if (!result.canceled && result.assets?.length > 0) {
         setThumbUri(result.assets[0].uri);
         thumbFileRef.current = {
@@ -262,14 +264,14 @@ const CriarCurteis = () => {
         {/* Página 2 - Seleção de thumbnail */}
         <View style={styles.page}>
           {thumbUri ? (
-            <View style={styles.preview}>
-              <Image source={{ uri: thumbUri }} style={styles.media} resizeMode="cover" />
+            <View style={[styles.preview, { aspectRatio: 9/16 }]}>
+              <Image source={{ uri: thumbUri }} style={styles.media} resizeMode="cover"  />
               <TouchableOpacity style={styles.editButton} onPress={selectThumbnail}>
                 <Icon name="edit" size={25} color="#fff" />
               </TouchableOpacity>
             </View>
           ) : (
-            <UploadPlaceholder icon="image" label="Selecionar thumbnail" onPress={selectThumbnail} />
+            <UploadPlaceholder icon="image" label="Selecionar thumbnail" onPress={selectThumbnail}     style={{ aspectRatio: 9/16 }} />
           )}
           {thumbUri && (
             <TouchableOpacity 
