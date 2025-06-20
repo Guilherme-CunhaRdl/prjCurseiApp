@@ -27,7 +27,8 @@ import Story from '../Screens/Story/index.js';
 import CriarStorys from '../Screens/Story/CriarStorys.js';
 import Destaques from '../Screens/Destaque/index.js';
 import CriarDestaques from '../Screens/Destaque/CriarDestaques.js';
-import Evento from '../Screens/evento'
+import Evento from '../Screens/evento';
+import SelecionarCapa from '../Screens/Destaque/SelecionarCapa.js';
 const Stack = createNativeStackNavigator();
 
 export default function StackRoutes() {
@@ -234,8 +235,8 @@ export default function StackRoutes() {
       />
 
       <Stack.Screen
-        name="CriarDestaques"
-        component={CriarDestaques}
+        name="SelecionarCapa"
+        component={SelecionarCapa}
         options={{
           headerTitle: () => (
             <Text style={{
@@ -243,12 +244,42 @@ export default function StackRoutes() {
               fontWeight: 'bold',
               color: '#000'
             }}>
-              Crie um Destaque!
+              Selecione uma capa para o seu destaque!
             </Text>
           ),
           headerTitleAlign: 'center',
         }}
       />
+
+    <Stack.Screen
+      name="CriarDestaques"
+      component={CriarDestaques}
+      options={({ navigation, route }) => ({
+        headerTitle: () => (
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#000' }}>
+            Adicione um Destaque!
+          </Text>
+        ),
+        headerTitleAlign: 'center',
+        headerRight: () => (
+          route.params?.selectedCount > 0 && (
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('SelecionarCapa', {
+                  selectedItems: route.params.selectedItems,
+                  itemsData: route.params.itemsData,
+                });
+              }}
+            >
+              <Text style={{ color: '#3897f0', fontWeight: '600' }}>
+                Próximo ({route.params.selectedCount})
+              </Text>
+            </TouchableOpacity>
+          )
+        )
+      })}
+    />
+
       <Stack.Screen
         name="Evento"
         component={Evento}

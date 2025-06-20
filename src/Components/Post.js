@@ -23,7 +23,7 @@ import { Linking } from 'react-native';
 //La no controllerApi eu criei um case 12: pra trazer os posts mais recentes, trocando o orderBy so por created_at
 
 
-export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesquisaMaisRecente }) {
+export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesquisaMaisRecente, conversas }) {
   const navigation = useNavigation();
   const [perfilProprio, setPerfilProprio] = useState(false)
   const [loading, setLoading] = useState(false);
@@ -266,6 +266,15 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
                       <Text style={[styles.horaPost, { color: tema.descricao }]}>
                         {formatarTempoInsercao(item.tempo_insercao)}
                       </Text>
+                      {item.impulsionado ? (
+                        <View style={[styles.impulsionado, { backgroundColor: tema.azul }]}>
+                          <Image
+                            source={require("../../assets/curseiLogoBlackMode.png")}
+                            style={{ objectFit: 'contain', width: 13, height: 15 }}
+                          />
+                          <Text style={{ color: '#fff', fontSize: 10, fontWeight: 500 }}>Impulsionado</Text>
+                        </View>
+                      ) : null}
                     </View>
                     <Text style={[styles.arrobaUser, { color: tema.descricao }]}>@{item.arroba_user}</Text>
                   </View>
@@ -273,15 +282,27 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
 
                 {idUser ? (
                   perfilProprio ? (
-                    <Configuracoes
-                      arroba={item.arroba_user}
-                      idPost={item.id_post}
-                      userPost={item.id_user}
-                      segueUsuario={item.segue_usuario}
-                      tipo="postProprio"
-                      tema={tema}
-                      evento ={item.data_inicio_evento ? item.evento_id:null}
-                    />
+                    item.instituicao ? (
+                      <Configuracoes
+                        arroba={item.arroba_user}
+                        idPost={item.id_post}
+                        userPost={item.id_user}
+                        segueUsuario={item.segue_usuario}
+                        tipo="postProprioInst"
+                        tema={tema}
+                        evento={item.data_inicio_evento ? item.evento_id : null}
+                      />
+                    ) : (
+                      <Configuracoes
+                        arroba={item.arroba_user}
+                        idPost={item.id_post}
+                        userPost={item.id_user}
+                        segueUsuario={item.segue_usuario}
+                        tipo="postProprio"
+                        tema={tema}
+                        evento={item.data_inicio_evento ? item.evento_id : null}
+                      />
+                    )
                   ) : (
                     <Configuracoes
                       arroba={item.arroba_user}
@@ -306,7 +327,7 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
 
               <View style={styles.containerConteudo}>
                 {!item.data_inicio_evento && item.descricao_post ? (
-                  
+
                   <Text style={[styles.postText, { color: tema.texto }]}>
                     {renderHashtagText(item.descricao_post, handleHashtagPress)}
                   </Text>
@@ -413,7 +434,7 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
                 </TouchableOpacity>
 
                 <View style={styles.containerShare}>
-                  <Compartilhar tema={tema} />
+                  <Compartilhar tema={tema} chats={conversas} imgPost={item.conteudo_post} idPost={item.id_post}  />
                 </View>
 
                 <ModalPostagem ref={modalRef} idPostRepost={true} />
@@ -594,6 +615,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     paddingInline: 15
+  },
+  impulsionado: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+    padding: 4,
+    paddingInline: 6,
+    borderRadius: 7,
+    gap: 4
   }
 });
 

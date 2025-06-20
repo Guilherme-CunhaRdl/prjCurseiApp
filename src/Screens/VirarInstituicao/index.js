@@ -36,7 +36,7 @@ export default function VirarInstituicao() {
     });
     const [modalVisible, setModalVisible] = useState(false); // Estado para o modal
     const [modalJaSolicitada, setModalJaSolicitadaVisible] = useState(false);
-    const tema = useTema()
+    const {tema} = useTema();
     const navigation = useNavigation(); // Hook para navegação
 
     

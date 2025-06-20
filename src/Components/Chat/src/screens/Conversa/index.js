@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
   Modal,
+  Pressable,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -18,6 +19,7 @@ import Pusher from "pusher-js/react-native";
 import colors from "../../../../../colors";
 import Icon from "react-native-vector-icons/Feather";
 import host from "../../../../../global";
+import EnviarPostPv from '../../../../EnviarPostNv';  
 export default function Conversa({ route }) {
   const {
     idUserLogado,
@@ -36,6 +38,7 @@ export default function Conversa({ route }) {
   const flatListRef = useRef(null);
   const [modalFoto, setModalFoto] = useState(false);
   const [imagemMensagem, setImagemMensagem] = useState();
+  const [postPv, setPostPv] = useState(false);
 
   const abrirConversaInicio = async () => {
     try {
@@ -46,9 +49,7 @@ export default function Conversa({ route }) {
       const respostaCanal = await axios.get(
         `http://${host}:8000/api/cursei/chat/mensagensCanal/${idEnviador}/${idChat}`
       )
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: false });
-      }, 300);
+      
       if (resposta.data.chats && resposta.data.chats.length > 0 && !isCanal) {
         await setMensagens(resposta.data.chats);
       } else if (respostaCanal.data.mensagensCanal && respostaCanal.data.mensagensCanal.length > 0 && isCanal) {
@@ -58,12 +59,15 @@ export default function Conversa({ route }) {
       }
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
+    }finally{
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: false });
+      }, 1000);
     }
   };
 
   useEffect(() => {
-    if(!isCanal){
-const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
+    const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
       wsHost: `${host}`,
       wsPort: 6001,
@@ -76,47 +80,33 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
         },
       },
     });
-    console.log(idChat)
-    const canal = pusher.subscribe(`chat_mensagem.${idChat}`);
 
-    canal.bind("nova_mensagem", (data) => {
+
+    const messageChannel = isCanal 
+      ? pusher.subscribe(`mensagem_canal.${idChat}`)
+      : pusher.subscribe(`chat_mensagem.${idChat}`);
+
+   
+
+    const messageEvent = isCanal ? "enviar_msg_canal" : "nova_mensagem";
+    messageChannel.bind(messageEvent, (data) => {
       setMensagens((prev) => [...prev, data.mensagem]);
-      console.log(data.mensagem)
+      console.log(data.mensagem);
+      
+     
     });
+
+   
 
     return () => {
-      canal.unbind_all();
-      canal.unsubscribe();
+      
+      // Desconectar canais
+      messageChannel.unbind_all();
+      messageChannel.unsubscribe();
+      pusher.disconnect();
     };
-    }else{
-      const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
-      cluster: "mt1",
-      wsHost: `${host}`,
-      wsPort: 6001,
-      forceTLS: false,
-      enabledTransports: ["ws"],
-      authEndpoint: `http://${host}:8000/broadcasting/auth`,
-      auth: {
-        headers: {
-          Authorization: "Bearer SEU_TOKEN_AQUI",
-        },
-      },
-    });
-    console.log(idChat)
-    const canal = pusher.subscribe(`mensagem_canal.${idChat}`);
+  }, [idChat, isCanal, idUserLogado, nomeEnviador]);
 
-    canal.bind("enviar_msg_canal", (data) => {
-      setMensagens((prev) => [...prev, data.mensagem]);
-      console.log(data.mensagem)
-    });
-
-    return () => {
-      canal.unbind_all();
-      canal.unsubscribe();
-    };
-    }
-    
-  }, []);
   useEffect(() => {
     abrirConversaInicio();
   }, []);
@@ -126,6 +116,8 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       let mensagem = campoMensagem.trim();
 
       if (!mensagem) return;
+
+    
 
       setCampoMensagem("");
       console.log(idChat)
@@ -140,9 +132,9 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
           }
         );
         console.log(idUserLogado, idEnviador)
-      
+        
       } catch (erro) {
-        console.error("Erro ao enviar mensagem:", error);
+        console.log("Erro ao enviar mensagem:", erro);
       }finally{
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: false });
@@ -170,9 +162,19 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
         });
       }
 
-
-      // Envio da requisição
-      const resposta = await axios.post(
+      let resposta = '';
+      isCanal ?  resposta = await axios.post(
+        `http://${host}:8000/api/cursei/chat/enviarMensagem/canal/comImagem`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          transformRequest: () => formData,
+        }
+      )
+       : 
+        resposta = await axios.post(
         `http://${host}:8000/api/cursei/chat/enviarMensagem/comImagem`,
         formData,
         {
@@ -182,6 +184,7 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
           transformRequest: () => formData,
         }
       );
+      
 
       console.log("Mensagem enviada:", resposta.data);
       setCampoMensagemImg("");
@@ -215,7 +218,7 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
     if (!resultado.canceled) {
       const uri = resultado.assets[0].uri;
       setImagemMensagem(uri);
-      console.log("URI selecionada:", imagemMensagem); // <-- use o valor diretamente
+      console.log("URI selecionada:", imagemMensagem);
       setModalFoto(true);
     }
   };
@@ -292,6 +295,9 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       }
     
   }
+
+
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -307,7 +313,7 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
           </TouchableOpacity>
 
           <View style={styles.headerInfo}>
-            <TouchableOpacity style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }} onPress={() => navigation.navigate('Perfil', {
+            <TouchableOpacity style={{ width: '70%', flexDirection: 'row', alignItems: 'center' }} onPress={() => navigation.navigate('Perfil', {
               idUserPerfil: idEnviador,
               titulo: arrobaEnviador
             })}>
@@ -327,13 +333,16 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
                 style={styles.avatar}
               />
               <View style={styles.viewCabecalho}>
-                <View style={{width: '30%'}}>
+                <View style={{width: '100%'}}>
                 <Text style={styles.nome}>{nomeEnviador}</Text>
                 
                 <Text style={styles.usuario}>@{arrobaEnviador}</Text>
                 </View>
-                {isCanal && (
+                </View>
+                </TouchableOpacity>
 
+                {isCanal && idEnviador != idUserLogado && (
+                  
                 <View style={styles.viewBotaoSeguir}>
                   <TouchableOpacity style={styles.botaoSeguir}>
                   <Text style={styles.textSeguir}>
@@ -342,8 +351,6 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
                 </TouchableOpacity>
                 </View>
                 )}
-              </View>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -363,6 +370,7 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
               ]}
             >
               {item.foto_enviada ? (
+                <>
                 <Image
                   source={{
                     uri: `http://${host}:8000/img/chat/fotosChat/${item.foto_enviada}`,
@@ -370,9 +378,54 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
                   style={styles.imgMensagem}
                   resizeMode="cover"
                 />
-              ) : null}
+                {item.conteudo_mensagem && (
+                <View style={styles.viewTextoMsg}>
+                  <Text style={[
+                    item.id_enviador == idUserLogado
+                      ? styles.textoMsgEnviado
+                      : styles.textoMsgRecebido
+                  ]}>
+                    {item.conteudo_mensagem}
+                  </Text>
+                  
+                </View>
+                )}
+                </>
+              ) : item.id_post ? (
+                <>
+                <Pressable  onPress={() => navigation.navigate('PostUnico', {
+                    idPost: item.id_post,
+                    titulo: item.arroba_user_postou
+                  })}>
+                <View style={styles.headerPost}>
+                  <Image
+                  source={{
+                    uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user_postou}`,
+                  }}
+                  style={styles.imgPerfil}
+                  resizeMode="cover"
+                />
+                  <Text style={{color: colors.branco, }}>{item.nome_user_postou}</Text>
+                </View>
 
-              {item.conteudo_mensagem ? (
+                <Image
+                  source={{
+                    uri: `http://${host}:8000/img/user/imgPosts/${item.cont_post}`,
+                  }}
+                  style={styles.imgMensagem}
+                  resizeMode="cover"
+                />
+                
+                <View style={styles.footerPost}>
+                  <Text style={{color: colors.branco, }}>{item.desc_post}</Text>
+                </View>
+                
+                </Pressable>
+
+                </>
+              ) :
+              
+              (
                 <View style={styles.viewTextoMsg}>
                   <Text style={[
                     item.id_enviador == idUserLogado
@@ -382,12 +435,19 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
                     {item.conteudo_mensagem}
                   </Text>
                 </View>
-              ) : null}
+              )
+              
+              }
+
+              
             </View>
           )}
           contentContainerStyle={styles.chatContent}
           style={{ flex: 1 }}
         />
+
+      
+        
 
         {isCanal && idEnviador != idUserLogado && (
           <View style={styles.inputContainer}>
@@ -396,8 +456,7 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
 
             <Text
               style={styles.input}
-
-            >Não pode enviar mensagens</Text>
+>Não pode enviar mensagens</Text>
             
 
           </View>
@@ -405,7 +464,7 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
         {isCanal && idEnviador == idUserLogado && (
   <View style={styles.inputContainer}>
     {/* Ícones à esquerda */}
-    <View style={styles.iconsLeft}>
+    <View style={styles.viewIcones}>
       <TouchableOpacity 
         onPress={() => tirarFotoParaEnvio()}
         style={styles.iconButton}
@@ -428,30 +487,46 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
     </View>
 
     {/* Campo de texto central */}
+    <View style={{width: '65%', alignItems: 'center'}}>
     <TextInput
       style={styles.input}
       placeholder="Escreva sua Mensagem..."
       placeholderTextColor="#A7A7A7"
       value={campoMensagem}
-      onChangeText={setCampoMensagem}
-      multiline
+      onChangeText={(text) => {
+        setCampoMensagem(text);
+      }}
+      
     />
-
+    </View>
     {/* Ícone de enviar à direita */}
+    <View style={styles.viewSendButton}>
+    {campoMensagem.length > 0 ?( 
     <TouchableOpacity 
       onPress={!isCanal ? enviarMensagem : enviarMensagemCanal}
       style={styles.sendButton}
     >
-      <Image
-        source={require("../../img/enviar.png")}
-        style={styles.iconSmall}
-      />
+  
+        <Image
+          source={require("../../img/enviar.png")}
+          style={styles.iconSmall}
+        />
+
     </TouchableOpacity>
+            )
+        :  
+              (
+                <EnviarPostPv />
+              )
+    }
+    </View>
   </View>
 )}
+
+
         {!isCanal && (
           <View style={styles.inputContainer}>
-            <View style={{flexDirection:'row', width: '15%', justifyContent: 'space-around', alignItems: 'center'}}>
+            <View style={styles.viewIcones}>
               <TouchableOpacity onPress={() => tirarFotoParaEnvio()}>
                 <Image
                   source={require("../../img/Camera.png")}
@@ -466,23 +541,37 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
                 />
               </TouchableOpacity>
             </View>
-            <View style={{width: '70%', justifyContent: 'space-between', alignItems: 'center'}}>
+            <View style={{width: '65%', alignItems: 'center', backgroundColor: 'red'  }}>
               <TextInput
                 style={styles.input}
                 placeholder="Escreva sua Mensagem..."
                 placeholderTextColor="#A7A7A7"
                 value={campoMensagem}
-                onChangeText={setCampoMensagem}
+                onChangeText={(text) => {
+                  setCampoMensagem(text);
+                }}
               />
             </View>
-            <View style={{width: '15%', justifyContent: 'space-between', alignItems: 'center'}}>
-              <TouchableOpacity onPress={!isCanal ? () => enviarMensagem() : ''}>
-                <Image
-                  source={require("../../img/enviar.png")}
-                  style={styles.iconSmall}
-                />
-              </TouchableOpacity>
-            </View>
+            <View style={styles.viewSendButton}>
+    {campoMensagem.length > 0 ?( 
+    <TouchableOpacity 
+      onPress={!isCanal ? enviarMensagem : enviarMensagemCanal}
+      style={styles.sendButton}
+    >
+  
+        <Image
+          source={require("../../img/enviar.png")}
+          style={styles.iconSmall}
+        />
+
+    </TouchableOpacity>
+            )
+        :  
+              (
+                <EnviarPostPv />
+              )
+    }
+    </View>
           </View>
         )}
 
@@ -496,7 +585,7 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
           <View style={styles.containerModalFoto}>
             <View style={styles.boxModalFoto}>
               <View style={styles.cabecalhoModalFoto}>
-                <TouchableOpacity onPress={!isCanal ? () => setModalFoto(false) : ''}>
+                <TouchableOpacity onPress={() => setModalFoto(false) }>
                   <Icon name="x" size={22} color={colors.azul} />
                 </TouchableOpacity>
                 <Text
@@ -526,17 +615,20 @@ const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
               <View style={styles.boxMsgModalFoto}>
                 <View style={[styles.inputContainerModal, { width: "90%", height: 45 }]}>
              
-            <View style={{width: '90%', justifyContent: 'space-between', alignItems: 'center'}}>
+            <View style={{width: '70%', justifyContent: 'space-between', alignItems: 'center'}}>
               <TextInput
                 style={styles.input}
                 placeholder="Escreva sua Mensagem..."
                 placeholderTextColor="#A7A7A7"
                 value={campoMensagemImg}
-                onChangeText={setCampoMensagemImg}
+                onChangeText={(text) => {
+                  setCampoMensagemImg(text);
+                }}
+                
               />
             </View>
             <View style={{width: '10%', justifyContent: 'space-between', alignItems: 'center'}}>
-              <TouchableOpacity onPress={!isCanal ? () => enviarMensagemFoto() : ''}>
+              <TouchableOpacity onPress={() => enviarMensagemFoto()}>
                 <Image
                   source={require("../../img/enviar.png")}
                   style={styles.iconSmall}
@@ -576,9 +668,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   viewCabecalho:{
-    width: '100%',
+    width: '80%',
     flexDirection: 'row'
-
   },
   nome: {
     fontWeight: "bold",
@@ -591,10 +682,9 @@ const styles = StyleSheet.create({
          justifyContent: 'space-between'
       },
       viewBotaoSeguir:{
-        width: '100%',
-        paddingRight: 40,
+        width: '30%',
         justifyContent: 'flex-end',
-        alignItems: 'center'
+        alignItems: 'center',
       },
       botaoSeguir:{
         padding: 7,
@@ -639,7 +729,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 4,
     marginBottom: 10,
-    maxWidth: "75%",
+    maxWidth: "62%",
     shadowColor: colors.preto,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
@@ -652,7 +742,7 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 8,
     marginBottom: 10,
-    maxWidth: "75%",
+    maxWidth: "62%",
   },
   viewTextoMsg: {
     padding: 3,
@@ -672,7 +762,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#efefef",
     justifyContent: 'space-between',
-
     padding: 4,
     margin: 16,
     borderRadius: 16,
@@ -687,12 +776,27 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     width: '100%'
   },
+  viewIcones:{
+    flexDirection:'row',
+    backgroundColor: 'blue', 
+    width: '20%', 
+    justifyContent: 'space-around', 
+    alignItems: 'center'
+
+  },
   input: {
     fontSize: 14,
     paddingVertical: 4,
     paddingHorizontal: 8,
     color: "#000",
-    width: '90%'
+    width: '100%',
+    backgroundColor: 'red',
+  height: 50    
+  },
+  viewSendButton:{
+    width: '15%',
+    alignItems: 'flex-end',
+    backgroundColor: 'blue'
   },
   containerModalFoto: {
     flex: 1,
@@ -756,5 +860,27 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  
+  headerPost:{
+    padding: 8,
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  imgPerfil:{
+    height: 30,
+    width: 30,
+    borderRadius: 100,
+    marginRight: 10
+  },
+  footerPost:{
+    width: '100%',
+    padding: 10
+  },
+  sendButton:{
+    width: 45,
+    height: 45,
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 });

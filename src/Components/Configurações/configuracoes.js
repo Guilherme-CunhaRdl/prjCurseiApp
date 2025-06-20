@@ -10,8 +10,9 @@ import ModalPostagem from "../ModalPostagem";
 import ModalExcluir from './modalExcluir';
 import evento from '../../Screens/evento';
 import ModalImpulsionar from './ModalImpulsionar';
-
+import { useTema } from '../../context/themeContext';
 const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo,evento }) => {
+  const { tema } = useTema();
 
   const modalRef = useRef();
 
@@ -51,6 +52,12 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo,evento }) 
       break;
     case 'postProprio':
       data = [
+        { label: `Editar post`, value: 'Editar', icon: 'create-outline' ,cor:'#666'},
+        { label: `Excluir post`, value: 'Excluir', icon: 'alert-circle-outline' ,cor:'red'},
+      ]
+      break;
+      case 'postProprioInst':
+  data = [
         { label: `Editar post`, value: 'Editar', icon: 'create-outline' ,cor:'#666'},
         { label: `Excluir post`, value: 'Excluir', icon: 'alert-circle-outline' ,cor:'red'},
         { label: `Impulsionar post`, value: 'Impulsionar', icon: 'star-outline' ,cor:'#448FFF'},
@@ -115,7 +122,7 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo,evento }) 
   return (
     <View style={styles.container}>
       <TouchableOpacity ref={buttonRef} onPress={openMenu} style={styles.button}>
-        <AntDesign name="ellipsis1" size={25} color="black" />
+        <AntDesign name="ellipsis1" size={25} color={tema.texto} />
       </TouchableOpacity>
 
       {/* Menu */}

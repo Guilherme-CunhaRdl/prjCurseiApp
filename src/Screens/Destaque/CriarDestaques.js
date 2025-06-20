@@ -1,172 +1,183 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
   StyleSheet,
-  ActivityIndicator,
-  Alert,
+  View,
+  FlatList,
+  Image,
+  TouchableOpacity,
   Dimensions,
+  Text,
+  Modal,
+  Pressable,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import Video from 'react-native-video';
-import { launchImageLibrary } from 'react-native-image-picker';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import host from '../../global';
+import { StatusBar } from 'expo-status-bar';
+
+const storiesData = [
+  { id: '1', thumbnail: 'https://picsum.photos/200/300?random=1', type: 'video' },
+  { id: '2', thumbnail: 'https://picsum.photos/200/300?random=2', type: 'video' },
+  { id: '3', thumbnail: 'https://picsum.photos/200/300?random=3', type: 'video' },
+  { id: '4', thumbnail: 'https://picsum.photos/200/300?random=4', type: 'video' },
+  { id: '5', thumbnail: 'https://picsum.photos/200/300?random=5', type: 'video' },
+  { id: '6', thumbnail: 'https://picsum.photos/200/300?random=6', type: 'video' },
+  { id: '7', thumbnail: 'https://picsum.photos/200/300?random=7', type: 'video' },
+  { id: '8', thumbnail: 'https://picsum.photos/200/300?random=8', type: 'video' },
+  { id: '9', thumbnail: 'https://picsum.photos/200/300?random=9', type: 'video' },
+  { id: '10', thumbnail: 'https://picsum.photos/200/300?random=10', type: 'video' },
+  { id: '11', thumbnail: 'https://picsum.photos/200/300?random=11', type: 'video' },
+  { id: '12', thumbnail: 'https://picsum.photos/200/300?random=12', type: 'video' },
+];
 
 const { width } = Dimensions.get('window');
-const videoWidth = width * 0.9;
-const videoHeight = (videoWidth * 16) / 9;
+const itemWidth = width / 3;
 
-const CriarDestaques = () => {
-  const [videoUri, setVideoUri] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const videoFileRef = useRef(null);
+export default function CriarDestaques({ navigation }) {
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [preview, setPreview] = useState(null);
 
-  const selectVideo = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'video',
-      videoQuality: 'medium',
-      durationLimit: 60,
+  const toggleItemSelection = (itemId) => {
+    setSelectedItems(prev => {
+      if (prev.includes(itemId)) {
+        return prev.filter(id => id !== itemId);
+      } else {
+        return [...prev, itemId];
+      }
     });
-    if (result.assets && result.assets[0].uri) {
-      setVideoUri(result.assets[0].uri);
-      videoFileRef.current = {
-        uri: result.assets[0].uri,
-        type: result.assets[0].type || 'video/mp4',
-        name: result.assets[0].fileName || `video_${Date.now()}.mp4`,
-      };
-    }
   };
 
-  const handleUpload = async () => {
-    const idUserString = await AsyncStorage.getItem('idUser');
-    const idUser = parseInt(idUserString);
+  const handleProceed = () => {
+    navigation.navigate('SelecionarCapa', {
+      selectedItems,
+      itemsData: storiesData.filter(item => selectedItems.includes(item.id)),
+    });
+  };
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          disabled={selectedItems.length === 0}
+          onPress={handleProceed}
+          style={[
+            styles.headerButton,
+            selectedItems.length === 0 && styles.headerButtonDisabled,
+          ]}
+        >
+          <Text style={styles.headerButtonText}>
+            Próximo ({selectedItems.length})
+          </Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, selectedItems]);
 
-    if (!videoFileRef.current) {
-      Alert.alert('Atenção', 'Você precisa selecionar um vídeo');
-      return;
-    }
+  const renderItem = ({ item }) => {
+    const isSelected = selectedItems.includes(item.id);
+    const orderNumber = isSelected ? selectedItems.indexOf(item.id) + 1 : '';
 
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('caminho_curtei', videoFileRef.current);
-      formData.append('id_user', idUser);
-
-      await axios.post(`http://${host}:8000/api/curtei/upload`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Accept': 'application/json',
-        },
-      });
-
-      Alert.alert('Sucesso!', 'Seu vídeo foi publicado com sucesso!');
-      setVideoUri(null);
-      videoFileRef.current = null;
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Erro', 'Não foi possível enviar o vídeo');
-    } finally {
-      setUploading(false);
-    }
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={[styles.storyItem, { width: itemWidth }]}
+        onPress={() => toggleItemSelection(item.id)}
+        onLongPress={() => setPreview(item.thumbnail)}
+      >
+        <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
+        <View style={styles.checkOverlay}>
+          <View style={[styles.checkBox, isSelected && styles.checkBoxSelected]}>
+            <Text style={styles.checkNumber}>{orderNumber}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
   };
 
   return (
     <View style={styles.container}>
-      {videoUri ? (
-        <View style={styles.preview}>
-          <Video source={{ uri: videoUri }} style={styles.media} resizeMode="cover" paused />
-          <TouchableOpacity style={styles.editButton} onPress={selectVideo}>
-            <Icon name="edit" size={25} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <UploadPlaceholder icon="videocam" label="Selecionar vídeo" onPress={selectVideo} />
-      )}
+      <FlatList
+        data={storiesData}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        numColumns={3}
+        scrollEnabled
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+      />
 
-      <TouchableOpacity
-        style={[styles.uploadButton, !videoUri && { backgroundColor: '#a5c3f7' }]}
-        onPress={handleUpload}
-        disabled={uploading || !videoUri}
-      >
-        {uploading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.uploadText}>Postar vídeo</Text>
-        )}
-      </TouchableOpacity>
+      {/* Modal preview */}
+      <Modal visible={!!preview} transparent animationType="fade">
+        <Pressable style={styles.modalOverlay} onPress={() => setPreview(null)}>
+          <Image source={{ uri: preview }} style={styles.previewImage} />
+        </Pressable>
+      </Modal>
+
+      <StatusBar style="dark" />
     </View>
   );
-};
-
-const UploadPlaceholder = ({ icon, label, onPress }) => (
-  <TouchableOpacity style={styles.placeholder} onPress={onPress}>
-    <Icon name={icon} size={50} color="#3B82F6" />
-    <Text style={styles.placeholderLabel}>{label}</Text>
-  </TouchableOpacity>
-);
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
   },
-  placeholder: {
-    width: videoWidth,
-    height: videoHeight,
-    borderWidth: 2,
-    borderColor: '#3B82F6',
-    borderStyle: 'dashed',
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-  },
-  placeholderLabel: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#3B82F6',
-  },
-  preview: {
-    width: videoWidth,
-    height: videoHeight,
-    borderRadius: 15,
+  storyItem: {
+    aspectRatio: 0.66,
+    borderWidth: 0.3,
+    borderColor: '#ddd',
     overflow: 'hidden',
-    backgroundColor: '#ddd',
   },
-  media: {
+  thumbnail: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
-  editButton: {
+  checkOverlay: {
     position: 'absolute',
-    bottom: 15,
-    right: 15,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    padding: 10,
-    borderRadius: 25,
+    top: 8,
+    right: 8,
   },
-  uploadButton: {
-    marginTop: 10,
-    backgroundColor: '#3B82F6',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 15,
-    width:'100%',
+  checkBox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: '#fff',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  uploadText: {
-    color: '#fff',
-    fontSize: 16,
+  checkBoxSelected: {
+    backgroundColor: '#3897f0',
+    borderColor: '#3897f0',
+  },
+  checkNumber: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  headerButton: {
+    marginRight: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor:'none'
+  },
+
+  headerButtonText: {
+    color: '#3897f0',
     fontWeight: '600',
+    fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewImage: {
+    width: '80%',
+    height: '70%',
+    resizeMode: 'contain',
+    borderRadius: 16,
   },
 });
-
-export default CriarDestaques;

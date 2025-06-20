@@ -27,7 +27,12 @@ export default function AlterarUser() {
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [modalArroba, setModalArroba] = useState(false);
   const [modalEmail, setModalEmail] = useState(false);
-  const [usuario, setUsuario] = useState(null);
+  const [usuario, setUsuario] = useState({
+    id: '',
+    arroba_user: '',
+    email_user: '',
+    senha_user: '',
+  });
   const [erroSenha, setErroSenha] = useState('');
 
   const [arrobaValue, setArrobaValue] = useState('');
@@ -42,6 +47,8 @@ export default function AlterarUser() {
       try {
         const response = await axios.post(`http://${host}:8000/api/cursei/user/selecionarUser/${id}`);
         setUsuario(response.data.User);
+        console.log(usuario);
+        console.log(senhaAtual);
         setLoading(false);
       } catch (erro) {
         console.error('Erro ao carregar usuário:', erro);
@@ -50,57 +57,62 @@ export default function AlterarUser() {
 
     carregarUsuario();
   }, []);
-
+  console.log(usuario)
   const handleSave = async (field, value, setModal) => {
     try {
       const data = {};
-      data[field] = value;
+      if (field === 'arroba') {
+        data['arroba_user'] = value;
+      } else if (field === 'email') {
+        data['email_user'] = value;
+      }
+  
       await axios.post(`http://${host}:8000/api/cursei/user/atualizar/${userId}`, data);
-      setUsuario(prev => ({ ...prev, [field]: value }));
+  
+      setUsuario(prev => ({ ...prev, [field + '_user']: value }));
       setModal(false);
     } catch (error) {
       console.error('Erro ao salvar:', error);
       alert('Erro ao atualizar. Verifique os dados e tente novamente.');
     }
   };
+  
 
   const handleSenhaUpdate = async () => {
+    setErroSenha('');
+  
+    if (!senhaAtual || !novaSenha || !confirmarSenha) {
+      setErroSenha('Preencha todos os campos.');
+      return;
+    }
+  
     if (novaSenha !== confirmarSenha) {
-      setErroSenha('As senhas não coincidem');
+      setErroSenha('As senhas novas não coincidem.');
       return;
     }
-    
-    if (novaSenha.length < 6) {
-      setErroSenha('A senha deve ter pelo menos 6 caracteres');
-      return;
-    }
-
+  
     try {
-      const response = await axios.post(`http://${host}:8000/api/cursei/user/verificarSenha`, {
-        userId,
-        senhaAtual
+      const response = await axios.post(`http://${host}:8000/api/cursei/user/alterarSenha/${userId}`, {
+        senha_atual: senhaAtual,
+        nova_senha: novaSenha,
       });
-
-      if (!response.data.valido) {
-        setErroSenha('Senha atual incorreta');
-        return;
+  
+      if (response.data.success) {
+        alert('Senha alterada com sucesso!');
+        setModalSenha(false);
+        setSenhaAtual('');
+        setNovaSenha('');
+        setConfirmarSenha('');
+      } else {
+        setErroSenha(response.data.message || 'Erro ao alterar a senha.');
       }
-
-      await axios.post(`http://${host}:8000/api/cursei/user/atualizar/${userId}`, {
-        senha: novaSenha
-      });
-
-      alert('Senha alterada com sucesso!');
-      setModalSenha(false);
-      setSenhaAtual('');
-      setNovaSenha('');
-      setConfirmarSenha('');
-      setErroSenha('');
     } catch (error) {
-      console.error('Erro ao atualizar a senha:', error);
-      alert('Erro ao atualizar a senha. Tente novamente.');
+      console.error('Erro ao atualizar senha:', error);
+      setErroSenha('Erro na requisição.');
     }
   };
+  
+  
 
   if (loading) {
     return (
@@ -120,7 +132,7 @@ export default function AlterarUser() {
         style={styles.item}
         onPress={() => { setArrobaValue(usuario.arroba); setModalArroba(true); }}>
         <View>
-          <Text style={[styles.label, { color: tema.texto }]}>Arroba</Text>
+          <Text style={[styles.label, { color: tema.texto }]}>@</Text>
           <Text style={[styles.value, { color: tema.descricao }]}>@{usuario.arroba_user}</Text>
         </View>
         <MaterialIcons name="keyboard-arrow-right" size={24} color={tema.descricao} />

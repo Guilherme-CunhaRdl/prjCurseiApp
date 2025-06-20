@@ -9,13 +9,12 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTema } from '../context/themeContext';
 //conteudo seria o post
-export default function Compartilhar({ conteudo, chats, imgPost, idPost, idUserLogado }) {
+export default function EnviarPostPv() {
   const modalRef = useRef(null);
   const [visivel, setVisivel] = React.useState(false);
   const [chatsSelecionados, setChatsSelecionados] = useState([]);
   const [campoMsg, setCampoMsg] = useState('');
   const {tema} = useTema();
-  console.log(idPost) 
   const opcoes = [
 
     {
@@ -43,7 +42,7 @@ export default function Compartilhar({ conteudo, chats, imgPost, idPost, idUserL
   const compartilhar = async (opcao) => {
     try {
       const config = {
-        message: `"${conteudo}"\n\nVeja este post que vi no CURSEI!!!!`,
+        message: `""\n\nVeja este post que vi no CURSEI!!!!`,
         title: 'Compartilhar post'
       };
 
@@ -106,18 +105,21 @@ console.log('idLogado', id)
   }
 };
 
+// useEffect(() => {
+//   const pegarPosts = async () => {
+//     const id = await AsyncStorage.getItem('idUser');
 
+//   const resposta = await axios.get(`http://${host}:8000/api/cursei/chat/getChats/${id}`);
+//   console.log(resposta.data);
+// }
+
+// }, []);
 
 return (
   <>
-    {/* Ícone no post */}
-    <TouchableOpacity
-      onPress={abrirModal}
-      style={styles.icone}
-      activeOpacity={0.7}
-    >
-      <Ionicons name="arrow-redo-outline" size={20} color={tema.iconeInativo} />
-    </TouchableOpacity>
+   <Pressable style={styles.circuloPost} onPress={abrirModal}>
+        <Image source={require("../../assets/LogoBranca.png")} style={styles.iconSmall} />
+    </Pressable>
 
     {/* Modal */}
     <Modal
@@ -144,101 +146,11 @@ return (
             <Text style={[styles.titulo, { color: tema.texto }]}>Compartilhar post</Text>
           </View>
 
-          <View>
+          
             <View style={styles.containerChat}>
-              <FlatList 
-                horizontal={true}
-                data={chats}
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => item.tipo === 'canal' ? `canal_${item.id_conversa.toString()}` : `outra_${item.id_conversa.toString()}`}
-                renderItem={({item}) => (
-                  <>
-                    <TouchableOpacity
-                      style={[
-                        styles.boxChat, 
-                        chatsSelecionados.includes(item.id_conversa) && styles.boxSelecionado
-                      ]}
-                      onPress={() => selecionarCompartilhamento(item.id_conversa)}
-                    >
-                      <View style={styles.boxImagem}>
-                        <View style={styles.circuloImagem}>
-                          <Image 
-                            style={styles.imagemChat}
-                            resizeMode={'cover'}
-                            source={item.tipo === 'canal' ?
-                              { uri: `http://${host}:8000/img/chat/imgCanal/${item.img}` } :
-                              { uri: `http://${host}:8000/img/user/fotoPerfil/${item.img}` }
-                            }
-                          />
-                        </View>
-                      </View>
-                      <View style={{ width: '100%' }}>
-                        <Text style={{
-                          textAlign: 'center',
-                          color: chatsSelecionados.includes(item.id_conversa) ? tema.textoBotao : tema.texto
-                        }}>
-                          {item.nome}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  </>
-                )}
-              />
-            </View>
-          </View>
-
-          {!chatsSelecionados[0] ? (
-            <View style={styles.opcoes}>
-              {opcoes.map((opcao, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.opcao}
-                  onPress={() => compartilhar(opcao.nome)}
-                >
-                  <View style={[
-                    styles.iconeOpcao,
-                    { backgroundColor: opcao.cor + '15' }
-                  ]}>
-                    <Ionicons name={opcao.icone} size={24} color={opcao.cor} />
-                  </View>
-                  <View style={styles.textos}>
-                    <Text style={{ color: tema.texto }}>{opcao.nome}</Text>
-                    <Text style={{ color: tema.descricao }}>{opcao.descricao}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color={tema.iconeInativo} />
-                </TouchableOpacity>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.containerEnviarMsg}>
-              <View style={styles.boxInputImg}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    { color: tema.texto, backgroundColor: tema.modalFundo }
-                  ]}
-                  placeholder="Escreva sua Mensagem..."
-                  placeholderTextColor={tema.descricao}
-                  value={campoMsg}
-                  onChangeText={(text) => setCampoMsg(text)}
-                />
-                <Image
-                  style={styles.imagemPostPreview}
-                  source={{ uri: `http://${host}:8000/img/user/imgPosts/${imgPost}` }}
-                />
               </View>
-              <View>
-                <Pressable style={[
-                  styles.botaoEnviar,
-                  { backgroundColor: tema.azul }
-                ]} onPress={enviarPost}>
-                  <Text style={{ fontWeight: '700', fontSize: 17, color: tema.textoBotao }}>Enviar</Text>
-                </Pressable>
+              </Animatable.View>
               </View>
-            </View>
-          )}
-        </Animatable.View>
-      </View>
     </Modal>
   </>
 );
@@ -379,6 +291,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
     marginTop: 15
+  },
+  circuloPost:{
+    width: 45,
+    height: 45,
+    borderRadius: 100,
+    backgroundColor: colors.azul,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  iconSmall:{
+    width: 20,
+    height: 20
   }
 
 });

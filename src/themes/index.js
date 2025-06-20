@@ -22,7 +22,7 @@ export const temaClaro = {
     fundo: '#000',
     texto: '#FFFFFF',
     subTexto: '#CCCCCC',
-    azul: '#7FB3FF',
+    azul: '#448FFF',
     descricao: '#AAAAAA',
     laranja: '#FFB347',
     vermelho: '#FF6B6B',
