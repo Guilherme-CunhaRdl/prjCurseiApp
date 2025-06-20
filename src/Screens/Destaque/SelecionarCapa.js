@@ -8,16 +8,21 @@ import {
   StyleSheet,
   Dimensions,
   Modal,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { DestaqueService } from './api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
 export default function SelecionarCapa({ route, navigation }) {
-  const { itemsData } = route.params;
+  const { itemsData, selectedItems } = route.params;
   const [selectedCover, setSelectedCover] = useState(itemsData[0]?.id || null);
   const [showModal, setShowModal] = useState(false);
-
+  const [loading, setLoading] = useState(false);
+  
   // Calcula o número de colunas dinamicamente
   const numColumns = Math.min(3, Math.max(1, itemsData.length));
   
@@ -26,9 +31,49 @@ export default function SelecionarCapa({ route, navigation }) {
   const availableWidth = width - 40; // 20 de cada lado
   const itemWidth = (availableWidth - (numColumns - 1) * spacing) / numColumns;
 
-  const handleCreateHighlight = () => {
-    console.log('Criando destaque com capa:', selectedCover);
-    navigation.goBack();
+  const handleCreateHighlight = async () => {
+    if (!selectedCover) return;
+    
+    try {
+      setLoading(true);
+      
+      // Obter ID do usuário
+      const id_user = await AsyncStorage.getItem('idUser');
+      if (!id_user) {
+        throw new Error('Usuário não logado');
+      }
+      
+      // Ordenar stories: capa primeiro, depois os demais
+      const orderedStories = [
+        parseInt(selectedCover), // Converter para número se necessário
+        ...selectedItems
+          .map(id => parseInt(id))
+          .filter(id => id !== parseInt(selectedCover))
+      ];
+      
+      // Criar destaque via API
+      const response = await DestaqueService.createDestaque(
+        id_user, 
+        orderedStories
+      );
+      
+      if (response.success) {
+        Alert.alert('Sucesso', 'Destaque criado com sucesso!');
+        
+        // Volta para a tela inicial (Home) e limpa o histórico de navegação
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        });
+      } else {
+        throw new Error(response.message || 'Erro ao criar destaque');
+      }
+    } catch (error) {
+      console.error('Erro ao criar destaque:', error);
+      Alert.alert('Erro', error.message || 'Ocorreu um erro ao criar o destaque');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderItem = ({ item, index }) => (
@@ -57,6 +102,7 @@ export default function SelecionarCapa({ route, navigation }) {
         onPress={() => setShowModal(true)}
         style={styles.previewContainer}
         activeOpacity={0.7}
+        disabled={loading}
       >
         <Image
           source={{ uri: itemsData.find(i => i.id === selectedCover)?.thumbnail }}
@@ -96,11 +142,15 @@ export default function SelecionarCapa({ route, navigation }) {
 
       {/* Botão criar destaque */}
       <TouchableOpacity
-        style={[styles.createButton, !selectedCover && styles.disabledButton]}
+        style={[styles.createButton, (!selectedCover || loading) && styles.disabledButton]}
         onPress={handleCreateHighlight}
-        disabled={!selectedCover}
+        disabled={!selectedCover || loading}
       >
-        <Text style={styles.buttonText}>Criar Destaque</Text>
+        {loading ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={styles.buttonText}>Criar Destaque</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -181,6 +231,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+    minWidth: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   disabledButton: {
     backgroundColor: '#c0c0c0',

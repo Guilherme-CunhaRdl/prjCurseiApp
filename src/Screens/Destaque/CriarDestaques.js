@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,30 +9,62 @@ import {
   Text,
   Modal,
   Pressable,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-
-const storiesData = [
-  { id: '1', thumbnail: 'https://picsum.photos/200/300?random=1', type: 'video' },
-  { id: '2', thumbnail: 'https://picsum.photos/200/300?random=2', type: 'video' },
-  { id: '3', thumbnail: 'https://picsum.photos/200/300?random=3', type: 'video' },
-  { id: '4', thumbnail: 'https://picsum.photos/200/300?random=4', type: 'video' },
-  { id: '5', thumbnail: 'https://picsum.photos/200/300?random=5', type: 'video' },
-  { id: '6', thumbnail: 'https://picsum.photos/200/300?random=6', type: 'video' },
-  { id: '7', thumbnail: 'https://picsum.photos/200/300?random=7', type: 'video' },
-  { id: '8', thumbnail: 'https://picsum.photos/200/300?random=8', type: 'video' },
-  { id: '9', thumbnail: 'https://picsum.photos/200/300?random=9', type: 'video' },
-  { id: '10', thumbnail: 'https://picsum.photos/200/300?random=10', type: 'video' },
-  { id: '11', thumbnail: 'https://picsum.photos/200/300?random=11', type: 'video' },
-  { id: '12', thumbnail: 'https://picsum.photos/200/300?random=12', type: 'video' },
-];
+import { DestaqueService } from './api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 const itemWidth = width / 3;
 
 export default function CriarDestaques({ navigation }) {
+  const [storiesData, setStoriesData] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [id_user, setIdUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUserAndStories = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Obter o ID do usuário do AsyncStorage
+        const storedIdUser = await AsyncStorage.getItem('idUser');
+        if (!storedIdUser) {
+          throw new Error('Usuário não logado');
+        }
+        setIdUser(storedIdUser);
+        
+        // Buscar stories do usuário da API
+        const response = await DestaqueService.getDestaques(storedIdUser);
+        
+        if (response && response.success && response.data && response.data.stories) {
+          // Formatar os dados para o formato esperado pelo frontend
+          const formattedStories = response.data.stories.map(story => ({
+            id: story.id.toString(),
+            thumbnail: story.conteudo_storyes,
+            type: story.tipo_midia,
+          }));
+          
+          setStoriesData(formattedStories);
+        } else {
+          setStoriesData([]);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar stories:', error);
+        setError(error.message || 'Erro ao carregar stories');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserAndStories();
+  }, []);
 
   const toggleItemSelection = (itemId) => {
     setSelectedItems(prev => {
@@ -45,11 +77,18 @@ export default function CriarDestaques({ navigation }) {
   };
 
   const handleProceed = () => {
+    if (selectedItems.length === 0) {
+      Alert.alert('Selecione pelo menos um story');
+      return;
+    }
+    
     navigation.navigate('SelecionarCapa', {
       selectedItems,
       itemsData: storiesData.filter(item => selectedItems.includes(item.id)),
+      id_user,
     });
   };
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -89,6 +128,33 @@ export default function CriarDestaques({ navigation }) {
       </TouchableOpacity>
     );
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3897f0" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>Voltar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (storiesData.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>Nenhum story disponível</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -160,9 +226,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor:'none'
+    backgroundColor: 'transparent',
   },
-
+  headerButtonDisabled: {
+    opacity: 0.5,
+  },
   headerButtonText: {
     color: '#3897f0',
     fontWeight: '600',
@@ -179,5 +247,47 @@ const styles = StyleSheet.create({
     height: '70%',
     resizeMode: 'contain',
     borderRadius: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#888',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  backButton: {
+    backgroundColor: '#3897f0',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  backButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
