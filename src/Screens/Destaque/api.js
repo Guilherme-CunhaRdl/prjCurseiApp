@@ -1,4 +1,3 @@
-// api.js
 import axios from 'axios';
 import host from '../../global';
 
@@ -7,18 +6,29 @@ const api = axios.create({
 });
 
 export const DestaqueService = {
-  // Listar destaques e stories
   async getDestaques(id_user) {
-    const response = await api.get(`/destaques/${id_user}`);
-    return response.data;
+    console.log('ID do usuário sendo usado na requisição:', id_user);
+    try {
+      const response = await api.get(`/destaques/${id_user}`);
+      console.log('Resposta da API:', response.data); // Adicione este log
+      return response.data;
+    } catch (error) {
+      console.error('Erro na requisição:', error.response?.data || error.message);
+      throw error;
+    }
   },
-
   // Criar novo destaque
-  async createDestaque(id_user, stories) {
-    const response = await api.post(`/destaques/${id_user}`, { stories });
-    return response.data;
+  async createDestaque(id_user, stories, titulo_destaque) {
+    try {
+      const response = await api.post(`/destaques/${id_user}`, {
+        stories,
+        titulo_destaque // Adicionar o título aqui
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
-
 
   // Sincronizar lista de stories
   async atualizarDestaque(id_destaque, stories) {

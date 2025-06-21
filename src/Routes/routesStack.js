@@ -29,6 +29,8 @@ import Destaques from '../Screens/Destaque/index.js';
 import CriarDestaques from '../Screens/Destaque/CriarDestaques.js';
 import Evento from '../Screens/evento';
 import SelecionarCapa from '../Screens/Destaque/SelecionarCapa.js';
+import videoDestaque from '../Screens/Destaque/index.js';
+
 const Stack = createNativeStackNavigator();
 
 export default function StackRoutes() {
@@ -228,6 +230,14 @@ export default function StackRoutes() {
       <Stack.Screen
         name="Destaques"
         component={Destaques}
+        options={{
+          headerShown: false,
+          
+        }}
+      />
+      <Stack.Screen
+        name="videoDestaque"
+        component={videoDestaque}
         options={{
           headerShown: false,
           

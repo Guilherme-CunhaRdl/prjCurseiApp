@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   Image,
   FlatList,
   TouchableOpacity,
@@ -10,6 +11,7 @@ import {
   Modal,
   ActivityIndicator,
   Alert,
+  ScrollView
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { DestaqueService } from './api';
@@ -22,45 +24,44 @@ export default function SelecionarCapa({ route, navigation }) {
   const [selectedCover, setSelectedCover] = useState(itemsData[0]?.id || null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [titulo, setTitulo] = useState('');
   
-  // Calcula o número de colunas dinamicamente
   const numColumns = Math.min(3, Math.max(1, itemsData.length));
-  
-  // Calcula a largura dos itens considerando o número de colunas
   const spacing = 10;
-  const availableWidth = width - 40; // 20 de cada lado
+  const availableWidth = width - 40;
   const itemWidth = (availableWidth - (numColumns - 1) * spacing) / numColumns;
 
   const handleCreateHighlight = async () => {
-    if (!selectedCover) return;
+    if (!selectedCover || !titulo) {
+      Alert.alert('Atenção', 'Por favor, selecione uma capa e preencha o título');
+      return;
+    }
     
     try {
       setLoading(true);
-      
-      // Obter ID do usuário
       const id_user = await AsyncStorage.getItem('idUser');
+      
       if (!id_user) {
         throw new Error('Usuário não logado');
       }
       
-      // Ordenar stories: capa primeiro, depois os demais
+      // Converter todos os IDs para números
       const orderedStories = [
-        parseInt(selectedCover), // Converter para número se necessário
+        parseInt(selectedCover),
         ...selectedItems
           .map(id => parseInt(id))
           .filter(id => id !== parseInt(selectedCover))
       ];
       
-      // Criar destaque via API
+      // Chamar serviço com 3 parâmetros
       const response = await DestaqueService.createDestaque(
         id_user, 
-        orderedStories
+        orderedStories,
+        titulo
       );
       
       if (response.success) {
         Alert.alert('Sucesso', 'Destaque criado com sucesso!');
-        
-        // Volta para a tela inicial (Home) e limpa o histórico de navegação
         navigation.reset({
           index: 0,
           routes: [{ name: 'Home' }],
@@ -70,7 +71,19 @@ export default function SelecionarCapa({ route, navigation }) {
       }
     } catch (error) {
       console.error('Erro ao criar destaque:', error);
-      Alert.alert('Erro', error.message || 'Ocorreu um erro ao criar o destaque');
+      
+      // Mensagem de erro mais detalhada
+      let errorMessage = 'Ocorreu um erro ao criar o destaque';
+      if (error.response?.data?.errors) {
+        // Juntar todas as mensagens de erro
+        errorMessage = Object.values(error.response.data.errors)
+          .flat()
+          .join('\n');
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      Alert.alert('Erro', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -97,61 +110,67 @@ export default function SelecionarCapa({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Foto principal centralizada */}
-      <TouchableOpacity 
-        onPress={() => setShowModal(true)}
-        style={styles.previewContainer}
-        activeOpacity={0.7}
-        disabled={loading}
-      >
-        <Image
-          source={{ uri: itemsData.find(i => i.id === selectedCover)?.thumbnail }}
-          style={styles.coverPreview}
-        />
-        <View style={styles.changeCoverButton}>
-          <Text style={styles.changeCoverText}>Trocar imagem do destaque</Text>
-        </View>
-      </TouchableOpacity>
-
-      {/* Modal da galeria */}
-      <Modal visible={showModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          {/* Botão de fechar fixo no canto superior direito */}
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setShowModal(false)}
-            hitSlop={{top: 20, bottom: 20, left: 20, right: 20}}
-          >
-            <Ionicons name="close" size={30} color="white" />
-          </TouchableOpacity>
-
-          <FlatList
-            data={itemsData}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
-            numColumns={numColumns}
-            contentContainerStyle={[
-              styles.galleryContainer,
-              { paddingTop: 60 } // Espaço para o botão de fechar
-            ]}
-            ListHeaderComponent={<View style={{height: 10}} />}
-            key={numColumns} // Força re-render quando numColumns muda
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <TouchableOpacity 
+          onPress={() => setShowModal(true)}
+          style={styles.previewContainer}
+          activeOpacity={0.7}
+          disabled={loading}
+        >
+          <Image
+            source={{ uri: itemsData.find(i => i.id === selectedCover)?.thumbnail }}
+            style={styles.coverPreview}
           />
-        </View>
-      </Modal>
+          <View style={styles.changeCoverButton}>
+            <Text style={styles.changeCoverText}>Trocar imagem do destaque</Text>
+          </View>
+        </TouchableOpacity>
 
-      {/* Botão criar destaque */}
-      <TouchableOpacity
-        style={[styles.createButton, (!selectedCover || loading) && styles.disabledButton]}
-        onPress={handleCreateHighlight}
-        disabled={!selectedCover || loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text style={styles.buttonText}>Criar Destaque</Text>
-        )}
-      </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Título do Destaque</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite o título"
+            placeholderTextColor="#999"
+            value={titulo}
+            onChangeText={setTitulo}
+            maxLength={30}
+            editable={!loading}
+          />
+          <TouchableOpacity
+            style={[styles.createButton, (!selectedCover || !titulo || loading) && styles.disabledButton]}
+            onPress={handleCreateHighlight}
+            disabled={!selectedCover || !titulo || loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.buttonText}>Criar Destaque</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <Modal visible={showModal} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowModal(false)}
+              hitSlop={{top: 20, bottom: 20, left: 20, right: 20}}
+            >
+              <Ionicons name="close" size={30} color="white" />
+            </TouchableOpacity>
+
+            <FlatList
+              data={itemsData}
+              renderItem={renderItem}
+              keyExtractor={item => item.id.toString()}
+              numColumns={numColumns}
+              contentContainerStyle={[styles.galleryContainer, { paddingTop: 60 }]}
+              key={numColumns}
+            />
+          </View>
+        </Modal>
+      </ScrollView>
     </View>
   );
 }
@@ -160,14 +179,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 30,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#333',
+  },
+  input: {
+    width: '100%',
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
+    color: '#333',
+  },
   previewContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+    marginBottom: 30,
   },
   coverPreview: {
     width: 150,
@@ -175,10 +219,9 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     borderWidth: 3,
     borderColor: '#3897f0',
-    marginBottom: 20,
   },
   changeCoverButton: {
-    marginTop: 10,
+    marginTop: 15,
   },
   changeCoverText: {
     color: '#3897f0',
@@ -224,13 +267,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#3897f0',
     paddingVertical: 15,
     paddingHorizontal: 40,
-    borderRadius: 30,
-    marginBottom: 30,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    borderRadius: 10,
+    marginTop: 20,
     minWidth: 200,
     justifyContent: 'center',
     alignItems: 'center',
