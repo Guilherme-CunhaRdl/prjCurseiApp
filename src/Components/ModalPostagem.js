@@ -69,7 +69,7 @@ const ModalPostagem = forwardRef(
     const [modalLink, setModalLink] = useState(false)
     const [editEvento, setEditEvento] = useState(false)
     const [modalAgendar, setModalAgendar] = useState(false)
-   const [dataPost, setDataPost] = useState('')
+    const [dataPost, setDataPost] = useState('')
     const [horaPost, sethoraPost] = useState('')
     const [agendar, setAgendar] = useState(false)
 
@@ -180,7 +180,7 @@ const ModalPostagem = forwardRef(
         setDescEvento('')
         sethoraFim('')
         sethoraInicio('')
-      
+
       } else {
 
 
@@ -279,6 +279,8 @@ const ModalPostagem = forwardRef(
           editarEvento.append("link", linkEvento);
           editarEvento.append("inicio", converterData(dataInicio));
           editarEvento.append("fim", converterData(dataFim));
+          editarEvento.append('hfim', horaFim)
+          editarEvento.append('hinicio', horaInicio)
           editarEvento.append('idEvento', idPost)
 
 
@@ -341,7 +343,7 @@ const ModalPostagem = forwardRef(
             novoPost.append("link", linkPost)
           }
           novoPost.append("descricaoPost", descPost);
-          if(agendar){
+          if (agendar) {
             novoPost.append("hora", horaPost);
             novoPost.append("data", converterData(dataPost));
           }
@@ -398,10 +400,10 @@ const ModalPostagem = forwardRef(
     const fecharModalLink = () => {
       setModalLink(false)
     }
-      const fecharModalAgendar = () => {
+    const fecharModalAgendar = () => {
       setModalAgendar(false)
     }
-    function SaveAgendar(){
+    function SaveAgendar() {
       setAgendar(true)
       fecharModalAgendar()
     }
@@ -412,9 +414,9 @@ const ModalPostagem = forwardRef(
       setLinkEvento('')
       setNomeEvento('')
       setDescPost('')
-       setDescEvento('')
-        sethoraFim('')
-        sethoraInicio('')
+      setDescEvento('')
+      sethoraFim('')
+      sethoraInicio('')
       setImagem(null)
       setFocoIcone('posts')
       sethoraPost('')
@@ -481,8 +483,13 @@ const ModalPostagem = forwardRef(
         setCapa(`http://${host}:8000/img/user/imgPosts/${response.data[0].conteudo_post}`);
         setCapaEdit(`http://${host}:8000/img/user/imgPosts/${response.data[0].conteudo_post}`);
         setNomeEvento(response.data[0].descricao_post);
-        setDataInicio(converterParaDataBR(response.data[0].data_inicio_evento));
-        setDataFim(converterParaDataBR(response.data[0].data_fim_evento));
+        const [dataInicio, horaInicio] = response.data[0].data_inicio_evento.split(' ');
+        setDataInicio(converterParaDataBR(dataInicio));
+        sethoraInicio(horaInicio)
+
+        const [dataFim, horaFim] = response.data[0].data_fim_evento.split(' ');
+        setDataFim(converterParaDataBR(dataFim));
+        sethoraFim(horaFim)
         setLinkEvento(response.data[0].link_evento);
         setDescEvento(response.data[0].desc_evento);
         console.log(capa)
@@ -495,7 +502,7 @@ const ModalPostagem = forwardRef(
       abrirModal,
       fecharModal: () => setModalVisivel(false),
     }));
-  
+
     function converterParaDataBR(dataISO) {
       if (!dataISO || dataISO.length !== 10) return ''; // validação básica
 
@@ -697,10 +704,10 @@ const ModalPostagem = forwardRef(
                     </View>
                     <View>
                       <Text style={[estilos.tituloInput, , { color: tema.iconeInativo }]}>Inicio do evento</Text>
-                      <View style={{ flexDirection: 'row', gap:10 }}>
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
                         <View style={[
                           estilos.inputContainer
-                          ,{width:200}
+                          , { width: 200 }
                         ]}>
 
                           <Ionicons style={estilos.inputIcon} name="calendar" />
@@ -716,19 +723,19 @@ const ModalPostagem = forwardRef(
                           />
 
                         </View>
-                             <View style={[
+                        <View style={[
                           estilos.inputContainer
-                           ,{width:150}
+                          , { width: 150 }
                         ]}>
 
                           <Ionicons style={estilos.inputIcon} name="time" />
                           <TextInputMask
                             type={'datetime'}
                             options={{
-                                        format: 'HH:mm',
+                              format: 'HH:mm',
 
                             }}
-                            value={sethoraInicio}
+                            value={horaInicio}
                             onChangeText={sethoraInicio}
                             placeholder="00:00"
                             style={estilos.input}
@@ -739,10 +746,10 @@ const ModalPostagem = forwardRef(
                     </View>
                     <View>
                       <Text style={[estilos.tituloInput, , { color: tema.iconeInativo }]}>Termino do evento</Text>
-                      <View style={{ flexDirection: 'row', gap:10 }}>
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
                         <View style={[
                           estilos.inputContainer
-                          ,{width:200}
+                          , { width: 200 }
                         ]}>
 
                           <Ionicons style={estilos.inputIcon} name="calendar" />
@@ -758,16 +765,16 @@ const ModalPostagem = forwardRef(
                           />
 
                         </View>
-                             <View style={[
+                        <View style={[
                           estilos.inputContainer
-                           ,{width:150}
+                          , { width: 150 }
                         ]}>
 
                           <Ionicons style={estilos.inputIcon} name="time" />
                           <TextInputMask
                             type={'datetime'}
                             options={{
-                                  format: 'HH:mm',
+                              format: 'HH:mm',
                             }}
                             value={horaFim}
                             onChangeText={sethoraFim}
@@ -838,10 +845,10 @@ const ModalPostagem = forwardRef(
                       </TouchableOpacity>
                     ) : null}
 
-                     <TouchableOpacity style={estilos.botaoAcao}onPress={() => setModalAgendar(true)}>
+                    <TouchableOpacity style={estilos.botaoAcao} onPress={() => setModalAgendar(true)}>
                       <Icon name="calendar" size={20} color={tema.azul} />
                       <Text style={{ color: tema.texto }}>Agendar</Text>
-                    </TouchableOpacity> 
+                    </TouchableOpacity>
                   </>
                 )
 
@@ -872,7 +879,7 @@ const ModalPostagem = forwardRef(
             </View>
           </View>
         </Modal>
-         <Modal
+        <Modal
           style={estilos.modalTelaCheia}
           animationType="slide"
           transparent={true}
@@ -884,46 +891,46 @@ const ModalPostagem = forwardRef(
             <View style={{ backgroundColor: tema.modalFundo, height: 190, width: '95%', alignItems: 'center', borderRadius: 5, justifyContent: 'space-between', paddingBlock: 10 }}>
               <Text style={{ color: tema.descricao, fontSize: 21, fontWeight: 500 }}>Agendar postagem</Text>
               <View>
-                      
-                      <View style={{ flexDirection: 'row', gap:10 }}>
-                        <View style={[
-                          estilos.inputContainer
-                          ,{width:180}
-                        ]}>
 
-                          <Ionicons style={estilos.inputIcon} name="calendar" />
-                          <TextInputMask
-                            type={'datetime'}
-                            options={{
-                              format: 'DD/MM/YYYY'
-                            }}
-                            value={dataPost}
-                            onChangeText={setDataPost}
-                            placeholder="00/00/0000"
-                            style={estilos.input}
-                          />
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={[
+                    estilos.inputContainer
+                    , { width: 180 }
+                  ]}>
 
-                        </View>
-                             <View style={[
-                          estilos.inputContainer
-                           ,{width:150}
-                        ]}>
+                    <Ionicons style={estilos.inputIcon} name="calendar" />
+                    <TextInputMask
+                      type={'datetime'}
+                      options={{
+                        format: 'DD/MM/YYYY'
+                      }}
+                      value={dataPost}
+                      onChangeText={setDataPost}
+                      placeholder="00/00/0000"
+                      style={estilos.input}
+                    />
 
-                          <Ionicons style={estilos.inputIcon} name="time" />
-                          <TextInputMask
-                            type={'datetime'}
-                            options={{
-                                  format: 'HH:mm',
-                            }}
-                            value={horaPost}
-                            onChangeText={sethoraPost}
-                            placeholder="00:00"
-                            style={estilos.input}
-                          />
+                  </View>
+                  <View style={[
+                    estilos.inputContainer
+                    , { width: 150 }
+                  ]}>
 
-                        </View>
-                      </View>
-                    </View>
+                    <Ionicons style={estilos.inputIcon} name="time" />
+                    <TextInputMask
+                      type={'datetime'}
+                      options={{
+                        format: 'HH:mm',
+                      }}
+                      value={horaPost}
+                      onChangeText={sethoraPost}
+                      placeholder="00:00"
+                      style={estilos.input}
+                    />
+
+                  </View>
+                </View>
+              </View>
               <TouchableOpacity onPress={SaveAgendar} style={{ backgroundColor: tema.azul, width: '55%', height: 35, alignItems: 'center', justifyContent: 'center', borderRadius: 5 }}><Text style={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}>Adicionar</Text></TouchableOpacity>
             </View>
           </View>
@@ -1156,7 +1163,7 @@ const estilos = StyleSheet.create({
     color: 'gray',
   },
   input: {
-    width: '100%',
+    width: '85%',
     height: 50,
     color: '#333',
     fontSize: 16,
