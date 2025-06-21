@@ -6,6 +6,11 @@ const api = axios.create({
 });
 
 export const DestaqueService = {
+
+  getStories: async (userId) => {
+    return axios.get(`http://${host}:8000/api/stories/${userId}`);
+  },
+
   async getDestaques(id_user) {
     console.log('ID do usuário sendo usado na requisição:', id_user);
     try {

@@ -81,7 +81,7 @@ const Destaques = ({ navigation, adicionarLogo }) => {
         <View style={styles.storys}>
             <Pressable 
                 style={styles.circuloStorys} 
-                onPress={() => navigation.navigate('videoDestaque', { destaque: item })}
+                onPress={() => navigation.navigate('videoDestaque', { idDestaque: item.id })}
             >
                 <Image
                     style={styles.storyImage}

@@ -27,44 +27,44 @@ export default function CriarDestaques({ navigation }) {
   const [error, setError] = useState(null);
   const [id_user, setIdUser] = useState(null);
 
-  useEffect(() => {
-    const fetchUserAndStories = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Obter o ID do usuário do AsyncStorage
-        const storedIdUser = await AsyncStorage.getItem('idUser');
-        if (!storedIdUser) {
-          throw new Error('Usuário não logado');
-        }
-        setIdUser(storedIdUser);
-        
-        // Buscar stories do usuário da API
-        const response = await DestaqueService.getDestaques(storedIdUser);
-        
-        if (response && response.success && response.data && response.data.stories) {
-          // Formatar os dados para o formato esperado pelo frontend
-          const formattedStories = response.data.stories.map(story => ({
-            id: story.id.toString(),
-            thumbnail: story.conteudo_storyes,
-            type: story.tipo_midia,
-          }));
-          
-          setStoriesData(formattedStories);
-        } else {
-          setStoriesData([]);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar stories:', error);
-        setError(error.message || 'Erro ao carregar stories');
-      } finally {
-        setLoading(false);
-      }
-    };
+// CriarDestaques.js
 
-    fetchUserAndStories();
-  }, []);
+useEffect(() => {
+  const fetchUserAndStories = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const storedIdUser = await AsyncStorage.getItem('idUser');
+      if (!storedIdUser) throw new Error('Usuário não logado');
+      
+      setIdUser(storedIdUser);
+      
+      // CORREÇÃO: Usar o novo método para buscar STORIES
+      const response = await DestaqueService.getStories(storedIdUser);
+      
+      // Ajuste na estrutura de resposta
+      if (response.data && response.data.success && response.data.data.stories) {
+        const formattedStories = response.data.data.stories.map(story => ({
+          id: story.id.toString(),
+          thumbnail: story.conteudo_storyes,
+          type: story.tipo_midia,
+        }));
+        
+        setStoriesData(formattedStories);
+      } else {
+        setStoriesData([]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar stories:', error);
+      setError(error.message || 'Erro ao carregar stories');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchUserAndStories();
+}, []);
 
   const toggleItemSelection = (itemId) => {
     setSelectedItems(prev => {
