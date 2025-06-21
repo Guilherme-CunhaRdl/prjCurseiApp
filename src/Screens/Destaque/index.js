@@ -8,7 +8,8 @@ import {
   TouchableOpacity, 
   Image,
   Animated,
-  FlatList
+  FlatList,
+  PanResponder // Adicionado
 } from 'react-native';
 import { Video } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -27,6 +28,10 @@ const VideoDestaque = ({ route, navigation }) => {
   const progressAnim = useRef(new Animated.Value(0)).current;
   const videoRefs = useRef({});
   const flatListRef = useRef();
+  
+  // Adicionado para o gesto de fechar
+  const pan = useRef(new Animated.ValueXY()).current;
+  const panResponder = useRef(null);
 
   useEffect(() => {
     const fetchDestaque = async () => {
@@ -44,6 +49,34 @@ const VideoDestaque = ({ route, navigation }) => {
 
     fetchDestaque();
   }, [idDestaque]);
+
+  // Configurar o PanResponder para detectar gestos de arrastar
+  useEffect(() => {
+    panResponder.current = PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: Animated.event(
+        [null, { dy: pan.y }],
+        { useNativeDriver: false }
+      ),
+      onPanResponderRelease: (_, gestureState) => {
+        // Se o usuário arrastou para baixo mais que 100 pixels
+        if (gestureState.dy > 100) {
+          Animated.timing(pan, {
+            toValue: { x: 0, y: height },
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => navigation.goBack());
+        } else {
+          // Voltar para a posição original
+          Animated.spring(pan, {
+            toValue: { x: 0, y: 0 },
+            friction: 5,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    });
+  }, []);
 
   useEffect(() => {
     if (destaque && destaque.stories && destaque.stories.length > 0) {
@@ -137,17 +170,17 @@ const VideoDestaque = ({ route, navigation }) => {
         )}
 
         <TouchableOpacity 
-          style={{ flex: 0.5 }} 
+          style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: width / 3 }} 
           onPress={handlePrevStory}
           activeOpacity={0.9}
         />
         <TouchableOpacity 
-          style={{ flex: 0.5 }} 
+          style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: width / 3 }} 
           onPress={handleNextStory}
           activeOpacity={0.9}
         />
         <TouchableOpacity
-          style={StyleSheet.absoluteFill}
+          style={{ position: 'absolute', left: width / 3, top: 0, bottom: 0, width: width / 3 }}
           onPress={togglePause}
           activeOpacity={0.9}
         />
@@ -175,7 +208,13 @@ const VideoDestaque = ({ route, navigation }) => {
   const user = destaque.stories[0]?.user || {};
 
   return (
-    <View style={styles.container}>
+    <Animated.View 
+      style={[
+        styles.container, 
+        { transform: [{ translateY: pan.y }] }
+      ]}
+      {...panResponder.current.panHandlers}
+    >
       <FlatList
         ref={flatListRef}
         data={destaque.stories}
@@ -253,7 +292,7 @@ const VideoDestaque = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
       </LinearGradient>
-    </View>
+    </Animated.View>
   );
 };
 
