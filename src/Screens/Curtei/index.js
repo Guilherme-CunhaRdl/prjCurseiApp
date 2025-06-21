@@ -21,6 +21,7 @@ import { Video } from 'expo-av';
 import axios from 'axios';
 import host from '../../global';
 import ComentarioCurtei from '../../Components/ComentarioCurtei';
+import ModalOpcoesCurtei from '../../Components/ModalOpcoesCurtei';
 
 const { height, width } = Dimensions.get('window');
 const ITEM_HEIGHT = height;
@@ -44,6 +45,9 @@ export default function Curtei() {
   const [userId, setUserId] = useState(null);
   const [showComments, setShowComments] = useState(false);
   const [selectedCurteiId, setSelectedCurteiId] = useState(null);
+  const [showOpcoesModal, setShowOpcoesModal] = useState(false);
+  const [curteiSelecionado, setCurteiSelecionado] = useState(null);
+  
 
   // Carregar dados do usuário e curteis
   useEffect(() => {
@@ -220,9 +224,15 @@ export default function Curtei() {
             <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.button}>
-            <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
-          </TouchableOpacity>
+          <TouchableOpacity
+  style={styles.button}
+  onPress={() => {
+    setCurteiSelecionado(item);
+    setShowOpcoesModal(true);
+  }}
+>
+  <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
+</TouchableOpacity>
         </View>
       </LinearGradient>
     </View>
@@ -299,11 +309,41 @@ export default function Curtei() {
           fetchCurteis();
         }}
       />
+
+            {/* Modal de Opçoes */}
+
+            <ModalOpcoesCurtei
+  visible={showOpcoesModal}
+  onClose={() => setShowOpcoesModal(false)}
+  onEditar={() => {
+    setShowOpcoesModal(false);
+    navigation.navigate('CriarCurteis', { curtei: curteiSelecionado });
+  }}
+  onExcluir={async () => {
+    setShowOpcoesModal(false);
+    try {
+      await axios.delete(`http://${host}:8000/api/curtei/deletar/${curteiSelecionado.id}`);
+      fetchCurteis();
+      Alert.alert('Sucesso', 'Curtei excluído com sucesso!');
+    } catch (err) {
+      console.error('Erro ao excluir:', err);
+      Alert.alert('Erro', 'Não foi possível excluir');
+    }
+  }}
+/>
+
     </SafeAreaView>
+
+
+
   );
+
+  
 }
 
-// Estilos (mantidos os mesmos)
+
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

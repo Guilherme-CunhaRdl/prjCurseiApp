@@ -20,6 +20,7 @@ import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import host from '../../global';
+import { useRoute } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -46,6 +47,8 @@ const CriarCurteis = () => {
   const [videoUri, setVideoUri] = useState(null);
   const [thumbUri, setThumbUri] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const route = useRoute();
+  const curteiEditando = route.params?.curtei;
   const scrollViewRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const videoFileRef = useRef(null);
@@ -63,6 +66,18 @@ const CriarCurteis = () => {
       }
     })();
   }, []);
+
+
+
+
+  useEffect(() => {
+    if (curteiEditando) {
+      setCaption(curteiEditando.description);
+      setVideoUri(curteiEditando.videoUrl);
+      setThumbUri(curteiEditando.thumbUrl);
+
+    }
+  }, [curteiEditando]);
 
   const scrollToSection = (index) => {
     scrollViewRef.current?.scrollTo({ x: width * index, animated: true });
@@ -114,43 +129,56 @@ const CriarCurteis = () => {
   };
 
   const handleUpload = async () => {
-    if (!videoFileRef.current || !thumbFileRef.current) {
-      Alert.alert('Atenção', 'Selecione um vídeo e uma thumbnail');
+    if (!videoUri && !curteiEditando) { 
+      Alert.alert('Atenção', 'Selecione um vídeo');
+      return;
+    }
+    if (!thumbUri && !curteiEditando) {
+      Alert.alert('Atenção', 'Selecione uma thumbnail');
       return;
     }
   
     setUploading(true);
-    
+  
     try {
       const idUser = await AsyncStorage.getItem('idUser');
       if (!idUser) throw new Error('Usuário não identificado');
   
-      // Teste de conexão básico
-      try {
-        await axios.get(`http://${host}:8000`, { timeout: 5000 });
-      } catch (e) {
-        throw new Error('Servidor inacessível. Verifique: \n- Se o servidor está rodando\n- Se o IP está correto\n- Se estão na mesma rede');
+ 
+      const formData = new FormData();
+  
+
+      if (videoFileRef.current) {
+        formData.append('caminho_curtei', {
+          uri: videoFileRef.current.uri,
+          type: 'video/mp4',
+          name: 'video.mp4',
+        });
       }
   
-      // FormData modificado para React Native
-      const formData = new FormData();
-      formData.append('caminho_curtei', {
-        uri: videoFileRef.current.uri,
-        type: 'video/mp4', // Forçar tipo MIME
-        name: 'video.mp4'
-      });
-      formData.append('caminho_curtei_thumb', {
-        uri: thumbFileRef.current.uri,
-        type: 'image/jpeg',
-        name: 'thumbnail.jpg'
-      });
+   
+      if (thumbFileRef.current) {
+        formData.append('caminho_curtei_thumb', {
+          uri: thumbFileRef.current.uri,
+          type: 'image/jpeg',
+          name: 'thumbnail.jpg',
+        });
+      }
+  
       formData.append('legenda_curtei', caption);
       formData.append('id_user', idUser);
   
-      console.log('Enviando para:', `http://${host}:8000/api/curtei/upload`);
+      let url = `http://${host}:8000/api/curtei/upload`;
+      let method = 'POST';
+  
       
-      const response = await fetch(`http://${host}:8000/api/curtei/upload`, {
-        method: 'POST',
+      if (curteiEditando?.id) {
+        url = `http://${host}:8000/api/curtei/update/${curteiEditando.id}`;
+        method = 'POST';
+      }
+  
+      const response = await fetch(url, {
+        method,
         body: formData,
         headers: {
           'Accept': 'application/json',
@@ -159,24 +187,31 @@ const CriarCurteis = () => {
       });
   
       const data = await response.json();
-      
+  
       if (!response.ok) {
         throw new Error(data.message || 'Erro no servidor');
       }
   
-      Alert.alert('Sucesso!', 'Vídeo publicado!');
-      setVideoUri(null);
-      setThumbUri(null);
-      setCaption('');
-      scrollToSection(0);
+      Alert.alert('Sucesso!', curteiEditando ? 'Curtei atualizado!' : 'Vídeo publicado!');
+  
+      // Resetar campos só se for criação, se for edição pode navegar ou atualizar a tela
+      if (!curteiEditando) {
+        setVideoUri(null);
+        setThumbUri(null);
+        setCaption('');
+        scrollToSection(0);
+      } else {
+
+      }
   
     } catch (error) {
-      console.error('Erro completo:', JSON.stringify(error, null, 2));
+      console.error('Erro no upload:', error);
       Alert.alert('Erro', error.message || 'Falha na comunicação');
     } finally {
       setUploading(false);
     }
   };
+  
 
   useEffect(() => {
     Animated.timing(animatedIndex, {
