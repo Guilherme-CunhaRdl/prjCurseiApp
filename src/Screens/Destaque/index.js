@@ -285,9 +285,6 @@ const VideoDestaque = ({ route, navigation }) => {
             <TouchableOpacity style={styles.button}>
               <Ionicons name="heart-outline" size={25} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
-              <Ionicons name="ellipsis-vertical" size={25} color="white" />
-            </TouchableOpacity>
           </View>
         </View>
       </LinearGradient>
