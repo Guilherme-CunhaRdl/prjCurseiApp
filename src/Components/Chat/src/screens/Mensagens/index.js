@@ -28,8 +28,10 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import colors from "../../../../../colors";
 import host from "../../../../../global";
 import { useTema } from '../../../../../context/themeContext'
+import useStyles from './styles';
 
 export default function Mensagens({ route }) {
+  const styles = useStyles()
   const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState("todas");
   const [conversas, setConversas] = useState([]);
@@ -114,6 +116,8 @@ export default function Mensagens({ route }) {
       ultima_mensagem: msg.ultima_mensagem,
       img_mensagem: msg.img_mensagem,
       status_mensagem: msg.status_mensagem,
+      id_post: msg.id_post,
+
       updated_at: msg.created_at || new Date().toISOString()
     });
     
@@ -143,7 +147,7 @@ export default function Mensagens({ route }) {
         (
           tipoEsperado !== 'privado'
             ? c.tipo === tipoEsperado
-            : true // aceita qualquer tipo para privado
+            : true 
         )
       );
 
@@ -283,6 +287,7 @@ export default function Mensagens({ route }) {
                 );
               })}
             </ScrollView>
+            
           </View>
 
           <FlatList
@@ -293,7 +298,7 @@ export default function Mensagens({ route }) {
                 onPress={() => {
                   const navData = {
                     idUserLogado: idUser,
-                    idEnviador: item.id_remetente,
+                    idEnviador: item.tipo !== 'canal' ? Number(idUser) === item.idUser1 ? item.idUser2 : item.idUser1 : item.id_remetente,
                     imgEnviador: item.img,
                     nomeEnviador: item.nome,
                     arrobaEnviador: item.arroba,
@@ -316,7 +321,8 @@ export default function Mensagens({ route }) {
                   <View style={styles.mensagemTexto}>
                     <View style={{ flexDirection: 'row' }}>
                       <Text style={[styles.nome, { color: tema.texto, paddingRight: 10 }]} numberOfLines={1}>
-                        {item.nome} {item.id_conversa}
+                        {item.nome} {item.id_post}
+                        
                       </Text>
                       {item.tipo === 'instituicao' && (
                         <Ionicons name="school-outline"
@@ -351,7 +357,7 @@ export default function Mensagens({ route }) {
                           Imagem
                         </Text>
                       </View>
-                    ) : item.id_post ?  (
+                    ) : !item.ultima_mensagem && item.id_post ?  (
                       <>
                         
                           <Text
@@ -429,102 +435,3 @@ export default function Mensagens({ route }) {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  Header: {
-    backgroundColor: "#fff",
-    elevation: 0,
-  },
-
-  tab: {
-    backgroundColor: "transparent",
-    borderBottomColor: "transparent",
-    borderRadius: 0,
-    borderWidth: 0,
-  },
-  selectedTab: {
-    backgroundColor: "transparent",
-    borderBottomWidth: 2,
-    borderRadius: 0,
-    borderWidth: 0,
-  },
-  mensagemItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 14,
-    marginHorizontal: 16,
-    marginBottom: 8,
-    borderRadius: 10,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
-    backgroundColor: "#ccc",
-  },
-  mensagemTexto: {
-    flex: 1,
-  },
-  nome: {
-    fontSize: 16,
-    fontWeight: 600,
-    color: "#000",
-  },
-
-  ultimaMensagem: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 2,
-  },
-  circuloImagem: {
-    borderRadius: "50%",
-    backgroundColor: colors.azul,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 22,
-    height: 22,
-    marginRight: 3,
-  },
-  ultimaMensagemImg: {
-    alignItems: "center",
-    flexDirection: "row",
-  },
-  imagemIcon: {
-    fontSize: 13,
-  },
-  listaMensagens: {
-    paddingTop: 8,
-  },
-  customSearchbar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EFEFEF",
-    borderRadius: 10,
-    marginHorizontal: 16,
-    marginTop: 12,
-    paddingHorizontal: 12,
-    height: 48,
-  },
-
-  searchIcon: {
-    width: 18,
-    height: 18,
-    tintColor: "#A7A7A7",
-    marginRight: 8,
-  },
-
-  customSearchInput: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: 600,
-    color: "#000",
-    padding: 0,
-    margin: 0,
-  },
-});

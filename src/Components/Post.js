@@ -440,7 +440,7 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
                 </TouchableOpacity>
 
                 <View style={styles.containerShare}>
-                  <Compartilhar tema={tema} chats={conversas} imgPost={item.conteudo_post} idPost={item.id_post}  />
+                  <Compartilhar tema={tema} chats={conversas ? conversas : []} imgPost={item.conteudo_post} idPost={item.id_post}  />
                 </View>
 
                 <ModalPostagem ref={modalRef} idPostRepost={true} />

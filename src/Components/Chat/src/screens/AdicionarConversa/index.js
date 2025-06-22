@@ -25,13 +25,14 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { useTema } from '../../../../../context/themeContext'
 import axios from "axios";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import host from "../../../../../global";
-
+import colors from "../../../../../colors";
+import useStyles from "./styles";
+import { useTema } from '../../../../../context/themeContext'
 
 
 export default function AddConversa({ route }) {
@@ -51,7 +52,8 @@ export default function AddConversa({ route }) {
   const [isInstituicao, setIsInstituicao] = useState();
   const [canais, setCanais] = useState([]);
   const [seguidos, setSeguidos] = useState([]);
-
+  const [carregando, setCarregando] = useState(false)
+  const styles = useStyles();
   const alterarFoco = (campo) => {
     setFocoInput(campo);
   };
@@ -190,33 +192,45 @@ export default function AddConversa({ route }) {
     setVisibleCriar(true);
   };
   const criarCanal = async () => {
+    setCarregando(true)
     const canal = new FormData();
 
-    if (imagemCanal && imagemCanal.startsWith("data:image")) {
+   if (imagemCanal) {
+    let arquivoImagem;
+
+    if (imagemCanal.startsWith("data:image")) {
       const resposta = await fetch(imagemCanal);
       const blob = await resposta.blob();
-
       const nomeArquivo = `image_${Date.now()}.jpg`;
-
-      const arquivo = new File([blob], nomeArquivo, { type: blob.type });
-
-      canal.append("imgCanal", arquivo);
+      arquivoImagem = new File([blob], nomeArquivo, { type: blob.type });
+    } else if (imagemCanal.startsWith("file://")) {
+      arquivoImagem = {
+        uri: imagemCanal,
+        name: `image_${Date.now()}.jpg`,
+        type: 'image/jpeg',
+      };
     }
+
+    canal.append("imgCanal", arquivoImagem);
+  }
 
     const url = `http://${host}:8000/api/cursei/chat/criarCanal`;
 
     canal.append("nomeCanal", nomeCanal);
     canal.append("descricaoCanal", descricaoCanal);
     canal.append("userCriador", idUserLogado);
+    console.log(canal)
     try {
       const resposta = await axios.post(url, canal, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-
-      console.log(resposta);
-      navigation.navigate('AddConversa' , { idUserLogado: idUserLogado });
+      setImagemCanal(null)
+      setNomeCanal('')
+      setDescricaoCanal('')
+      setCarregando(false)
+      setVisibleCriar(false)
     } catch (e) {
       console.error(e);
     }
@@ -231,7 +245,9 @@ export default function AddConversa({ route }) {
 
     if (!resultado.canceled) {
       const uri = resultado.assets[0].uri;
+      console.log(uri)
       setImagemCanal(uri);
+      console.log('imagem canal', imagemCanal)
     }
   };
 
@@ -391,6 +407,8 @@ export default function AddConversa({ route }) {
                           </TouchableOpacity>
                         </View>
                       )}
+                                                  scrollEnabled={false}
+
                       ListEmptyComponent={
                         <View style={{ padding: 20, alignItems: 'center' }}>
                           <Text style={{ color: tema.descricao }}>Nenhum Seguidor encontrado.</Text>
@@ -430,6 +448,8 @@ export default function AddConversa({ route }) {
                           </TouchableOpacity>
                         </View>
                       )}
+                                                  scrollEnabled={false}
+
                       ListEmptyComponent={
                         <View style={{ padding: 20, alignItems: 'center' }}>
                           <Text style={{ color: tema.descricao }}>Nenhuma Sugestão Encontrada.</Text>
@@ -661,23 +681,28 @@ export default function AddConversa({ route }) {
             <View style={styles.boxImgCanal}>
               <Pressable style={styles.viewFotoCanal} onPress={() => selecionarFotoCanal()}>
                 <Image
-                  style={styles.imgCanal}
+                  style={imagemCanal ? {width: '100%', height: '100%', borderRadius: 10} : styles.imgCanal}
                   resizeMode="cover"
                   source={
                     imagemCanal
                       ? { uri: imagemCanal }
-                      : require("../../../../../../assets/jovem.jpeg")
+                      : require("../../../../../../assets/imgCanal.png")
                   }
                 />
               </Pressable>
+              <Pressable  onPress={() => selecionarFotoCanal()}>
+
               <Text style={[styles.textMudarImg, { color: tema.azul }]}>Mudar Imagem</Text>
+              </Pressable>
             </View>
           </View>
           <View style={styles.boxInputs}>
             <View style={styles.inputContainer}>
+              <View style={styles.iconContainer}>
               <Ionicons style={[styles.inputIcon, { color: tema.icone }]} name="megaphone" />
+              </View>
               <TextInput
-                style={[styles.input, { height: 30, color: tema.texto }]}
+                style={[styles.input, {  color: tema.texto }]}
                 placeholder="Digite o nome do Canal"
                 placeholderTextColor={tema.descricao}
                 value={nomeCanal}
@@ -685,10 +710,12 @@ export default function AddConversa({ route }) {
                 autoCapitalize="none"
               />
             </View>
-            <View style={[styles.inputContainer, { alignItems: "flex-start", height: 80 }]}>
+            <View style={[styles.inputContainer, {  height: 120 }]}>
+              <View style={styles.iconContainer}>
               <Ionicons style={[styles.inputIcon, { color: tema.icone }]} name="newspaper" />
+              </View>
               <TextInput
-                style={[styles.input, { color: tema.texto }]}
+                style={[styles.input, { color: tema.texto, }]}
                 placeholder="Digite uma Descrição"
                 placeholderTextColor={tema.descricao}
                 value={descricaoCanal}
@@ -699,11 +726,20 @@ export default function AddConversa({ route }) {
             </View>
             <TouchableOpacity
               style={[styles.botaoCriarCanal, { backgroundColor: tema.azul }]}
-              onPress={() => criarCanal()}
+              onPress={  () =>  !carregando && criarCanal()}
             >
-              <Text style={[styles.botaoCriarCanalText, { color: tema.textoBotao }]}>
+              {carregando ? (
+                <ActivityIndicator 
+                  size={20}
+                  color={colors.branco}
+                />
+              ) : (
+                <>
+              <Text style={[styles.botaoCriarCanalText, { color: tema.nome ==='escuro' ? tema.texto : '#fff' }]}>
                 Criar Canal
               </Text>
+              </>
+              )}
             </TouchableOpacity>
           </View>
         </View>

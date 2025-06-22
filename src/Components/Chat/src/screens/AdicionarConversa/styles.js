@@ -1,6 +1,11 @@
+
 import { StyleSheet } from "react-native";
-import colors from '../../../../../colors'
-export default StyleSheet.create({
+import colors from '../../../../../colors';
+import { useTema } from '../../../../../context/themeContext'
+
+const useStyles = () =>{
+  const {tema} = useTema()
+  return StyleSheet.create({
 
     container:{
         flex: 1,
@@ -173,15 +178,16 @@ export default StyleSheet.create({
         flexDirection: 'column',
       },
       viewFotoCanal:{
-        backgroundColor: colors.cinza,
         borderRadius: 15,
         width: 200,
         height: 200,
-        backgroundColor: 'red'
+        backgroundColor: colors.azul,
+        justifyContent: 'center',
+        alignItems: 'center'
       },
       imgCanal:{
-        width:'100%',
-        height: '100%',
+        width:'80%',
+        height: '80%',
         borderRadius: 15
       },
       textMudarImg:{
@@ -197,15 +203,21 @@ export default StyleSheet.create({
       inputContainer: {
         flexDirection: 'row',
         width: '80%',
-        alignItems: 'center',
+        height: 75,
         borderWidth: 1,
         borderColor: '#e1e1e1',
         borderRadius: 8,
         marginBottom: 16,
         paddingLeft: 12,
-        padding: 10,
-        backgroundColor: '#f8f8f8',
+        padding: 15,
+        backgroundColor: tema.fundo,
 
+      },
+      iconContainer:{
+        height: '100%',
+        width: '10%',
+        alignItems: 'center',
+        paddingTop: 10      
       },
       inputIcon: {
         marginRight: 10,
@@ -213,11 +225,12 @@ export default StyleSheet.create({
         color: 'gray',
       },
       input: {
-        width: '100%',
+        width: '90%',
         color: '#333',
         height: '100%',
         fontSize: 16,
-         outlineStyle: "none",        // Remove borda azul no focus
+         outlineStyle: "none",  
+         textAlignVertical: 'top',
       },
       botaoCriarCanal: {
         backgroundColor: '#2196F3',
@@ -229,7 +242,7 @@ export default StyleSheet.create({
         marginTop: 10,
       },
       botaoCriarCanalText: {
-        color: '#fff',
+        color: tema.texto,
         fontSize: 16,
         fontWeight: 'bold',
       },
@@ -278,4 +291,7 @@ export default StyleSheet.create({
     fontSize: 25,
     color: colors.cinza,
   },
-})
+}
+  )}
+
+  export default useStyles;

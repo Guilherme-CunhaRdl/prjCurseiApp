@@ -4,7 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
 import host from '../global';
 import colors from '../colors';
-import { TextInput } from 'react-native-paper';
+import { ActivityIndicator, TextInput } from 'react-native-paper';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTema } from '../context/themeContext';
@@ -15,7 +15,7 @@ export default function Compartilhar({ conteudo, chats, imgPost, idPost, idUserL
   const [chatsSelecionados, setChatsSelecionados] = useState([]);
   const [campoMsg, setCampoMsg] = useState('');
   const {tema} = useTema();
-  console.log(idPost) 
+  const [carregamento, setCarregamento] = useState(false);
   const opcoes = [
 
     {
@@ -62,45 +62,70 @@ export default function Compartilhar({ conteudo, chats, imgPost, idPost, idUserL
     }
   };
 
-  const abrirModal = () => setVisivel(true);
-
+  const abrirModal = () => {
+    setVisivel(true);
+    console.log(chatsSelecionados)
+  }
   const fecharModal = () => {
     modalRef.current?.fadeOutDown(300).then(() => setVisivel(false));
   };
 
-  const selecionarCompartilhamento = (item) => {
-    if(chatsSelecionados.includes(item)){
-      setChatsSelecionados(chatsSelecionados.filter(i => i !== item))
-    }else{
-      setChatsSelecionados([...chatsSelecionados, item])
-    }
+const selecionarCompartilhamento = (item, tipo) => {
+  const index = chatsSelecionados.findIndex(chat => chat.id === item && chat.tipo === tipo);
+
+  if (index !== -1) {
+    const novaLista = [...chatsSelecionados];
+    novaLista.splice(index, 1);
+    setChatsSelecionados(novaLista);
+  } else {
+    setChatsSelecionados([...chatsSelecionados, { id: item, tipo: tipo }]);
   }
+};
+
+
 
  const enviarPost = async () => {
   const mensagem = campoMsg.trim();
   const id = await AsyncStorage.getItem('idUser');
-console.log('idLogado', id)
   if (chatsSelecionados.length === 0) return;
 
   try {
+    setCarregamento(true);
+    console.log(chatsSelecionados)
+
     await Promise.all(
-      chatsSelecionados.map(async (idChat) => {
+      chatsSelecionados.map(async (chat) => {
         await axios.post(`http://${host}:8000/api/cursei/chat/enviarMensagem/semImagem`, {
-          idChat: idChat,
+          idChat: chat.id,
           conteudoMensagem: mensagem,
           idEnviador: id,
           idPost: idPost
         });
       })
     );
-
+     if (mensagem.length > 0) {
+    await Promise.all(
+      chatsSelecionados.map(async(chat)=>{
+       
+          await axios.post(`http://${host}:8000/api/cursei/chat/enviarMensagem/semImagem`, {
+            idChat: chat.id,
+            conteudoMensagem: mensagem,
+            idEnviador: id,
+            idPost: null
+          });
+          
+        })
+      )
+    }
     setCampoMsg('');
     setChatsSelecionados([]);
+    setCarregamento(false);
     fecharModal();
 
     Alert.alert('Sucesso', 'Post enviado com sucesso!');
 
   } catch (error) {
+    setCarregamento(false);
     console.error("Erro ao enviar mensagens:", error);
     Alert.alert('Erro', 'Falha ao enviar o post');
   }
@@ -141,9 +166,9 @@ return (
             <TouchableOpacity onPress={fecharModal} style={styles.botaoFechar}>
               <Ionicons name="close" size={24} color={tema.iconeInativo} />
             </TouchableOpacity>
-            <Text style={[styles.titulo, { color: tema.texto }]}>Compartilhar post</Text>
+            <Text style={[styles.titulo, { color: tema.texto }]}>Compartilhar</Text>
           </View>
-
+          {chats.length > 0 && (
           <View>
             <View style={styles.containerChat}>
               <FlatList 
@@ -156,9 +181,9 @@ return (
                     <TouchableOpacity
                       style={[
                         styles.boxChat, 
-                        chatsSelecionados.includes(item.id_conversa) && styles.boxSelecionado
+                        chatsSelecionados.some(chat => chat.id === item.id_conversa && chat.tipo === item.tipo) && styles.boxSelecionado
                       ]}
-                      onPress={() => selecionarCompartilhamento(item.id_conversa)}
+                      onPress={() => selecionarCompartilhamento(item.id_conversa, item.tipo)}
                     >
                       <View style={styles.boxImagem}>
                         <View style={styles.circuloImagem}>
@@ -175,7 +200,9 @@ return (
                       <View style={{ width: '100%' }}>
                         <Text style={{
                           textAlign: 'center',
-                          color: chatsSelecionados.includes(item.id_conversa) ? tema.textoBotao : tema.texto
+                          color:
+                          chatsSelecionados.some(chat => chat.id === item.id_conversa && chat.tipo === item.tipo) ? tema.textoBotao : tema.texto
+
                         }}>
                           {item.nome}
                         </Text>
@@ -186,6 +213,7 @@ return (
               />
             </View>
           </View>
+          )}
 
           {!chatsSelecionados[0] ? (
             <View style={styles.opcoes}>
@@ -231,8 +259,17 @@ return (
                 <Pressable style={[
                   styles.botaoEnviar,
                   { backgroundColor: tema.azul }
-                ]} onPress={enviarPost}>
+                ]} onPress={!carregamento && enviarPost}>
+                  {carregamento ?(
+                    <ActivityIndicator 
+                      size={20}
+                      color={tema.nome === 'escuro' ? tema.texto : '#fff'}
+                    />
+                  ) 
+                  : 
                   <Text style={{ fontWeight: '700', fontSize: 17, color: tema.textoBotao }}>Enviar</Text>
+
+}
                 </Pressable>
               </View>
             </View>
