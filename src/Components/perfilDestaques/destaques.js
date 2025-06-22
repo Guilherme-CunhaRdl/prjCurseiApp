@@ -1,4 +1,4 @@
-import { View, Text, Image, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, ActivityIndicator, StyleSheet, Modal, Alert, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,6 +7,7 @@ import { FlatList } from 'react-native';
 import host from '../../global';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import adicionarLogo from "../../../assets/adicionarLogo.png";
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Destaques = ({ navigation, adicionarLogo }) => {
     const route = useRoute();
@@ -16,6 +17,8 @@ const Destaques = ({ navigation, adicionarLogo }) => {
     const [perfilProprio, setPerfilProprio] = useState(false);
     const [destaques, setDestaques] = useState([]);
     const [error, setError] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedDestaque, setSelectedDestaque] = useState(null);
 
     async function carregarPerfil() {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -25,7 +28,6 @@ const Destaques = ({ navigation, adicionarLogo }) => {
             setIdUser(idPerfil);
             const resultados = await axios.get(`http://${host}:8000/api/cursei/user/${idPerfil}/${idUserSalvo}`);
             const data = resultados.data;
-            
             if (idUserSalvo == idPerfil) {
                 setPerfilProprio(true);
             }
@@ -37,7 +39,6 @@ const Destaques = ({ navigation, adicionarLogo }) => {
     async function carregarDestaques() {
         try {
             if (!idUser) return;
-            
             const response = await axios.get(`http://${host}:8000/api/destaques/${idUser}`);
             if (response.data && response.data.success && response.data.data) {
                 setDestaques(response.data.data);
@@ -61,6 +62,33 @@ const Destaques = ({ navigation, adicionarLogo }) => {
         fetchData();
     }, [idUser]);
 
+    const excluirDestaque = async () => {
+        if (!selectedDestaque) return;
+        try {
+            await axios.delete(`http://${host}:8000/api/destaques/${idUser}/${selectedDestaque}`);
+            setDestaques(prev => prev.filter(d => d.id !== selectedDestaque));
+            setModalVisible(false);
+            
+            // Adicione este alerta
+            Alert.alert('Sucesso', 'Destaque excluído com sucesso!');
+            
+        } catch (error) {
+            Alert.alert('Erro ao excluir destaque');
+            console.error('Erro ao excluir destaque:', error);
+        }
+    };
+    const editarDestaque = () => {
+        if (!selectedDestaque) return;
+        setModalVisible(false);
+        navigation.navigate('EditarDestaque', { idDestaque: selectedDestaque });
+    };
+
+    const handleLongPress = (idDestaque) => {
+        if (!perfilProprio) return;
+        setSelectedDestaque(idDestaque);
+        setModalVisible(true);
+    };
+
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -82,17 +110,15 @@ const Destaques = ({ navigation, adicionarLogo }) => {
             <Pressable 
                 style={styles.circuloStorys} 
                 onPress={() => navigation.navigate('videoDestaque', { idDestaque: item.id })}
+                onLongPress={() => handleLongPress(item.id)}
             >
                 <Image
                     style={styles.storyImage}
                     source={{ uri: item.foto_destaque || (item.stories && item.stories[0]?.url_completa) }}
-                    onError={(e) => console.log("Erro ao carregar imagem:", e.nativeEvent.error)}
                 />
             </Pressable>
             <View style={styles.nomeStorys}>
-                <Text style={styles.textStorys} numberOfLines={1}>
-                    {item.titulo_destaque}
-                </Text>
+                <Text style={styles.textStorys} numberOfLines={1}>{item.titulo_destaque}</Text>
             </View>
         </View>
     );
@@ -122,9 +148,33 @@ const Destaques = ({ navigation, adicionarLogo }) => {
                 renderItem={renderItem}
                 contentContainerStyle={styles.listContent}
             />
+
+            <Modal visible={modalVisible} transparent animationType="fade">
+                <TouchableOpacity
+                    activeOpacity={1}
+                    style={styles.modalOverlay}
+                    onPressOut={() => setModalVisible(false)}
+                >
+                    <TouchableOpacity activeOpacity={1} style={styles.modalContent} onPress={() => {}}>
+                    <Text style={styles.modalTitle}>Gerenciar Destaque</Text>
+
+                    <TouchableOpacity onPress={editarDestaque} style={styles.modalButton}>
+                        <Text style={styles.modalButtonText}>Editar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={excluirDestaque}
+                        style={[styles.modalButton, { backgroundColor: '#f44336' }]}
+                    >
+                        <Text style={styles.modalButtonText}>Excluir</Text>
+                    </TouchableOpacity>
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     storysContainer: {
@@ -180,6 +230,37 @@ const styles = StyleSheet.create({
     errorText: {
         color: 'red',
         textAlign: 'center',
+    },
+     modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        width: '70%',
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 20,
+    },
+    modalButton: {
+        backgroundColor: '#3897f0',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        marginVertical: 5,
+        width: '100%',
+        alignItems: 'center'
+    },
+    modalButtonText: {
+        color: 'white',
+        fontWeight: 'bold'
     },
 });
 

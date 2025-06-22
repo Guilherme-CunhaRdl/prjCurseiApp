@@ -282,11 +282,6 @@ const VideoDestaque = ({ route, navigation }) => {
         
         <View style={styles.actionButtons}>
           <View style={{ flexDirection: 'row', marginBottom: 20 }}>
-            <TouchableOpacity 
-              style={styles.button}>
-              <MaterialIcons name="playlist-add" size={25} color="white" />
-            </TouchableOpacity>
-
             <TouchableOpacity style={styles.button}>
               <Ionicons name="heart-outline" size={25} color="white" />
             </TouchableOpacity>
