@@ -80,7 +80,19 @@ const Destaques = ({ navigation, adicionarLogo }) => {
     const editarDestaque = () => {
         if (!selectedDestaque) return;
         setModalVisible(false);
-        navigation.navigate('EditarDestaque', { idDestaque: selectedDestaque });
+        
+        // Encontre o destaque selecionado
+        const destaqueSelecionado = destaques.find(d => d.id === selectedDestaque);
+        
+        // Extraia os IDs dos stories do destaque
+        const storiesIds = destaqueSelecionado.stories.map(story => story.id.toString());
+        
+        navigation.navigate('CriarDestaques', { 
+            modoEdicao: true,
+            destaqueId: selectedDestaque,
+            selectedItems: storiesIds,
+            tituloDestaque: destaqueSelecionado.titulo_destaque
+        });
     };
 
     const handleLongPress = (idDestaque) => {

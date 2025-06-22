@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,10 +19,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const { width } = Dimensions.get('window');
 
 export default function SelecionarCapa({ route, navigation }) {
-  const { selectedItems } = route.params;
+  // Receber parâmetros de edição
+  const { selectedItems, modoEdicao, destaqueId, tituloDestaque } = route.params;
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [titulo, setTitulo] = useState('');
+  
+  // Pré-carregar título e imagem se estiver editando
+  useEffect(() => {
+    if (modoEdicao && tituloDestaque) {
+      setTitulo(tituloDestaque);
+    }
+    
+    // Aqui você pode carregar a imagem existente do destaque se tiver
+    // Exemplo: setSelectedImage(destaqueExistente.foto_destaque);
+  }, [modoEdicao, tituloDestaque]);
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -43,46 +54,52 @@ export default function SelecionarCapa({ route, navigation }) {
     }
   };
 
-  const handleCreateHighlight = async () => {
-    if (!selectedImage || !titulo) {
-      Alert.alert('Atenção', 'Por favor, selecione uma capa e preencha o título');
-      return;
+  const handleCreateOrUpdateHighlight = async () => {
+  if (!selectedImage || !titulo) {
+    Alert.alert('Atenção', 'Por favor, selecione uma capa e preencha o título');
+    return;
+  }
+
+  try {
+    setLoading(true);
+    const id_user = await AsyncStorage.getItem('idUser');
+    if (!id_user) throw new Error('Usuário não logado');
+
+    const orderedStories = selectedItems.map(id => parseInt(id));
+
+    // Chamada unificada usando o novo método saveDestaque
+    const response = await DestaqueService.saveDestaque({
+      modoEdicao,
+      id_user,
+      destaqueId,
+      stories: orderedStories,
+      titulo_destaque: titulo,
+      imageUri: selectedImage
+    });
+
+    if (response.success) {
+      Alert.alert('Sucesso', `Destaque ${modoEdicao ? 'atualizado' : 'criado'} com sucesso!`);
+      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+    } else {
+      throw new Error(response.message || `Erro ao ${modoEdicao ? 'atualizar' : 'criar'} destaque`);
     }
-
-    try {
-      setLoading(true);
-      const id_user = await AsyncStorage.getItem('idUser');
-      if (!id_user) throw new Error('Usuário não logado');
-
-      const orderedStories = selectedItems.map(id => parseInt(id));
-
-      // Passa dados separados para o serviço
-      const response = await DestaqueService.createDestaqueWithImage(
-        id_user,
-        orderedStories,
-        titulo,
-        selectedImage
-      );
-
-      if (response.success) {
-        Alert.alert('Sucesso', 'Destaque criado com sucesso!');
-        navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-      } else {
-        throw new Error(response.message || 'Erro ao criar destaque');
-      }
-    } catch (error) {
-      console.error('Erro ao criar destaque:', error);
-      let errorMessage = 'Ocorreu um erro ao criar o destaque';
-      if (error.response?.data?.errors) {
-        errorMessage = Object.values(error.response.data.errors).flat().join('\n');
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-      Alert.alert('Erro', errorMessage);
-    } finally {
-      setLoading(false);
+  } catch (error) {
+    console.error(`Erro ao ${modoEdicao ? 'atualizar' : 'criar'} destaque:`, error);
+    
+    let errorMessage = `Ocorreu um erro ao ${modoEdicao ? 'atualizar' : 'criar'} o destaque`;
+    if (error.response?.data?.errors) {
+      errorMessage = Object.values(error.response.data.errors).flat().join('\n');
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
     }
-  };
+    
+    Alert.alert('Erro', errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -118,13 +135,15 @@ export default function SelecionarCapa({ route, navigation }) {
           />
           <TouchableOpacity
             style={[styles.createButton, (!selectedImage || !titulo || loading) && styles.disabledButton]}
-            onPress={handleCreateHighlight}
+            onPress={handleCreateOrUpdateHighlight}
             disabled={!selectedImage || !titulo || loading}
           >
             {loading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text style={styles.buttonText}>Criar Destaque</Text>
+              <Text style={styles.buttonText}>
+                {modoEdicao ? 'Atualizar Destaque' : 'Criar Destaque'}
+              </Text>
             )}
           </TouchableOpacity>
         </View>

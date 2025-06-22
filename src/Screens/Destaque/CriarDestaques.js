@@ -11,7 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Video } from 'expo-av'; // Adicionando novamente o componente Video
+import { Video } from 'expo-av';
 import { StatusBar } from 'expo-status-bar';
 import { DestaqueService } from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,13 +20,27 @@ import { useRef } from 'react';
 const { width } = Dimensions.get('window');
 const itemWidth = width / 3;
 
-export default function CriarDestaques({ navigation }) {
+export default function CriarDestaques({ navigation, route }) {
   const [storiesData, setStoriesData] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [id_user, setIdUser] = useState(null);
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [destaqueId, setDestaqueId] = useState(null);
   const videoRefs = useRef({});
+
+  // Receber parâmetros de edição
+  useEffect(() => {
+    if (route.params) {
+      const { modoEdicao, selectedItems, destaqueId } = route.params;
+      if (modoEdicao) {
+        setModoEdicao(true);
+        setDestaqueId(destaqueId);
+        setSelectedItems(selectedItems || []);
+      }
+    }
+  }, [route.params]);
 
   useEffect(() => {
     const fetchUserAndStories = async () => {
@@ -84,11 +98,14 @@ export default function CriarDestaques({ navigation }) {
       selectedItems,
       itemsData: storiesData.filter(item => selectedItems.includes(item.id)),
       id_user,
+      modoEdicao,
+      destaqueId
     });
   };
 
   useLayoutEffect(() => {
     navigation.setOptions({
+      title: modoEdicao ? 'Editar Destaque' : 'Novo Destaque',
       headerRight: () => (
         <TouchableOpacity
           disabled={selectedItems.length === 0}
@@ -99,12 +116,12 @@ export default function CriarDestaques({ navigation }) {
           ]}
         >
           <Text style={styles.headerButtonText}>
-            Próximo ({selectedItems.length})
+            {modoEdicao ? 'Atualizar' : 'Próximo'} ({selectedItems.length})
           </Text>
         </TouchableOpacity>
       ),
     });
-  }, [navigation, selectedItems]);
+  }, [navigation, selectedItems, modoEdicao]);
 
   const renderItem = ({ item }) => {
     const isSelected = selectedItems.includes(item.id);
@@ -116,7 +133,6 @@ export default function CriarDestaques({ navigation }) {
         style={[styles.storyItem, { width: itemWidth }]}
         onPress={() => toggleItemSelection(item.id)}
       >
-        {/* Usando Video para mostrar o primeiro frame */}
         {item.type === 'video' ? (
           <Video
             ref={ref => (videoRefs.current[item.id] = ref)}
@@ -132,7 +148,6 @@ export default function CriarDestaques({ navigation }) {
           <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
         )}
       
-        {/* Indicador de seleção */}
         <View style={styles.checkOverlay}>
           <View style={[styles.checkBox, isSelected && styles.checkBoxSelected]}>
             <Text style={styles.checkNumber}>{orderNumber}</Text>

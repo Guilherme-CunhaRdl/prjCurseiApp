@@ -1,4 +1,3 @@
-// Função atualizada para enviar imagem corretamente (estilo do upload de story)
 import axios from 'axios';
 import host from '../../global';
 
@@ -16,45 +15,45 @@ export const DestaqueService = {
     return response.data;
   },
 
-  async createDestaque(id_user, stories, titulo_destaque) {
-    const response = await api.post(`/destaques/${id_user}`, {
-      stories,
-      titulo_destaque
-    });
-    return response.data;
-  },
-
-  async atualizarDestaque(id_destaque, stories) {
-    const response = await api.put(`/destaques/${id_destaque}/stories`, { stories });
-    return response.data;
-  },
-
   async deleteDestaque(id_user, id) {
     const response = await api.delete(`/destaques/${id_user}/${id}`);
     return response.data;
   },
 
-  async createDestaqueWithImage(id_user, stories, titulo_destaque, imageUri) {
-    if (!imageUri || typeof imageUri !== 'string') {
-      throw new Error('URI da imagem inválida');
-    }
-
+  // Função unificada para criar/atualizar destaque com imagem
+  async saveDestaque({ 
+    modoEdicao = false, 
+    id_user, 
+    destaqueId, 
+    stories, 
+    titulo_destaque, 
+    imageUri 
+  }) {
     const formData = new FormData();
     stories.forEach(id => formData.append('stories[]', id));
     formData.append('titulo_destaque', titulo_destaque);
 
-    const uriParts = imageUri.split('.');
-    const extension = uriParts[uriParts.length - 1].split('?')[0].toLowerCase();
-    const type = extension === 'jpg' ? 'jpeg' : extension;
+    // Determinar método e URL baseado no modo
+    const method = modoEdicao ? 'POST' : 'POST';
+    const url = modoEdicao 
+      ? `/destaques/${destaqueId}/stories` 
+      : `/destaques/${id_user}`;
 
-    formData.append('foto_destaque', {
-      uri: imageUri,
-      name: `capa_${Date.now()}.${extension}`,
-      type: `image/${type}`,
-    });
+    // Adicionar imagem se fornecida e não for URL (nova imagem)
+    if (imageUri && !imageUri.startsWith('http')) {
+      const uriParts = imageUri.split('.');
+      const extension = uriParts[uriParts.length - 1].split('?')[0].toLowerCase();
+      const type = extension === 'jpg' ? 'jpeg' : extension;
 
-    const response = await fetch(`http://${host}:8000/api/destaques/${id_user}`, {
-      method: 'POST',
+      formData.append('foto_destaque', {
+        uri: imageUri,
+        name: `capa_${Date.now()}.${extension}`,
+        type: `image/${type}`,
+      });
+    }
+
+    const response = await fetch(`http://${host}:8000/api${url}`, {
+      method,
       body: formData,
       headers: {
         Accept: 'application/json',
@@ -64,7 +63,7 @@ export const DestaqueService = {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.message || 'Erro ao criar destaque');
+      throw new Error(result.message || `Erro ao ${modoEdicao ? 'atualizar' : 'criar'} destaque`);
     }
 
     return result;
