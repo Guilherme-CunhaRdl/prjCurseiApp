@@ -4,125 +4,104 @@ import {
   Text,
   TextInput,
   Image,
-  FlatList,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  Modal,
   ActivityIndicator,
   Alert,
   ScrollView
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import * as ImagePicker from 'expo-image-picker';
 import { DestaqueService } from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
 export default function SelecionarCapa({ route, navigation }) {
-  const { itemsData, selectedItems } = route.params;
-  const [selectedCover, setSelectedCover] = useState(itemsData[0]?.id || null);
-  const [showModal, setShowModal] = useState(false);
+  const { selectedItems } = route.params;
+  const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [titulo, setTitulo] = useState('');
-  
-  const numColumns = Math.min(3, Math.max(1, itemsData.length));
-  const spacing = 10;
-  const availableWidth = width - 40;
-  const itemWidth = (availableWidth - (numColumns - 1) * spacing) / numColumns;
+
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permission.status !== 'granted') {
+      Alert.alert('Permissão necessária', 'Precisamos de acesso à galeria.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      aspect: [1, 1],
+      quality: 1,
+      allowsEditing: true,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+    }
+  };
 
   const handleCreateHighlight = async () => {
-    if (!selectedCover || !titulo) {
+    if (!selectedImage || !titulo) {
       Alert.alert('Atenção', 'Por favor, selecione uma capa e preencha o título');
       return;
     }
-    
+
     try {
       setLoading(true);
       const id_user = await AsyncStorage.getItem('idUser');
-      
-      if (!id_user) {
-        throw new Error('Usuário não logado');
-      }
-      
-      // Converter todos os IDs para números
-      const orderedStories = [
-        parseInt(selectedCover),
-        ...selectedItems
-          .map(id => parseInt(id))
-          .filter(id => id !== parseInt(selectedCover))
-      ];
-      
-      // Chamar serviço com 3 parâmetros
-      const response = await DestaqueService.createDestaque(
-        id_user, 
+      if (!id_user) throw new Error('Usuário não logado');
+
+      const orderedStories = selectedItems.map(id => parseInt(id));
+
+      // Passa dados separados para o serviço
+      const response = await DestaqueService.createDestaqueWithImage(
+        id_user,
         orderedStories,
-        titulo
+        titulo,
+        selectedImage
       );
-      
+
       if (response.success) {
         Alert.alert('Sucesso', 'Destaque criado com sucesso!');
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Home' }],
-        });
+        navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
       } else {
         throw new Error(response.message || 'Erro ao criar destaque');
       }
     } catch (error) {
       console.error('Erro ao criar destaque:', error);
-      
-      // Mensagem de erro mais detalhada
       let errorMessage = 'Ocorreu um erro ao criar o destaque';
       if (error.response?.data?.errors) {
-        // Juntar todas as mensagens de erro
-        errorMessage = Object.values(error.response.data.errors)
-          .flat()
-          .join('\n');
+        errorMessage = Object.values(error.response.data.errors).flat().join('\n');
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
-      
       Alert.alert('Erro', errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const renderItem = ({ item, index }) => (
-    <View style={[
-      styles.itemWrapper, 
-      numColumns > 1 && index % numColumns !== numColumns - 1 && { marginRight: spacing }
-    ]}>
-      <TouchableOpacity
-        style={[
-          styles.itemContainer,
-          { width: itemWidth },
-          selectedCover === item.id && styles.selectedItem,
-        ]}
-        onPress={() => setSelectedCover(item.id)}
-        activeOpacity={0.8}
-      >
-        <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
-      </TouchableOpacity>
-    </View>
-  );
-
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <TouchableOpacity 
-          onPress={() => setShowModal(true)}
+        <TouchableOpacity
+          onPress={pickImage}
           style={styles.previewContainer}
           activeOpacity={0.7}
           disabled={loading}
         >
-          <Image
-            source={{ uri: itemsData.find(i => i.id === selectedCover)?.thumbnail }}
-            style={styles.coverPreview}
-          />
+          {selectedImage ? (
+            <Image source={{ uri: selectedImage }} style={styles.coverPreview} />
+          ) : (
+            <View style={[styles.coverPreview, styles.placeholderCover]}>
+              <Ionicons name="image" size={50} color="#ccc" />
+            </View>
+          )}
           <View style={styles.changeCoverButton}>
-            <Text style={styles.changeCoverText}>Trocar imagem do destaque</Text>
+            <Text style={styles.changeCoverText}>Selecionar imagem da galeria</Text>
           </View>
         </TouchableOpacity>
 
@@ -138,9 +117,9 @@ export default function SelecionarCapa({ route, navigation }) {
             editable={!loading}
           />
           <TouchableOpacity
-            style={[styles.createButton, (!selectedCover || !titulo || loading) && styles.disabledButton]}
+            style={[styles.createButton, (!selectedImage || !titulo || loading) && styles.disabledButton]}
             onPress={handleCreateHighlight}
-            disabled={!selectedCover || !titulo || loading}
+            disabled={!selectedImage || !titulo || loading}
           >
             {loading ? (
               <ActivityIndicator color="white" />
@@ -149,53 +128,21 @@ export default function SelecionarCapa({ route, navigation }) {
             )}
           </TouchableOpacity>
         </View>
-
-        <Modal visible={showModal} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowModal(false)}
-              hitSlop={{top: 20, bottom: 20, left: 20, right: 20}}
-            >
-              <Ionicons name="close" size={30} color="white" />
-            </TouchableOpacity>
-
-            <FlatList
-              data={itemsData}
-              renderItem={renderItem}
-              keyExtractor={item => item.id.toString()}
-              numColumns={numColumns}
-              contentContainerStyle={[styles.galleryContainer, { paddingTop: 60 }]}
-              key={numColumns}
-            />
-          </View>
-        </Modal>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
   scrollContainer: {
     flexGrow: 1,
     padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  inputContainer: {
-    width: '100%',
-    marginBottom: 30,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#333',
-  },
+  inputContainer: { width: '100%', marginBottom: 30 },
+  label: { fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#333' },
   input: {
     width: '100%',
     height: 50,
@@ -219,50 +166,12 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     borderWidth: 3,
     borderColor: '#3897f0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  changeCoverButton: {
-    marginTop: 15,
-  },
-  changeCoverText: {
-    color: '#3897f0',
-    fontWeight: '600',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.95)',
-  },
-  galleryContainer: {
-    paddingHorizontal: 15,
-    paddingBottom: 30,
-  },
-  itemWrapper: {
-    marginBottom: 10,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 15,
-    right: 15,
-    zIndex: 1000,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
-    padding: 8,
-  },
-  itemContainer: {
-    aspectRatio: 1,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
-  },
-  selectedItem: {
-    borderWidth: 3,
-    borderColor: '#3897f0',
-  },
-  thumbnail: {
-    width: '100%',
-    height: '100%',
-  },
+  placeholderCover: { backgroundColor: '#eee' },
+  changeCoverButton: { marginTop: 15 },
+  changeCoverText: { color: '#3897f0', fontWeight: '600', fontSize: 16, textAlign: 'center' },
   createButton: {
     backgroundColor: '#3897f0',
     paddingVertical: 15,
@@ -273,12 +182,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  disabledButton: {
-    backgroundColor: '#c0c0c0',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  disabledButton: { backgroundColor: '#c0c0c0' },
+  buttonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
 });
