@@ -7,14 +7,15 @@ import {
   TouchableOpacity,
   Dimensions,
   Text,
-  Modal,
-  Pressable,
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Video } from 'expo-av'; // Adicionando novamente o componente Video
 import { StatusBar } from 'expo-status-bar';
 import { DestaqueService } from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRef } from 'react';
 
 const { width } = Dimensions.get('window');
 const itemWidth = width / 3;
@@ -22,49 +23,46 @@ const itemWidth = width / 3;
 export default function CriarDestaques({ navigation }) {
   const [storiesData, setStoriesData] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [id_user, setIdUser] = useState(null);
+  const videoRefs = useRef({});
 
-// CriarDestaques.js
-
-useEffect(() => {
-  const fetchUserAndStories = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const storedIdUser = await AsyncStorage.getItem('idUser');
-      if (!storedIdUser) throw new Error('Usuário não logado');
-      
-      setIdUser(storedIdUser);
-      
-      // CORREÇÃO: Usar o novo método para buscar STORIES
-      const response = await DestaqueService.getStories(storedIdUser);
-      
-      // Ajuste na estrutura de resposta
-      if (response.data && response.data.success && response.data.data.stories) {
-        const formattedStories = response.data.data.stories.map(story => ({
-          id: story.id.toString(),
-          thumbnail: story.conteudo_storyes,
-          type: story.tipo_midia,
-        }));
+  useEffect(() => {
+    const fetchUserAndStories = async () => {
+      try {
+        setLoading(true);
+        setError(null);
         
-        setStoriesData(formattedStories);
-      } else {
-        setStoriesData([]);
+        const storedIdUser = await AsyncStorage.getItem('idUser');
+        if (!storedIdUser) throw new Error('Usuário não logado');
+        
+        setIdUser(storedIdUser);
+        
+        const response = await DestaqueService.getStories(storedIdUser);
+        
+        if (response.data && response.data.success && response.data.data.stories) {
+          const formattedStories = response.data.data.stories.map(story => ({
+            id: story.id.toString(),
+            thumbnail: story.thumbnail || story.conteudo_storyes,
+            content: story.conteudo_storyes,
+            type: story.tipo_midia,
+          }));
+          
+          setStoriesData(formattedStories);
+        } else {
+          setStoriesData([]);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar stories:', error);
+        setError(error.message || 'Erro ao carregar stories');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Erro ao carregar stories:', error);
-      setError(error.message || 'Erro ao carregar stories');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchUserAndStories();
-}, []);
+    fetchUserAndStories();
+  }, []);
 
   const toggleItemSelection = (itemId) => {
     setSelectedItems(prev => {
@@ -117,9 +115,24 @@ useEffect(() => {
         activeOpacity={0.9}
         style={[styles.storyItem, { width: itemWidth }]}
         onPress={() => toggleItemSelection(item.id)}
-        onLongPress={() => setPreview(item.thumbnail)}
       >
-        <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
+        {/* Usando Video para mostrar o primeiro frame */}
+        {item.type === 'video' ? (
+          <Video
+            ref={ref => (videoRefs.current[item.id] = ref)}
+            source={{ uri: item.content }}
+            style={styles.thumbnail}
+            resizeMode="cover"
+            shouldPlay={false}
+            isMuted
+            isLooping={false}
+            usePoster={false}
+          />
+        ) : (
+          <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
+        )}
+      
+        {/* Indicador de seleção */}
         <View style={styles.checkOverlay}>
           <View style={[styles.checkBox, isSelected && styles.checkBoxSelected]}>
             <Text style={styles.checkNumber}>{orderNumber}</Text>
@@ -168,13 +181,6 @@ useEffect(() => {
         contentContainerStyle={styles.listContent}
       />
 
-      {/* Modal preview */}
-      <Modal visible={!!preview} transparent animationType="fade">
-        <Pressable style={styles.modalOverlay} onPress={() => setPreview(null)}>
-          <Image source={{ uri: preview }} style={styles.previewImage} />
-        </Pressable>
-      </Modal>
-
       <StatusBar style="dark" />
     </View>
   );
@@ -190,11 +196,20 @@ const styles = StyleSheet.create({
     borderWidth: 0.3,
     borderColor: '#ddd',
     overflow: 'hidden',
+    position: 'relative',
   },
   thumbnail: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  videoIcon: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -12 }, { translateY: -12 }],
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 24,
   },
   checkOverlay: {
     position: 'absolute',
@@ -209,6 +224,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 12,
   },
   checkBoxSelected: {
     backgroundColor: '#3897f0',
@@ -235,18 +251,6 @@ const styles = StyleSheet.create({
     color: '#3897f0',
     fontWeight: '600',
     fontSize: 14,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  previewImage: {
-    width: '80%',
-    height: '70%',
-    resizeMode: 'contain',
-    borderRadius: 16,
   },
   loadingContainer: {
     flex: 1,
