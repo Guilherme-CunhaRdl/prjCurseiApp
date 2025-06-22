@@ -9,11 +9,11 @@ import {
   Image,
   Animated,
   FlatList,
-  PanResponder // Adicionado
+  PanResponder 
 } from 'react-native';
 import { Video } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import host from '../../global';
 
@@ -281,15 +281,19 @@ const VideoDestaque = ({ route, navigation }) => {
         </View>
         
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.button}>
-            <Ionicons name="heart-outline" size={25} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
-            <Ionicons name="paper-plane-outline" size={25} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
-            <Ionicons name="ellipsis-vertical" size={25} color="white" />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+            <TouchableOpacity 
+              style={styles.button}>
+              <MaterialIcons name="playlist-add" size={25} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.button}>
+              <Ionicons name="heart-outline" size={25} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button}>
+              <Ionicons name="ellipsis-vertical" size={25} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
       </LinearGradient>
     </Animated.View>

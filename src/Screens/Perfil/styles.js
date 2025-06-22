@@ -133,9 +133,7 @@ export default StyleSheet.create({
   editarButton: {
     width: '70%',
     height: 35,
-    borderWidth: 1,
     borderRadius: 5,
-    borderColor: '#E3E3E3',
     alignItems: 'center',
     justifyContent: 'center'
   },
