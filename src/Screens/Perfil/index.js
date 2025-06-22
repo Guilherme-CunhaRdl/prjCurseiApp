@@ -25,30 +25,6 @@ import {
     Provider as PaperProvider,
     SegmentedButtons,
 } from "react-native-paper";
-const DATA = [
-    {
-        id: Math.random().toString(36).substring(2, 27),
-        photoURL: require('./python.jpg'),
-        nome: 'Python'
-    },
-    {
-        id: Math.random().toString(36).substring(2, 27),
-        photoURL: require('./viajem.png'),
-        nome: 'Viajem'
-    },
-    {
-        id: Math.random().toString(36).substring(2, 27),
-        photoURL: require('./html8.jpg'),
-        nome: 'HTML'
-    },
-    {
-        id: Math.random().toString(36).substring(2, 27),
-        photoURL: require('./helloKitty.png'),
-        nome: 'Hello Kitty'
-    },
-
-]
-
 
 export default function Perfil() {
     const route = useRoute();
@@ -327,7 +303,7 @@ export default function Perfil() {
                     <View style={styles.editarContainer}>
                         <View style={[styles.buttonContainer, { gap: 0 }]}>
                             <Pressable style={[styles.editarButton, { backgroundColor: tema.azul }]} onPress={() => setModalEditarVisivel(true)}>
-                                <Text style={[styles.textEditarPerf, { color: tema.texto }]}>Editar Perfil</Text>
+                                <Text style={[styles.textEditarPerf, { color: 'white' }]}>Editar Perfil</Text>
                             </Pressable>
     
                             <Pressable onPress={() => navigation.navigate('Configurações')}>
@@ -364,7 +340,7 @@ export default function Perfil() {
                 )}
     
                 {perfilBloqueado == 1 || instituicao == 1 ? (
-                    <Destaques data={DATA} navigation={navigation} adicionarLogo={adicionarLogo} />
+                    <Destaques navigation={navigation} adicionarLogo={adicionarLogo} />
                 ) : null}
     
                 {perfilBloqueado !== 1 && (

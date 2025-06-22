@@ -349,7 +349,7 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
                     />
                     {item.data_inicio_evento ? (
 
-                      <Pressable style={styles.eventoContAboslute} onPress={() => navigation.navigate('Evento', {
+                      <Pressable style={[styles.eventoContAboslute, {height:'102%'}]} onPress={() => navigation.navigate('Evento', {
                         titulo: item.arroba_user,
                         eventoId: item.evento_id
 
@@ -585,6 +585,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end'
   },
   contInfoEvento: {
+    
     height: '40%',
     borderRadius: 8,
     borderStartStartRadius: 0,
@@ -612,7 +613,7 @@ const styles = StyleSheet.create({
     borderRadius: 3
   },
   contSaberMais: {
-    backgroundColor: 'red',
+    
     height: 35,
     width: '90%',
     borderEndStartRadius: 20,

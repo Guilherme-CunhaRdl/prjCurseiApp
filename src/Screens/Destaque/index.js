@@ -1,278 +1,352 @@
-import React, {
-  useRef, useState, useEffect, useCallback
-} from 'react';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TouchableOpacity,
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  View, 
+  Text, 
+  ActivityIndicator, 
+  StyleSheet, 
+  Dimensions, 
+  TouchableOpacity, 
   Image,
-  StyleSheet,
-  Dimensions,
   Animated,
   FlatList,
-  TouchableWithoutFeedback,
-  PanResponder
+  PanResponder 
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Video } from 'expo-av';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import axios from 'axios';
+import host from '../../global';
 
-const { height, width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-const responsiveFontSize = (percentage) => Math.round((width * percentage) / 100);
-const responsiveWidth = (percentage) => width * (percentage / 100);
-const responsiveHeight = (percentage) => height * (percentage / 100);
-
-const usersData = [
-  {
-    id: 'user1',
-    userImage: 'https://i.pravatar.cc/150?img=1',
-    institutionName: 'Instituição 1',
-    stories: [
-      { id: '1', videoUrl: 'https://www.w3schools.com/html/movie.mp4', comments: 43 },
-      { id: '2', videoUrl: 'https://www.w3schools.com/html/movie.mp4', comments: 12 },
-    ]
-  },
-  {
-    id: 'user2',
-    userImage: 'https://i.pravatar.cc/150?img=2',
-    institutionName: 'Instituição 2',
-    stories: [
-      { id: '3', videoUrl: 'https://www.w3schools.com/html/movie.mp4', comments: 34 },
-      { id: '4', videoUrl: 'https://www.w3schools.com/html/movie.mp4', comments: 34 },
-    ]
-  }
-];
-
-export default function Destaques() {
-  const navigation = useNavigation();
-  const isFocused = useIsFocused();
-
-  const videoRefs = useRef({});
-  const flatListRef = useRef(null);
-  const [currentUserIndex, setCurrentUserIndex] = useState(0);
-  const [currentDestaquesIndex, setCurrentDestaquesIndex] = useState(0);
+const VideoDestaque = ({ route, navigation }) => {
+  const { idDestaque } = route.params;
+  const [destaque, setDestaque] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const progressAnim = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(0)).current;
+  const videoRefs = useRef({});
+  const flatListRef = useRef();
+  
+  // Adicionado para o gesto de fechar
+  const pan = useRef(new Animated.ValueXY()).current;
+  const panResponder = useRef(null);
 
-  const currentUser = usersData[currentUserIndex];
-  const currentDestaques = currentUser?.stories?.[currentDestaquesIndex];
+  useEffect(() => {
+    const fetchDestaque = async () => {
+      try {
+        const response = await axios.get(`http://${host}:8000/api/destaqueEspecifico/${idDestaque}`);
+        if (response.data.success) {
+          setDestaque(response.data.data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar destaque:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const startProgress = useCallback(() => {
+    fetchDestaque();
+  }, [idDestaque]);
+
+  // Configurar o PanResponder para detectar gestos de arrastar
+  useEffect(() => {
+    panResponder.current = PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: Animated.event(
+        [null, { dy: pan.y }],
+        { useNativeDriver: false }
+      ),
+      onPanResponderRelease: (_, gestureState) => {
+        // Se o usuário arrastou para baixo mais que 100 pixels
+        if (gestureState.dy > 100) {
+          Animated.timing(pan, {
+            toValue: { x: 0, y: height },
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => navigation.goBack());
+        } else {
+          // Voltar para a posição original
+          Animated.spring(pan, {
+            toValue: { x: 0, y: 0 },
+            friction: 5,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    });
+  }, []);
+
+  useEffect(() => {
+    if (destaque && destaque.stories && destaque.stories.length > 0) {
+      startProgressAnimation();
+    }
+  }, [destaque, currentStoryIndex]);
+
+  const startProgressAnimation = () => {
     progressAnim.setValue(0);
+    const story = destaque.stories[currentStoryIndex];
+    const duration = story.tipo_midia === 'video' ? 10000 : 5000; // 10s para vídeo, 5s para imagem
+
     Animated.timing(progressAnim, {
       toValue: 1,
-      duration: 5000,
+      duration,
       useNativeDriver: false,
     }).start(({ finished }) => {
-      if (finished) handleNextDestaques();
+      if (finished) {
+        handleNextStory();
+      }
     });
-  }, [currentUserIndex, currentDestaquesIndex]);
+  };
 
-  const handleNextDestaques = useCallback(() => {
-    if (currentDestaquesIndex < currentUser.stories.length - 1) {
-      setCurrentDestaquesIndex((prev) => prev + 1);
-    } else {
-      handleNextUser();
-    }
-  }, [currentDestaquesIndex, currentUser]);
-
-  const handlePrevDestaques = useCallback(() => {
-    if (currentDestaquesIndex > 0) {
-      setCurrentDestaquesIndex((prev) => prev - 1);
-    } else {
-      handlePrevUser();
-    }
-  }, [currentDestaquesIndex]);
-
-  const handleNextUser = useCallback(() => {
-    if (currentUserIndex < usersData.length - 1) {
-      setCurrentUserIndex((prev) => prev + 1);
-      setCurrentDestaquesIndex(0);
-      flatListRef.current.scrollToIndex({ index: currentUserIndex + 1, animated: true });
+  const handleNextStory = () => {
+    if (currentStoryIndex < destaque.stories.length - 1) {
+      setCurrentStoryIndex(currentStoryIndex + 1);
+      flatListRef.current.scrollToIndex({ index: currentStoryIndex + 1 });
     } else {
       navigation.goBack();
     }
-  }, [currentUserIndex]);
+  };
 
-  const handlePrevUser = useCallback(() => {
-    if (currentUserIndex > 0) {
-      setCurrentUserIndex((prev) => prev - 1);
-      setCurrentDestaquesIndex(usersData[currentUserIndex - 1].stories.length - 1);
-      flatListRef.current.scrollToIndex({ index: currentUserIndex - 1, animated: true });
+  const handlePrevStory = () => {
+    if (currentStoryIndex > 0) {
+      setCurrentStoryIndex(currentStoryIndex - 1);
+      flatListRef.current.scrollToIndex({ index: currentStoryIndex - 1 });
     }
-  }, [currentUserIndex]);
+  };
 
-  useEffect(() => {
-    if (isFocused && currentDestaques) {
-      videoRefs.current[currentDestaques.id]?.replayAsync();
-      startProgress();
-    }
-  }, [currentDestaquesIndex, currentUserIndex, isFocused]);
-
-  // Pan responder para saída vertical
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 10,
-      onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dy > 0) {
-          translateY.setValue(gestureState.dy);
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 100) {
-          Animated.timing(translateY, {
-            toValue: height,
-            duration: 200,
-            useNativeDriver: true
-          }).start(() => navigation.goBack());
-        } else {
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true
-          }).start();
-        }
+  const togglePause = () => {
+    setIsPaused(!isPaused);
+    
+    if (destaque.stories[currentStoryIndex].tipo_midia === 'video') {
+      const videoRef = videoRefs.current[destaque.stories[currentStoryIndex].id];
+      if (videoRef) {
+        isPaused ? videoRef.playAsync() : videoRef.pauseAsync();
       }
-    })
-  ).current;
+    }
+    
+    if (!isPaused) {
+      progressAnim.stopAnimation();
+    } else {
+      startProgressAnimation();
+    }
+  };
 
-  const renderUserDestaques = ({ item }) => {
-    const Destaques = item.stories[currentDestaquesIndex];
-    if (!Destaques) return null;
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      const newIndex = viewableItems[0].index;
+      setCurrentStoryIndex(newIndex);
+    }
+  }).current;
 
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
+
+  const renderItem = ({ item, index }) => {
     return (
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={{ width, height, transform: [{ translateY }] }}
-      >
-        <TouchableWithoutFeedback onPress={(e) => {
-          const { locationX } = e.nativeEvent;
-          if (locationX < width / 2) {
-            handlePrevDestaques();
-          } else {
-            handleNextDestaques();
-          }
-        }}>
-          <View style={{ flex: 1 }}>
-            <Video
-              ref={(ref) => (videoRefs.current[Destaques.id] = ref)}
-              source={{ uri: Destaques.videoUrl }}
-              style={StyleSheet.absoluteFill}
-              resizeMode="cover"
-              shouldPlay={isFocused}
-              isLooping={false}
-              onPlaybackStatusUpdate={(status) => {
-                if (status.didJustFinish) handleNextDestaques();
-              }}
-            />
+      <View style={{ width, height }}>
+        {item.tipo_midia === 'video' ? (
+          <Video
+            ref={(ref) => (videoRefs.current[item.id] = ref)}
+            source={{ uri: item.url_completa }}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+            shouldPlay={index === currentStoryIndex && !isPaused}
+            isLooping={false}
+            onPlaybackStatusUpdate={(status) => {
+              if (status.didJustFinish) {
+                handleNextStory();
+              }
+            }}
+          />
+        ) : (
+          <Image
+            source={{ uri: item.url_completa }}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+          />
+        )}
 
-            <LinearGradient
-              colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.6)']}
-              style={StyleSheet.absoluteFill}
-            >
-              <View style={{ flexDirection: 'row', marginTop: 40, marginHorizontal: 8 }}>
-                {item.stories.map((Destaques, i) => (
-                  <View key={Destaques.id} style={{ flex: 1, height: 3, backgroundColor: '#555', marginHorizontal: 2 }}>
-                    {i < currentDestaquesIndex && <View style={{ backgroundColor: '#fff', height: '100%', width: '100%' }} />}
-                    {i === currentDestaquesIndex && (
-                      <Animated.View
-                        style={{
-                          backgroundColor: '#fff',
-                          height: '100%',
-                          width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] })
-                        }}
-                      />
-                    )}
-                  </View>
-                ))}
-              </View>
-
-              <View style={styles.overlay}>
-                <View style={styles.contentContainer}>
-                  <View style={styles.profileSection}>
-                    <Image style={styles.profileImage} source={{ uri: item.userImage }} />
-                    <Text style={styles.institutionName}>{item.institutionName}</Text>
-                  </View>
-                </View>
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity style={styles.button}>
-                    <Ionicons name="heart-outline" size={responsiveFontSize(6)} color="white" />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.button}>
-                    <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.button}>
-                    <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </LinearGradient>
-          </View>
-        </TouchableWithoutFeedback>
-      </Animated.View>
+        <TouchableOpacity 
+          style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: width / 3 }} 
+          onPress={handlePrevStory}
+          activeOpacity={0.9}
+        />
+        <TouchableOpacity 
+          style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: width / 3 }} 
+          onPress={handleNextStory}
+          activeOpacity={0.9}
+        />
+        <TouchableOpacity
+          style={{ position: 'absolute', left: width / 3, top: 0, bottom: 0, width: width / 3 }}
+          onPress={togglePause}
+          activeOpacity={0.9}
+        />
+      </View>
     );
   };
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (!destaque) {
+    return (
+      <View style={styles.container}>
+        <Text>Destaque não encontrado</Text>
+      </View>
+    );
+  }
+
+  const currentStory = destaque.stories[currentStoryIndex];
+  const user = destaque.stories[0]?.user || {};
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+    <Animated.View 
+      style={[
+        styles.container, 
+        { transform: [{ translateY: pan.y }] }
+      ]}
+      {...panResponder.current.panHandlers}
+    >
       <FlatList
         ref={flatListRef}
-        data={usersData}
+        data={destaque.stories}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
-        renderItem={renderUserDestaques}
-        onMomentumScrollEnd={(e) => {
-          const index = Math.round(e.nativeEvent.contentOffset.x / width);
-          if (index !== currentUserIndex) {
-            setCurrentUserIndex(index);
-            setCurrentDestaquesIndex(0);
-          }
-        }}
+        initialScrollIndex={currentStoryIndex}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        getItemLayout={(data, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
       />
-    </SafeAreaView>
+
+      <LinearGradient
+        colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.6)']}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      >
+        <View style={{ flexDirection: 'row', marginTop: 40, marginHorizontal: 8 }}>
+          {destaque.stories.map((_, i) => (
+            <View 
+              key={i} 
+              style={{ flex: 1, height: 3, backgroundColor: '#555', marginHorizontal: 2 }}
+            >
+              {i < currentStoryIndex && (
+                <View style={{ backgroundColor: '#fff', height: '100%', width: '100%' }} />
+              )}
+              {i === currentStoryIndex && (
+                <Animated.View
+                  style={{
+                    backgroundColor: '#fff',
+                    height: '100%',
+                    width: progressAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0%', '100%'],
+                    }),
+                  }}
+                />
+              )}
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.overlay}>
+          <View style={styles.profileSection}>
+            <Image 
+              style={styles.profileImage} 
+              source={{ uri: user.foto || 'https://i.pravatar.cc/150' }} 
+            />
+            <Text style={styles.userName}>{user.nome || 'Usuário'}</Text>
+            <Text style={styles.storyTime}>
+              {new Date(currentStory.data_inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </View>
+          
+          {currentStory.legenda && (
+            <Text style={styles.caption}>{currentStory.legenda}</Text>
+          )}
+        </View>
+        
+        <View style={styles.actionButtons}>
+          <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+            <TouchableOpacity style={styles.button}>
+              <Ionicons name="heart-outline" size={25} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button}>
+              <Ionicons name="ellipsis-vertical" size={25} color="white" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </LinearGradient>
+    </Animated.View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'space-between',
-    padding: responsiveWidth(4)
-  },
-  contentContainer: {
+  container: {
     flex: 1,
-    justifyContent: 'flex-end',
-    marginBottom: responsiveHeight(0)
+    backgroundColor: '#000',
+  },
+  overlay: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 20,
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: responsiveWidth(2),
-    marginBottom: responsiveHeight(2)
+    marginBottom: 20,
   },
   profileImage: {
-    width: responsiveWidth(12),
-    height: responsiveWidth(12),
-    borderRadius: responsiveWidth(6)
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#3897f0',
   },
-  institutionName: {
+  userName: {
     color: 'white',
-    fontSize: responsiveFontSize(4),
-    fontWeight: '500'
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  storyTime: {
+    color: 'rgba(255,255,255,0.7)',
+    marginLeft: 10,
+    fontSize: 14,
+  },
+  caption: {
+    color: 'white',
+    fontSize: 16,
+    marginBottom: 20,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    padding: 10,
+    borderRadius: 10,
   },
   actionButtons: {
     position: 'absolute',
-    right: responsiveWidth(4),
-    bottom: responsiveHeight(5),
-    alignItems: 'center',
-    gap: responsiveHeight(2)
+    bottom: 40,
+    right: 20,
+    alignItems: 'flex-end',
   },
   button: {
-    alignItems: 'center',
-    marginVertical: responsiveHeight(0.5)
-  }
+    marginVertical: 10,
+    padding: 5,
+  },
 });
+
+export default VideoDestaque;
