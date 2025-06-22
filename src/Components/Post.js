@@ -74,10 +74,16 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
         }
         const id = idUser;
         if (tipo) {
+          if (tipo === 'curteis') {
+        
+            url = `http://${host}:8000/api/curteis/user/${idUser}/${idUserSalvo}`;
+        } 
           if (tipo == 'normais') {
 
             url = `http://${host}:8000/api/posts/6/${idUserSalvo}/100/0/${id}`;
-          } else {
+          } 
+          
+          else {
             url = `http://${host}:8000/api/posts/5/${idUserSalvo}/100/0/${id}`;
           }
 

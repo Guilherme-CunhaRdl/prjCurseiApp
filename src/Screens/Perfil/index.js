@@ -414,6 +414,10 @@ export default function Perfil() {
                         <View style={styles.postContainer}>
                             <Post key="post-3" idUser={idUser} />
                         </View>
+                    ) : focoIcone === 'curteis' ? (
+                        <View style={styles.postContainer}>
+                            <Post key="post-4" idUser={idUser} tipo="curteis" />
+                        </View>
                     ) : null
                 )}
             </ScrollView>

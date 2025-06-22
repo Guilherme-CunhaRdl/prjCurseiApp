@@ -122,7 +122,7 @@ const CriarStory = () => {
       formData.append('legenda', conteudo);
       formData.append('id_user', idUser);
   
-      console.log('Enviando para:', `http://${host}:8000/api/stories/upload`);
+      console.log('Enviando para:', `http://${host}:8000/api/status/upload`);
       console.log('Dados do FormData:', {
         uri: mediaFileRef.current.uri,
         type: mediaFileRef.current.type,
@@ -131,7 +131,7 @@ const CriarStory = () => {
         id_user: idUser
       });
   
-      const response = await fetch(`http://${host}:8000/api/stories/upload`, {
+      const response = await fetch(`http://${host}:8000/api/status/upload`, {
         method: 'POST',
         body: formData,
         headers: {

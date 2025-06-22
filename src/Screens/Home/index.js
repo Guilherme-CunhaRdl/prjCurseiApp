@@ -101,7 +101,8 @@ export default function Home() {
   async function carregarStories() {
     try {
       setLoadingStories(true);
-      const response = await axios.get(`http://${host}:8000/api/stories`);
+      const response = await axios.get(`http://${host}:8000/api/status`);
+      console.log('Resposta da API Stories:', response.data.data);
       
       const storiesAgrupados = response.data.data.reduce((acc, story) => {
         const userIndex = acc.findIndex(u => u.user.id === story.user.id);
@@ -110,8 +111,9 @@ export default function Home() {
           acc[userIndex].stories.push({
             id: story.id,
             url: story.url,
-            type: story.tipo_midia,
+            tipo_midia: story.tipo_midia,
             createdAt: story.data_inicio,
+            legenda: story.legenda,
             viewed: false
           });
         } else {

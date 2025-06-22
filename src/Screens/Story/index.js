@@ -11,7 +11,8 @@ import {
   FlatList,
   TouchableWithoutFeedback,
   PanResponder,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useIsFocused, useRoute } from '@react-navigation/native';
@@ -35,10 +36,13 @@ export default function Story() {
 
   // Estados
   const [storiesData, setStoriesData] = useState(routeStoriesData || []);
-  const [loading, setLoading] = useState(!routeStoriesData); // Só carrega se não vier dados pela rota
+  const [loading, setLoading] = useState(!routeStoriesData);
   const [currentUserIndex, setCurrentUserIndex] = useState(initialUserIndex);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
-
+  const [userId, setUserId] = useState(null);
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likesState, setLikesState] = useState({});
   // Referências
   const videoRefs = useRef({});
   const flatListRef = useRef(null);
@@ -49,63 +53,91 @@ export default function Story() {
   const currentUser = storiesData[currentUserIndex];
   const currentStory = currentUser?.stories?.[currentStoryIndex];
 
+  useEffect(() => {
+    const loadUserId = async () => {
+      const id = await AsyncStorage.getItem('idUser');
+      setUserId(id ? parseInt(id, 10) : null);
+    };
+    loadUserId();
+  }, []);
 
-  async function carregarStories() {
+//PARTE DO LIKE 
+  const handleLike = async () => {
     try {
-      setLoadingStories(true);
-      const response = await axios.get(`http://${host}:8000/api/stories`);
-      
-      const storiesAgrupados = response.data.data.reduce((acc, story) => {
-        const userIndex = acc.findIndex(u => u.user.id === story.user.id);
-        
-        if (userIndex >= 0) {
-          acc[userIndex].stories.push({
-            id: story.id,
-            url: story.url,
-            type: story.tipo_midia,
-            createdAt: story.data_inicio,
-            viewed: false
-          });
-        } else {
-          acc.push({
-            user: {
-              id: story.user.id,
-              name: story.user.nome,
-
-              avatar: story.user.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(story.user.nome)}&background=random`
-            },
-            stories: [{
-              id: story.id,
-              url: story.url,
-              type: story.tipo_midia,
-              createdAt: story.data_inicio,
-              viewed: false
-            }]
-          });
-        }
-        return acc;
-      }, []);
-      
-      setStories(storiesAgrupados);
-    } catch (error) {
-      console.error('Erro ao carregar stories:', error);
-    } finally {
-      setLoadingStories(false);
+      const userId = await AsyncStorage.getItem('idUser');
+      const res = await axios.post(`http://${host}:8000/api/status/like`, {
+        id_user: userId,
+        id_story: currentStory.id
+      });
+  
+      setLikesState(prev => ({
+        ...prev,
+        [currentStory.id]: res.data.liked
+      }));
+    } catch (err) {
+      console.error('Erro ao curtir:', err);
     }
-  }
+  };
 
+  useEffect(() => {
+    const fetchLikeStatus = async () => {
+      if (!currentStory?.id) return;
+  
+      try {
+        const userId = await AsyncStorage.getItem('idUser');
+        const res = await axios.get(`http://${host}:8000/api/status/is-liked`, {
+          params: {
+            id_user: userId,
+            id_story: currentStory.id
+          }
+        });
+  
+        setLikesState(prev => ({
+          ...prev,
+          [currentStory.id]: res.data.liked
+        }));
+      } catch (err) {
+        console.error('Erro ao verificar se já curtiu:', err);
+      }
+    };
+  
+    fetchLikeStatus();
+  }, [currentStory?.id]);
+//------------------------------------------------------------------------------
+
+  const handleDeleteStory = (storyId) => {
+    Alert.alert(
+      'Apagar story',
+      'Tem certeza que deseja apagar este story?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Apagar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await axios.delete(`http://${host}:8000/api/status/${storyId}`);
+              alert('Story deletado com sucesso');
+              fetchStories(); 
+            } catch (error) {
+              alert('Erro ao deletar story');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const fetchStories = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://${host}:8000/api/stories`);
+      const response = await axios.get(`http://${host}:8000/api/status`);
       const formattedData = formatStoriesData(response.data.data);
       setStoriesData(formattedData);
       
-      // Se veio de um story específico, encontrar a posição inicial
       if (initialStory) {
         const userIndex = formattedData.findIndex(user => 
-          user.id === initialStory.user.id
+          user.user.id === initialStory.user.id
         );
         if (userIndex !== -1) {
           setCurrentUserIndex(userIndex);
@@ -115,38 +147,55 @@ export default function Story() {
           if (storyIndex !== -1) setCurrentStoryIndex(storyIndex);
         }
       }
-    } catch (error) {
-      console.error('Erro ao carregar stories:', error);
+    } catch {
+      Alert.alert('Erro', 'Não foi possível carregar os stories');
     } finally {
       setLoading(false);
     }
   };
-
-
-  
 
   const formatStoriesData = (stories) => {
     const usersMap = {};
     
     stories.forEach(story => {
       if (!usersMap[story.user.id]) {
+        const userName = story.user.nome || story.user.nome_user || 'Usuário';
         usersMap[story.user.id] = {
-          id: story.user.id,
-          userImage: story.user.foto ? `http://${host}:8000/img/user/fotoPerfil/${story.user.foto}` : 'https://i.pravatar.cc/150',
-          userName: story.user.nome_user || story.user.nome,
+          id: story.user.id.toString(),
+          user: {
+            id: story.user.id,
+            name: userName,
+            avatar: story.user.foto 
+              ? `http://${host}:8000/img/user/fotoPerfil/${story.user.foto}`
+              : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`
+          },
           stories: []
         };
       }
+      
+      let mediaUrl = story.url;
+      if (!mediaUrl.startsWith('http')) {
+        mediaUrl = mediaUrl.startsWith('/') 
+          ? `http://${host}:8000${mediaUrl}`
+          : `http://${host}:8000/${mediaUrl}`;
+      }
+      
+      let tipo_midia = story.tipo_midia?.toLowerCase();
+      
+      if (!tipo_midia || !['video', 'image'].includes(tipo_midia)) {
+        const extension = mediaUrl.split('.').pop().toLowerCase();
+        tipo_midia = ['mp4', 'mov', 'webm', 'ogg'].includes(extension) ? 'video' : 'image';
+      }
+      
       usersMap[story.user.id].stories.push({
-        id: story.id,
-        url: story.url,
-        tipo_midia: story.tipo_midia,
+        id: story.id.toString(),
+        url: mediaUrl,
+        tipo_midia: story.tipo_midia || tipo_midia,
         legenda: story.legenda,
-        data_inicio: story.data_inicio,
-        comments: 0 
+        data_inicio: story.createdAt || new Date().toISOString()
       });
     });
-
+  
     return Object.values(usersMap);
   };
 
@@ -163,7 +212,6 @@ export default function Story() {
 
   const handleNextStory = useCallback(() => {
     if (!currentUser) return;
-    
     if (currentStoryIndex < currentUser.stories.length - 1) {
       setCurrentStoryIndex((prev) => prev + 1);
     } else {
@@ -200,18 +248,45 @@ export default function Story() {
   useEffect(() => {
     if (!routeStoriesData) {
       fetchStories();
-      carregarStories();
     }
   }, []);
 
   useEffect(() => {
-    if (isFocused && currentStory) {
-      if (currentStory.tipo_midia === 'video') {
-        videoRefs.current[currentStory.id]?.replayAsync();
+    if (!isFocused || !currentStory) return;
+  
+    const videoRef = videoRefs.current[currentStory?.id];
+    let timeoutId;
+  
+    const prepareMedia = async () => {
+      try {
+        if (currentStory.tipo_midia === 'video') {
+          await videoRef?.pauseAsync();
+          await videoRef?.loadAsync(
+            { uri: currentStory.url },
+            { shouldPlay: isFocused },
+            false
+          );
+          if (isFocused) {
+            await videoRef?.playAsync();
+          }
+        } else {
+          startProgress();
+        }
+      } catch {
+        timeoutId = setTimeout(() => {
+          handleNextStory();
+        }, 5000);
       }
-      startProgress();
-
-    }
+    };
+  
+    prepareMedia();
+  
+    return () => {
+      clearTimeout(timeoutId);
+      if (currentStory?.tipo_midia === 'video') {
+        videoRef?.pauseAsync().catch(() => {});
+      }
+    };
   }, [currentStoryIndex, currentUserIndex, isFocused]);
 
   const panResponder = useRef(
@@ -240,6 +315,8 @@ export default function Story() {
   ).current;
 
   const renderUserStory = ({ item }) => {
+    if (!item || !item.stories || !item.user) return null;
+
     const story = item.stories[currentStoryIndex];
     if (!story) return null;
 
@@ -258,40 +335,68 @@ export default function Story() {
         }}>
           <View style={{ flex: 1 }}>
             {story.tipo_midia === 'video' ? (
-              <Video
-                ref={(ref) => (videoRefs.current[story.id] = ref)}
-                source={{ uri: story.url }}
-                style={StyleSheet.absoluteFill}
-                resizeMode="cover"
-                shouldPlay={isFocused}
-                isLooping={false}
-                onPlaybackStatusUpdate={(status) => {
-                  if (status.didJustFinish) handleNextStory();
-                }}
-              />
+              <View style={{ flex: 1 }}>
+                <Video
+                  ref={ref => videoRefs.current[story.id] = ref}
+                  source={{ uri: story.url }}
+                  rate={1.0}
+                  volume={1.0}
+                  isMuted={false}
+                  resizeMode="cover"
+                  shouldPlay={isFocused}
+                  isLooping={false}
+                  style={StyleSheet.absoluteFill}
+                  onReadyForDisplay={() => {
+                    setIsVideoReady(true);
+                    startProgress();
+                  }}
+                  onError={() => {
+                    setIsVideoReady(false);
+                    handleNextStory();
+                  }}
+                  onPlaybackStatusUpdate={(status) => {
+                    if (status.didJustFinish) {
+                      handleNextStory();
+                    }
+                  }}
+                />
+                {!isVideoReady && (
+                  <View style={styles.videoLoading}>
+                    <ActivityIndicator size="large" color="white" />
+                    <Text style={styles.loadingText}>Carregando vídeo...</Text>
+                  </View>
+                )}
+              </View>
             ) : (
               <Image
                 source={{ uri: story.url }}
                 style={StyleSheet.absoluteFill}
                 resizeMode="cover"
+                onLoad={() => startProgress()}
+                onError={() => handleNextStory()}
               />
             )}
 
             <LinearGradient
-              colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.6)']}
+              colors={['rgba(0,0,0,0.7)', 'transparent', 'transparent', 'rgba(0,0,0,0.7)']}
+              locations={[0, 0.2, 0.8, 1]}
               style={StyleSheet.absoluteFill}
             >
-              <View style={{ flexDirection: 'row', marginTop: 40, marginHorizontal: 8 }}>
+              <View style={styles.progressContainer}>
                 {item.stories.map((s, i) => (
-                  <View key={s.id} style={{ flex: 1, height: 3, backgroundColor: '#555', marginHorizontal: 2 }}>
-                    {i < currentStoryIndex && <View style={{ backgroundColor: '#fff', height: '100%', width: '100%' }} />}
+                  <View key={s.id} style={styles.progressBar}>
+                    {i < currentStoryIndex && <View style={[styles.progressFill, { width: '100%' }]} />}
                     {i === currentStoryIndex && (
                       <Animated.View
-                        style={{
-                          backgroundColor: '#fff',
-                          height: '100%',
-                          width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] })
-                        }}
+                        style={[
+                          styles.progressFill,
+                          {
+                            width: progressAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: ['0%', '100%']
+                            })
+                          }
+                        ]}
                       />
                     )}
                   </View>
@@ -306,10 +411,12 @@ export default function Story() {
                       source={{ uri: item.user.avatar }} 
                       onError={() => item.userImage = 'https://i.pravatar.cc/150'}
                     />
-                    <Text style={styles.userName}> {item.user.name}</Text>
-                    <Text style={styles.storyTime}>
-                      {new Date(story.data_inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
+                    <View style={styles.userInfo}>
+                      <Text style={styles.userName}>{item.user.name}</Text>
+                      <Text style={styles.storyTime}>
+                        {new Date(story.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                    </View>
                   </View>
                   
                   {story.legenda && (
@@ -318,14 +425,26 @@ export default function Story() {
                 </View>
                 
                 <View style={styles.actionButtons}>
+                <TouchableOpacity style={styles.button} onPress={handleLike}>
+                        <Ionicons
+          name={likesState[currentStory.id] ? 'heart' : 'heart-outline'}
+          size={responsiveFontSize(5.5)}
+          color={likesState[currentStory.id] ? 'red' : 'white'}
+        />
+              </TouchableOpacity>
+
+              
+                  {userId !== null && Number(item.user.id) === userId && (
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={() => handleDeleteStory(story.id)}
+                    >
+                      <Ionicons name="trash-outline" size={responsiveFontSize(5.5)} color="white" />
+                    </TouchableOpacity>
+                  )}
+                  
                   <TouchableOpacity style={styles.button}>
-                    <Ionicons name="heart-outline" size={responsiveFontSize(6)} color="white" />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.button}>
-                    <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.button}>
-                    <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
+                    <Ionicons name="ellipsis-vertical" size={responsiveFontSize(5.5)} color="white" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -338,15 +457,16 @@ export default function Story() {
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: 'black' }]}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="white" />
+        <Text style={{ color: 'white', marginTop: 10 }}>Carregando stories...</Text>
       </View>
     );
   }
 
   if (!storiesData || storiesData.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: 'black' }]}>
+      <View style={styles.loadingContainer}>
         <Text style={{ color: 'white' }}>Nenhum story disponível</Text>
       </View>
     );
@@ -360,7 +480,7 @@ export default function Story() {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item?.id?.toString() || `story-${index}`}
         renderItem={renderUserStory}
         initialScrollIndex={currentUserIndex}
         onMomentumScrollEnd={(e) => {
@@ -384,60 +504,112 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'space-between',
-    padding: responsiveWidth(4)
+    padding: responsiveWidth(4),
+    zIndex: 1
   },
   contentContainer: {
     flex: 1,
     justifyContent: 'flex-end',
-    marginBottom: responsiveHeight(5)
+    paddingBottom: responsiveHeight(8)
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: responsiveWidth(2),
     marginBottom: responsiveHeight(2),
     paddingHorizontal: responsiveWidth(4)
   },
   profileImage: {
-    width: responsiveWidth(10),
-    height: responsiveWidth(10),
-    borderRadius: responsiveWidth(5),
+    width: responsiveWidth(12),
+    height: responsiveWidth(12),
+    borderRadius: responsiveWidth(6),
     borderWidth: 2,
-    borderColor: '#fff'
+    borderColor: '#fff',
+    marginRight: responsiveWidth(3)
+  },
+  userInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   userName: {
     color: 'white',
-    fontSize: responsiveFontSize(4),
-    fontWeight: '600',
+    fontSize: responsiveFontSize(4.5),
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
+    marginRight: responsiveWidth(2)
+  },
+  storyTime: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: responsiveFontSize(3.5),
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3
   },
-  storyTime: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: responsiveFontSize(3),
-    marginLeft: 'auto'
-  },
   caption: {
     color: 'white',
-    fontSize: responsiveFontSize(4),
-    marginBottom: responsiveHeight(2),
-    paddingHorizontal: responsiveWidth(4)
+    fontSize: responsiveFontSize(4.2),
+    marginBottom: responsiveHeight(3),
+    paddingHorizontal: responsiveWidth(4),
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
+    lineHeight: responsiveHeight(3.5)
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    marginTop: responsiveHeight(4),
+    marginHorizontal: responsiveWidth(2),
+    marginBottom: responsiveHeight(1)
+  },
+  progressBar: {
+    flex: 1,
+    height: responsiveHeight(0.4),
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    marginHorizontal: responsiveWidth(0.5),
+    borderRadius: responsiveWidth(0.2)
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#fff',
+    borderRadius: responsiveWidth(0.2)
   },
   actionButtons: {
     position: 'absolute',
-    right: responsiveWidth(4),
-    bottom: responsiveHeight(5),
+    right: responsiveWidth(5),
+    bottom: responsiveHeight(6),
     alignItems: 'center',
-    gap: responsiveHeight(2)
+    gap: responsiveHeight(3)
   },
   button: {
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    width: responsiveWidth(12),
+    height: responsiveWidth(12),
+    borderRadius: responsiveWidth(6),
+    justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: responsiveHeight(0.5)
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)'
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#000'
+  },
+  videoLoading: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)'
+  },
+  loadingText: {
+    color: 'white',
+    marginTop: responsiveHeight(2),
+    fontSize: responsiveFontSize(4),
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5
   }
 });
