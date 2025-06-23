@@ -4,6 +4,7 @@ import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import host from '../../global';
+import { useTema } from '../../context/themeContext';
 const NaoInteressado = ({ visible, onClose,arroba,idPost }) => {
   async function naointeressar() {
     const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -24,10 +25,11 @@ const NaoInteressado = ({ visible, onClose,arroba,idPost }) => {
     }
 
   }
+  const {tema} = useTema();
   return (
     <Modal
       isVisible={visible}
-      onBackdropPress={() => naointeressar()}
+      onBackdropPress={naointeressar}
       onBackButtonPress={onClose}
       backdropOpacity={0}
       animationIn="slideInUp"
@@ -36,18 +38,21 @@ const NaoInteressado = ({ visible, onClose,arroba,idPost }) => {
       animationOutTiming={500}
       style={{ margin: 0, justifyContent: 'flex-end' }}
     >
-      <View style={styles.modal}>
+      <View style={[styles.modal, { backgroundColor: tema.modalFundo }]}>
         <View style={styles.modalTexto}>
-          <Text style={styles.texto}>@{arroba} não será mais recomendado.</Text>
+          <Text style={[styles.texto, { color: tema.texto }]}>
+            @{arroba} não será mais recomendado.
+          </Text>
           <Pressable onPress={onClose}>
-            <Text style={styles.textoDestacado}>Desfazer</Text>
+            <Text style={[styles.textoDestacado, { color: tema.azul }]}>
+              Desfazer
+            </Text>
           </Pressable>
         </View>
       </View>
     </Modal>
   );
 };
-
 const styles = StyleSheet.create({
   modal: {
     backgroundColor: '#448FFF',

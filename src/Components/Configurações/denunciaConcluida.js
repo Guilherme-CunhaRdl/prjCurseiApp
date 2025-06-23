@@ -46,18 +46,19 @@ const DenunciaConcluida = ({ visible, onClose,idPost,motivo,userPost }) => {
       animationOutTiming={500}
       style={{ margin: 0, justifyContent: 'flex-end' }}
     >
-      <View style={styles.modal}>
+      <View style={[styles.modal, { backgroundColor: tema.modalFundo }]}>
         <View style={styles.modalTexto}>
-          <Text style={styles.texto}>Denúncia enviada com sucesso</Text>
+          <Text style={[styles.texto, { color: tema.texto }]}>
+            Denúncia enviada com sucesso
+          </Text>
           <Pressable onPress={onClose}>
-            <Text style={styles.texto}>Desfazer</Text>
+            <Text style={[styles.texto, { color: tema.azul }]}>Desfazer</Text>
           </Pressable>
         </View>
       </View>
     </Modal>
   );
 };
-
 const styles = StyleSheet.create({
   modal: {
     backgroundColor: '#448FFF',

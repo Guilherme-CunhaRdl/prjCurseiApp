@@ -1,52 +1,73 @@
 import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet, Pressable } from 'react-native';
 import Modal from 'react-native-modal';
-
+import { useTema } from '../../context/themeContext';
 const ModalConfirmacao = () => {
     const [visible, setVisible] = useState(false);
 
     const abrirModal = () => setVisible(true);
     const fecharModal = () => setVisible(false);
+    const {tema} = useTema();
 
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Button title="Abrir Modal" onPress={abrirModal} />
-            <Modal
-                isVisible={visible}
-                onBackdropPress={fecharModal}
-                onBackButtonPress={fecharModal}
-                animationIn="slideInLeft"
-                animationOut="slideOutLeft"
-                backdropTransitionInTiming={500}
-                backdropTransitionOutTiming={500}
-                animationInTiming={800}
-                animationOutTiming={800}
-            >
-                <View style={styles.modal}>
-                    <View style={styles.modalTexto}>
-                        <Text style={styles.texto}>Tem certeza que deseja continuar?</Text>
-                        <Text style={styles.descItem}>Talvez essa alteração não tenha como ser desfeita</Text>
-                    </View>
-                    <View style={styles.modalBotoes}>
-                        <View style={styles.botoes}>
-                            <View style={{ height:'100%',borderRightWidth: 1, borderColor: '#DBDBDB', width: '50%', alignItems: 'center', justifyContent: 'center'}}>
-                                <Pressable onPress={fecharModal}>
-                                    <Text style={{ fontWeight:700, color:'#448FFF' }}>Cancelar</Text>
-                                </Pressable>
-                            </View>
-                            <View style={{ height:'100%',width: '50%',alignItems: 'center', justifyContent: 'center'}}>
-                                <Pressable title="Confirmar" onPress={fecharModal}>
-                                    <Text style={{ fontWeight:600, color:'#448FFF' }}>Confirmar</Text>
-                                </Pressable>
-                            </View>
-                        </View>
-                    </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: tema.fundo }}>
+          <Button title="Abrir Modal" onPress={abrirModal} color={tema.azul} />
+          
+          <Modal
+            isVisible={visible}
+            onBackdropPress={fecharModal}
+            onBackButtonPress={fecharModal}
+            animationIn="slideInLeft"
+            animationOut="slideOutLeft"
+            backdropTransitionInTiming={500}
+            backdropTransitionOutTiming={500}
+            animationInTiming={800}
+            animationOutTiming={800}
+          >
+            <View style={[styles.modal, { backgroundColor: tema.modalFundo }]}>
+              <View style={styles.modalTexto}>
+                <Text style={[styles.texto, { color: tema.texto }]}>Tem certeza que deseja continuar?</Text>
+                <Text style={[styles.descItem, { color: tema.descricao }]}>
+                  Talvez essa alteração não tenha como ser desfeita
+                </Text>
+              </View>
+    
+              <View style={styles.modalBotoes}>
+                <View style={styles.botoes}>
+                  <View
+                    style={{
+                      height: '100%',
+                      borderRightWidth: 1,
+                      borderColor: tema.cinza,
+                      width: '50%',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Pressable onPress={fecharModal}>
+                      <Text style={{ fontWeight: '700', color: tema.azul }}>Cancelar</Text>
+                    </Pressable>
+                  </View>
+    
+                  <View
+                    style={{
+                      height: '100%',
+                      width: '50%',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Pressable onPress={fecharModal}>
+                      <Text style={{ fontWeight: '600', color: tema.azul }}>Confirmar</Text>
+                    </Pressable>
+                  </View>
                 </View>
-            </Modal>
+              </View>
+            </View>
+          </Modal>
         </View>
-    );
-};
-
+      );
+    };
 const styles = StyleSheet.create({
     modal: {
         backgroundColor: 'white',

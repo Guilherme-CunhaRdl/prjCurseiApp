@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useNavigation } from "@react-navigation/native";
 import host from '../../global';
+import { useTema } from '../../context/themeContext';
 
 const Seguindo = ({ visible, onClose,arroba,userPost}) => {
   async function seguir() {
@@ -25,10 +26,11 @@ const Seguindo = ({ visible, onClose,arroba,userPost}) => {
     })
     onClose()
   }
+  const {tema} = useTema();
   return (
     <Modal
       isVisible={visible}
-      onBackdropPress={() => seguir()}
+      onBackdropPress={seguir}
       onBackButtonPress={onClose}
       backdropOpacity={0}
       animationIn="slideInUp"
@@ -37,11 +39,13 @@ const Seguindo = ({ visible, onClose,arroba,userPost}) => {
       animationOutTiming={500}
       style={{ margin: 0, justifyContent: 'flex-end' }}
     >
-      <View style={styles.modal}>
+      <View style={[styles.modal, { backgroundColor: tema.modalFundo }]}>
         <View style={styles.modalTexto}>
-          <Text style={styles.texto}>Agora você está seguindo @{arroba}</Text>
+          <Text style={[styles.texto, { color: tema.texto }]}>
+            Agora você está seguindo @{arroba}
+          </Text>
           <Pressable onPress={onClose}>
-            <Text style={styles.texto}>Desfazer</Text>
+            <Text style={[styles.texto, { color: tema.azul }]}>Desfazer</Text>
           </Pressable>
         </View>
       </View>

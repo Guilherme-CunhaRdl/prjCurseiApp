@@ -5,6 +5,7 @@ import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import host from '../../global';
+import { useTema } from '../../context/themeContext';
 
 const ModalExcluir = ({ visible, onClose,idPost }) => {
      const navigation = useNavigation();
@@ -27,7 +28,7 @@ const ModalExcluir = ({ visible, onClose,idPost }) => {
     }
     
   }
-
+  const {tema} = useTema();
   return (
     <Modal
       isVisible={visible}
@@ -40,27 +41,30 @@ const ModalExcluir = ({ visible, onClose,idPost }) => {
       animationInTiming={800}
       animationOutTiming={800}
     >
-      <View style={styles.modal}>
+      <View style={[styles.modal, { backgroundColor: tema.modalFundo }]}>
         <View style={styles.modalTexto}>
-          <Text style={styles.texto}>Tem certeza que deseja excluir esse post?</Text>
-          <Text style={styles.descItem}>
+          <Text style={[styles.texto, { color: tema.texto }]}>
+            Tem certeza que deseja excluir esse post?
+          </Text>
+          <Text style={[styles.descItem, { color: tema.descricao }]}>
             Ele será apagado e não poderá ser recuperado
           </Text>
         </View>
+
         <View style={styles.modalBotoes}>
           <View style={styles.botoes}>
             <View
               style={{
                 height: '100%',
                 borderRightWidth: 1,
-                borderColor: '#DBDBDB',
+                borderColor: tema.cinza,
                 width: '50%',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
               <Pressable onPress={onClose}>
-                <Text style={{ fontWeight: '700', color: '#448FFF' }}>Cancelar</Text>
+                <Text style={{ fontWeight: '700', color: tema.azul }}>Cancelar</Text>
               </Pressable>
             </View>
             <View
@@ -71,8 +75,8 @@ const ModalExcluir = ({ visible, onClose,idPost }) => {
                 justifyContent: 'center',
               }}
             >
-              <Pressable onPress={() => Excluir()}>
-                <Text style={{ fontWeight: '600', color: 'red' }}>Confirmar</Text>
+              <Pressable onPress={Excluir}>
+                <Text style={{ fontWeight: '600', color: tema.vermelho }}>Confirmar</Text>
               </Pressable>
             </View>
           </View>
