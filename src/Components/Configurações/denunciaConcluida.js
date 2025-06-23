@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useNavigation } from "@react-navigation/native";
 import host from '../../global';
+import { useTema } from '../../context/themeContext';
 const DenunciaConcluida = ({ visible, onClose,idPost,motivo,userPost }) => {
   const navigation = useNavigation();
 
@@ -34,6 +35,7 @@ const DenunciaConcluida = ({ visible, onClose,idPost,motivo,userPost }) => {
     }
     onClose()
   }
+  const {tema} = useTema();
   return (
     <Modal
       isVisible={visible}
