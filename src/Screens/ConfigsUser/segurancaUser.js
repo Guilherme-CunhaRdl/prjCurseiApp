@@ -17,6 +17,7 @@ export default function SegurancaUser() {
   const [protecaoSenha, setProtecaoSenha] = useState(false);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [usuario, setUsuario] = useState(null);
 
   useEffect(() => {
     const carregarDadosUsuario = async () => {
@@ -24,8 +25,8 @@ export default function SegurancaUser() {
         const id = await AsyncStorage.getItem('idUser');
         setUserId(id);
 
-        const response = await axios.post(`${API_BASE_URL}/api/cursei/user/selecionarUser/${id}`);
-        usuario = response.data.User;
+        const response = await axios.post(`http://localhost:8000/api/cursei/user/selecionarUser/${id}`);
+        console.log(response.data.User);
         const valorDoisFatores = usuario.dois_fatores_user;
 
         // Corrigindo o tipo para booleano
@@ -49,7 +50,7 @@ export default function SegurancaUser() {
     setUpdating(true);
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/api/cursei/user/autenticacao/${userId}`,
+        `http://localhost:8000/api/cursei/user/autenticacao/${userId}`,
         { dois_fatores_user: novoValor }
       );
 

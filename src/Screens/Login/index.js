@@ -16,6 +16,7 @@ import { useNavigation } from "@react-navigation/native";
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import host from '../../global';
+import DoisFatores from './doisfatores';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -84,14 +85,21 @@ export default function Login() {
         const usuario = resposta.data.usuario;
         console.log(usuario)
         console.log(resposta)
-        await AsyncStorage.setItem('idUser', String(usuario.id));
-        await AsyncStorage.setItem('logado', '1');
-        await AsyncStorage.setItem('idInstituicao', resposta.data.id_instituicao);
+        const doisFatores = usuario.dois_fatores_user;
+        if(doisFatores === 1) {
+          await AsyncStorage.setItem('idUser', String(usuario.id));
+          navigation.navigate('DoisFatores', { email: usuario.email_user });
 
-        
-        await AsyncStorage.setItem('imgUser', usuario.img_user);
-        await AsyncStorage.setItem('arrobaUser', usuario.arroba_user);
-        navigation.navigate('Home');
+        }
+        else {
+          await AsyncStorage.setItem('idUser', String(usuario.id));
+          await AsyncStorage.setItem('logado', '1');
+          await AsyncStorage.setItem('idInstituicao', resposta.data.id_instituicao);
+          await AsyncStorage.setItem('imgUser', usuario.img_user);
+          await AsyncStorage.setItem('arrobaUser', usuario.arroba_user);
+          navigation.navigate('Home');
+        }
+  
       } else {
         setErroEmail('Informações inválidas');
         setErroSenha('Informações inválidas');
