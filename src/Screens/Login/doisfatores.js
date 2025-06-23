@@ -98,7 +98,7 @@ export default function DoisFatores({route}) {
         console.log(usuario);
         await AsyncStorage.setItem('idUser', String(usuario.id));
         await AsyncStorage.setItem('logado', '1');
-        await AsyncStorage.setItem('idInstituicao', resposta.data.id_instituicao);
+        await AsyncStorage.setItem('idInstituicao', response.data.id_instituicao);
         await AsyncStorage.setItem('imgUser', usuario.img_user);
         await AsyncStorage.setItem('arrobaUser', usuario.arroba_user);
         navigation.navigate('Home');
@@ -120,7 +120,7 @@ export default function DoisFatores({route}) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Verificação em Duas Etapas</Text>
+      <Text style={styles.title}>Verificação em duas Etapas</Text>
       <Text style={styles.subtitle}>
         Enviamos um código de 6 dígitos para {email}
       </Text>
@@ -168,49 +168,58 @@ export default function DoisFatores({route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 24,
     justifyContent: 'center',
+    backgroundColor: '#f9f9f9',
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 12,
     textAlign: 'center',
+    color: '#333',
   },
   subtitle: {
     fontSize: 16,
-    marginBottom: 30,
+    marginBottom: 32,
     textAlign: 'center',
     color: '#666',
   },
   input: {
-    height: 50,
+    height: 52,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 15,
+    borderColor: '#bbb',
+    borderRadius: 10,
+    paddingHorizontal: 16,
     marginBottom: 20,
-    fontSize: 18,
+    fontSize: 14,
     textAlign: 'center',
+    backgroundColor: '#fff',
   },
   button: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: '#2196F3',
+    paddingVertical: 16,
+    borderRadius: 10,
     alignItems: 'center',
+    elevation: 3, // para Android
+    shadowColor: '#000', // para iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   buttonText: {
-    color: 'white',
+    color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   resendButton: {
-    marginTop: 20,
+    marginTop: 24,
     padding: 10,
     alignItems: 'center',
   },
   resendText: {
-    color: '#007AFF',
+    color: '#2196F3',
     fontSize: 16,
+    fontWeight: '500',
   },
 });

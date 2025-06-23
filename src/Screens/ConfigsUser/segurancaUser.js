@@ -7,8 +7,6 @@ import axios from 'axios';
 import host from '../../global';
 import { useTema } from '../../context/themeContext';
 
-const API_BASE_URL = `http://${host}:8000`;
-
 export default function SegurancaUser() {
   const { tema } = useTema();
 
@@ -25,8 +23,9 @@ export default function SegurancaUser() {
         const id = await AsyncStorage.getItem('idUser');
         setUserId(id);
 
-        const response = await axios.post(`http://localhost:8000/api/cursei/user/selecionarUser/${id}`);
+        const response = await axios.post(`http://${host}:8000/api/cursei/user/selecionarUser/${id}`);
         console.log(response.data.User);
+        const usuario = response.data.User;
         const valorDoisFatores = usuario.dois_fatores_user;
 
         // Corrigindo o tipo para booleano
@@ -50,7 +49,7 @@ export default function SegurancaUser() {
     setUpdating(true);
     try {
       const response = await axios.post(
-        `http://localhost:8000/api/cursei/user/autenticacao/${userId}`,
+        `http://${host}:8000/api/cursei/user/autenticacao/${userId}`,
         { dois_fatores_user: novoValor }
       );
 
