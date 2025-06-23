@@ -15,7 +15,7 @@ import {useTema} from '../../../context/themeContext';
 const Top = createMaterialTopTabNavigator();
 
 const TopTabs = ({ termoPesquisado }) => {
-    const route = useRoute();
+    
     const [loading, setLoading] = useState(false);
     const [usuarios, setUsuarios] = useState();
     const [instituicoes, setInstituicoes] = useState();
@@ -96,7 +96,6 @@ const TopTabs = ({ termoPesquisado }) => {
             console.error("Erro ao buscar instituições:", error);
         }
     }
-    const navigation = useNavigation();
 
     useEffect(() => {
         if (termoPesquisado && termoPesquisado.trim() !== '') {
@@ -280,4 +279,5 @@ const TopTabs = ({ termoPesquisado }) => {
             />
         </Top.Navigator>
     );
-                                            }    
+                                  };
+                                  export default TopTabs;
