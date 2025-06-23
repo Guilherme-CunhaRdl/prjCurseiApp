@@ -200,7 +200,7 @@ export default function Perfil() {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: tema.fundo }]}>
             {!perfilProprio && (
-                <View style={styles.headerTopo}>
+                <View style={[styles.headerTopo, {backgroundColor: tema.fundo}]}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Ionicons size={22} name="arrow-back-outline" color={tema.azul} />
                     </TouchableOpacity>

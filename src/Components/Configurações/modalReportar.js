@@ -5,6 +5,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import DenunciaConcluida from './denunciaConcluida';
 import host from '../../global';
+import { useTema } from '../../context/themeContext';
 const motivosDenuncia = [
   { value: '1', label: 'Conteúdo ofensivo', icon: 'warning' },
   { value: '2', label: 'Spam ou conteúdo enganoso', icon: 'disconnect' },
@@ -23,7 +24,7 @@ const ModalReportar = ({ visible, onClose ,idPost,arroba,userPost}) => {
     onClose(); // Fecha o modal atual
     setShowConfirmModal(true); // Abre o de denúncia concluída
   };
-
+  const {tema} = useTema();
   return (
     <>
       <Modal
@@ -37,19 +38,19 @@ const ModalReportar = ({ visible, onClose ,idPost,arroba,userPost}) => {
         animationInTiming={800}
         animationOutTiming={800}
       >
-        <View style={styles.modal}>
+        <View style={[styles.modal, { backgroundColor: tema.modalFundo }]}>
           <View style={styles.modalTexto}>
-            <Text style={styles.texto}>Qual o motivo da denúncia?</Text>
-            <Text style={styles.descItem}>
+            <Text style={[styles.texto, { color: tema.texto }]}>Qual o motivo da denúncia?</Text>
+            <Text style={[styles.descItem, { color: tema.descricao }]}>
               Após denunciar, @{arroba} não verá mais suas publicações.
             </Text>
           </View>
 
           <View style={styles.dropdownWrapper}>
             <Dropdown
-              style={styles.dropdown}
-              selectedTextStyle={styles.selectedTextStyle}
-              placeholderStyle={styles.placeholderStyle}
+              style={[styles.dropdown, { backgroundColor: tema.cinza }]}
+              selectedTextStyle={[styles.selectedTextStyle, { color: tema.texto }]}
+              placeholderStyle={[styles.placeholderStyle, { color: tema.descricao }]}
               iconStyle={styles.iconStyle}
               maxHeight={200}
               value={motivo}
@@ -60,13 +61,13 @@ const ModalReportar = ({ visible, onClose ,idPost,arroba,userPost}) => {
               onChange={e => setMotivo(e.value)}
               renderItem={(item) => (
                 <View style={styles.item}>
-                  <AntDesign name={item.icon} size={20} color="#333" style={styles.iconItem} />
-                  <Text style={styles.itemText}>{item.label}</Text>
+                  <AntDesign name={item.icon} size={20} color={tema.icone} style={styles.iconItem} />
+                  <Text style={[styles.itemText, { color: tema.texto }]}>{item.label}</Text>
                 </View>
               )}
               renderLeftIcon={() =>
                 selectedItem ? (
-                  <AntDesign name={selectedItem.icon} size={20} color="#333" style={styles.selectedIcon} />
+                  <AntDesign name={selectedItem.icon} size={20} color={tema.icone} style={styles.selectedIcon} />
                 ) : null
               }
             />
@@ -76,12 +77,12 @@ const ModalReportar = ({ visible, onClose ,idPost,arroba,userPost}) => {
             <View style={styles.botoes}>
               <View style={styles.botaoContainer}>
                 <Pressable onPress={onClose}>
-                  <Text style={styles.cancelar}>Cancelar</Text>
+                  <Text style={[styles.cancelar, { color: tema.vermelho }]}>Cancelar</Text>
                 </Pressable>
               </View>
               <View style={[styles.botaoContainer, { borderRightWidth: 0 }]}>
                 <Pressable onPress={handleConfirmar}>
-                  <Text style={styles.confirmar}>Confirmar</Text>
+                  <Text style={[styles.confirmar, { color: tema.azul }]}>Confirmar</Text>
                 </Pressable>
               </View>
             </View>
@@ -89,8 +90,13 @@ const ModalReportar = ({ visible, onClose ,idPost,arroba,userPost}) => {
         </View>
       </Modal>
 
-      {/* Modal de Denúncia Concluída */}
-      <DenunciaConcluida visible={showConfirmModal} onClose={() => setShowConfirmModal(false)}  idPost={idPost} motivo={ selectedItem?.label} userPost={userPost}/>
+      <DenunciaConcluida
+        visible={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        idPost={idPost}
+        motivo={selectedItem?.label}
+        userPost={userPost}
+      />
     </>
   );
 };
