@@ -115,6 +115,7 @@ export default function Curtei() {
         thumbUrl: video.thumb_url,
         userImage: video.usuario?.foto,
         institutionName: video.usuario?.nome,
+        idUser: video.usuario?.id,
         description: video.legenda,
         likes: video.curtidas_count || 0,
         comments: video.comentarios_count || 0,
@@ -224,15 +225,19 @@ export default function Curtei() {
             <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
           </TouchableOpacity>
           
-          <TouchableOpacity
-  style={styles.button}
-  onPress={() => {
-    setCurteiSelecionado(item);
-    setShowOpcoesModal(true);
-  }}
->
-  <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
-</TouchableOpacity>
+          {item.idUser?.toString() === userId && (
+
+  <TouchableOpacity
+    style={styles.button}
+    onPress={() => {
+      setCurteiSelecionado(item);
+      setShowOpcoesModal(true);
+    }}
+  >
+    <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
+  </TouchableOpacity>
+)}
+
         </View>
       </LinearGradient>
     </View>
