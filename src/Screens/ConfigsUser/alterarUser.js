@@ -161,7 +161,7 @@ export default function AlterarUser() {
       {/* MODAIS */}
       <UserModal
         visible={modalArroba}
-        title="Editar arroba"
+        title="Edite seu @"
         value={arrobaValue}
         onChange={setArrobaValue}
         onCancel={() => setModalArroba(false)}
@@ -218,12 +218,12 @@ export default function AlterarUser() {
 
             <View style={styles.buttonRow}>
               <Pressable 
-                style={[styles.botao, { backgroundColor: tema.cancelar }]} 
+                style={[styles.botao, { backgroundColor: tema.azul }]} 
                 onPress={() => {
                   setModalSenha(false);
                   setErroSenha('');
                 }}>
-                <Text style={[styles.buttonText, { color: tema.texto }]}>Cancelar</Text>
+                <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Cancelar</Text>
               </Pressable>
               <Pressable 
                 style={[styles.botao, { backgroundColor: tema.azul }]} 
@@ -264,8 +264,8 @@ function UserModal({
             keyboardType={keyboardType}
           />
           <View style={styles.buttonRow}>
-            <Pressable style={[styles.botao, { backgroundColor: tema.cancelar }]} onPress={onCancel}>
-              <Text style={[styles.buttonText, { color: tema.texto }]}>Cancelar</Text>
+            <Pressable style={[styles.botao, { backgroundColor: tema.azul }]} onPress={onCancel}>
+              <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Cancelar</Text>
             </Pressable>
             <Pressable style={[styles.botao, { backgroundColor: tema.azul }]} onPress={onSave}>
               <Text style={[styles.buttonText, { color: tema.textoBotao }]}>Salvar</Text>

@@ -48,7 +48,7 @@ export default function ConfigsUser() {
         <TouchableOpacity style={{ gap: 2 }} onPress={() => navigation.navigate('Informações da conta')}>
           <View style={styles.grupoIconeTexto}>
             <AntDesign name="user" style={[styles.icone, { color: tema.azul }]} />
-            <Text style={[styles.textoTitulo, { color: tema.azul }]}>Sua conta</Text>
+            <Text style={[styles.textoTitulo, { color: tema.azul, marginLeft: 8 }]}>Sua conta</Text>
           </View>
           <Text style={styles.textoDescricao}>Veja e altere as informações da sua conta.</Text>
         </TouchableOpacity>
