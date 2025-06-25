@@ -108,176 +108,189 @@ const TopTabs = ({ termoPesquisado }) => {
     }, [termoPesquisado]); // <-- Observa mudanças no termo
     const {tema} = useTema();
 
-    return (
-        <Top.Navigator screenOptions={{ tabBarScrollEnabled: true }}>
-            <Top.Screen
-                name="Em Destaque"
-                children={() => (
-                    <ScrollView style={[styles.containerPost, { backgroundColor: tema.fundo }]}>
-                        {loading ? (
-                            <ActivityIndicator size="large" color={tema.texto} />
-                        ) : (
-                            <Post pesquisa={termoPesquisado} />
-                        )}
-                    </ScrollView>
-                )}
-            />
-    
-            <Top.Screen
-                name="Mais Recentes"
-                children={() => (
-                    <ScrollView style={[styles.containerPost, { backgroundColor: tema.fundo }]}>
-                        {loading ? (
-                            <ActivityIndicator size="large" color={tema.texto} />
-                        ) : (
-                            <Post pesquisaMaisRecente={termoPesquisado} />
-                        )}
-                    </ScrollView>
-                )}
-            />
-    
-            <Top.Screen
-                name="Usuários"
-                children={() => (
-                    <View style={[styles.sugestao, { backgroundColor: tema.fundo }]}>
-                        <FlatList
-                            nestedScrollEnabled
-                            data={usuarios}
-                            keyExtractor={item => item.id.toString()}
-                            renderItem={({ item }) => (
-                                <View style={styles.userContainer}>
-                                    <Pressable
-                                        style={styles.userImgContainer}
-                                        onPress={() =>
-                                            navigation.navigate('Perfil', {
-                                                idUserPerfil: item.id,
-                                                titulo: item.arroba_user,
-                                            })
-                                        }
-                                    >
-                                        <Image
-                                            source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }}
-                                            style={styles.imgLogo}
-                                        />
-                                    </Pressable>
-    
-                                    <Pressable
-                                        style={styles.containerNomeUser}
-                                        onPress={() =>
-                                            navigation.navigate('Perfil', {
-                                                idUserPerfil: item.id,
-                                                titulo: item.arroba_user,
-                                            })
-                                        }
-                                    >
-                                        <Text style={[styles.nomeUser, { color: tema.texto }]}>
-                                            {item.nome_user}
-                                            {item.instituicao == 1 && (
-                                                <Ionicons color={tema.azul} size={20} name="school-outline" />
-                                            )}
-                                        </Text>
-                                        <Text style={[styles.arrobaUser, { color: tema.descricao }]}>
-                                            @{item.arroba_user}
-                                        </Text>
-                                    </Pressable>
-    
-                                    <View style={styles.buttonFollowContainer}>
-                                        <Pressable
-                                            style={
-                                                item.seguido
-                                                    ? [styles.buttonFollowActive, { backgroundColor: tema.azul }]
-                                                    : [styles.buttonFollow, { borderColor: tema.azul }]
-                                            }
-                                            onPress={() => seguir(item.id)}
-                                        >
-                                            <Text
-                                                style={
-                                                    item.seguido
-                                                        ? [styles.titleButtonActive, { color: tema.textoBotao }]
-                                                        : [styles.titleButton, { color: tema.azul }]
-                                                }
-                                            >
-                                                {item.seguido ? 'Seguido' : 'Seguir'}
-                                            </Text>
-                                        </Pressable>
-                                    </View>
-                                </View>
-                            )}
-                        />
-                    </View>
-                )}
-            />
-    
-            <Top.Screen
-                name="Instituições"
-                children={() => (
-                    <View style={[styles.sugestao, { backgroundColor: tema.fundo }]}>
-                        <FlatList
-                            nestedScrollEnabled
-                            data={instituicoes}
-                            keyExtractor={item => item.id.toString()}
-                            renderItem={({ item }) => (
-                                <View style={styles.userContainer}>
-                                    <Pressable
-                                        style={styles.userImgContainer}
-                                        onPress={() =>
-                                            navigation.navigate('Perfil', {
-                                                idUserPerfil: item.id,
-                                                titulo: item.arroba_user,
-                                            })
-                                        }
-                                    >
-                                        <Image
-                                            source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }}
-                                            style={styles.imgLogo}
-                                        />
-                                    </Pressable>
-    
-                                    <Pressable
-                                        style={styles.containerNomeUser}
-                                        onPress={() =>
-                                            navigation.navigate('Perfil', {
-                                                idUserPerfil: item.id,
-                                                titulo: item.arroba_user,
-                                            })
-                                        }
-                                    >
-                                        <Text style={[styles.nomeUser, { color: tema.texto }]}>
-                                            {item.nome_user}{' '}
-                                            <Ionicons color={tema.azul} size={20} name="school-outline" />
-                                        </Text>
-                                        <Text style={[styles.arrobaUser, { color: tema.descricao }]}>
-                                            @{item.arroba_user}
-                                        </Text>
-                                    </Pressable>
-    
-                                    <View style={styles.buttonFollowContainer}>
-                                        <Pressable
-                                            style={
-                                                item.seguido
-                                                    ? [styles.buttonFollowActive, { backgroundColor: tema.azul }]
-                                                    : [styles.buttonFollow, { borderColor: tema.azul }]
-                                            }
-                                            onPress={() => seguir(item.id)}
-                                        >
-                                            <Text
-                                                style={
-                                                    item.seguido
-                                                        ? [styles.titleButtonActive, { color: tema.textoBotao }]
-                                                        : [styles.titleButton, { color: tema.azul }]
-                                                }
-                                            >
-                                                {item.seguido ? 'Seguido' : 'Seguir'}
-                                            </Text>
-                                        </Pressable>
-                                    </View>
-                                </View>
-                            )}
-                        />
-                    </View>
-                )}
-            />
-        </Top.Navigator>
-    );
+return (
+  <Top.Navigator
+    screenOptions={{
+      tabBarScrollEnabled: true,
+      tabBarStyle: { backgroundColor: tema.fundo },
+      tabBarIndicatorStyle: { backgroundColor: tema.azul },
+      tabBarLabelStyle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: tema.texto,
+        textTransform: 'none',
+      },
+    }}
+  >
+    <Top.Screen
+      name="Em Destaque"
+      children={() => (
+        <ScrollView style={[styles.containerPost, { backgroundColor: tema.fundo }]}>
+          {loading ? (
+            <ActivityIndicator size="large" color={tema.texto} />
+          ) : (
+            <Post pesquisa={termoPesquisado} />
+          )}
+        </ScrollView>
+      )}
+    />
+
+    <Top.Screen
+      name="Mais Recentes"
+      children={() => (
+        <ScrollView style={[styles.containerPost, { backgroundColor: tema.fundo }]}>
+          {loading ? (
+            <ActivityIndicator size="large" color={tema.texto} />
+          ) : (
+            <Post pesquisaMaisRecente={termoPesquisado} />
+          )}
+        </ScrollView>
+      )}
+    />
+
+    <Top.Screen
+      name="Usuários"
+      children={() => (
+        <View style={[styles.sugestao, { backgroundColor: tema.fundo }]}>
+          <FlatList
+            nestedScrollEnabled
+            data={usuarios}
+            keyExtractor={item => item.id.toString()}
+            renderItem={({ item }) => (
+              <View style={[styles.userContainer, { borderTopColor: tema.barra }]}>
+                <Pressable
+                  style={styles.userImgContainer}
+                  onPress={() =>
+                    navigation.navigate('Perfil', {
+                      idUserPerfil: item.id,
+                      titulo: item.arroba_user,
+                    })
+                  }
+                >
+                  <Image
+                    source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }}
+                    style={styles.imgLogo}
+                  />
+                </Pressable>
+
+                <Pressable
+                  style={styles.containerNomeUser}
+                  onPress={() =>
+                    navigation.navigate('Perfil', {
+                      idUserPerfil: item.id,
+                      titulo: item.arroba_user,
+                    })
+                  }
+                >
+                  <Text style={[styles.nomeUser, { color: tema.texto }]}>
+                    {item.nome_user}
+                    {item.instituicao === 1 && (
+                      <Ionicons color={tema.azul} size={20} name="school-outline" />
+                    )}
+                  </Text>
+                  <Text style={[styles.arrobaUser, { color: tema.descricao }]}>
+                    @{item.arroba_user}
+                  </Text>
+                </Pressable>
+
+                <View style={styles.buttonFollowContainer}>
+                  <Pressable
+                    style={
+                      item.seguido
+                        ? [styles.buttonFollowActive, { backgroundColor: tema.azul }]
+                        : [styles.buttonFollow, { borderColor: tema.azul }]
+                    }
+                    onPress={() => seguir(item.id)}
+                  >
+                    <Text
+                      style={
+                        item.seguido
+                          ? [styles.titleButtonActive, { color: tema.textoBotao }]
+                          : [styles.titleButton, { color: tema.azul }]
+                      }
+                    >
+                      {item.seguido ? 'Seguido' : 'Seguir'}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+          />
+        </View>
+      )}
+    />
+
+    <Top.Screen
+      name="Instituições"
+      children={() => (
+        <View style={[styles.sugestao, { backgroundColor: tema.fundo }]}>
+          <FlatList
+            nestedScrollEnabled
+            data={instituicoes}
+            keyExtractor={item => item.id.toString()}
+            renderItem={({ item }) => (
+              <View style={[styles.userContainer, { borderTopColor: tema.barra }]}>
+                <Pressable
+                  style={styles.userImgContainer}
+                  onPress={() =>
+                    navigation.navigate('Perfil', {
+                      idUserPerfil: item.id,
+                      titulo: item.arroba_user,
+                    })
+                  }
+                >
+                  <Image
+                    source={{ uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user}` }}
+                    style={styles.imgLogo}
+                  />
+                </Pressable>
+
+                <Pressable
+                  style={styles.containerNomeUser}
+                  onPress={() =>
+                    navigation.navigate('Perfil', {
+                      idUserPerfil: item.id,
+                      titulo: item.arroba_user,
+                    })
+                  }
+                >
+                  <Text style={[styles.nomeUser, { color: tema.texto }]}>
+                    {item.nome_user}{' '}
+                    <Ionicons color={tema.azul} size={20} name="school-outline" />
+                  </Text>
+                  <Text style={[styles.arrobaUser, { color: tema.descricao }]}>
+                    @{item.arroba_user}
+                  </Text>
+                </Pressable>
+
+                <View style={styles.buttonFollowContainer}>
+                  <Pressable
+                    style={
+                      item.seguido
+                        ? [styles.buttonFollowActive, { backgroundColor: tema.azul }]
+                        : [styles.buttonFollow, { borderColor: tema.azul }]
+                    }
+                    onPress={() => seguir(item.id)}
+                  >
+                    <Text
+                      style={
+                        item.seguido
+                          ? [styles.titleButtonActive, { color: tema.textoBotao }]
+                          : [styles.titleButton, { color: tema.azul }]
+                      }
+                    >
+                      {item.seguido ? 'Seguido' : 'Seguir'}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+          />
+        </View>
+      )}
+    />
+  </Top.Navigator>
+);
+
                                   };
                                   export default TopTabs;

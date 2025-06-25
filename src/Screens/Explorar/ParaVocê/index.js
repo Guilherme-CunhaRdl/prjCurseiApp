@@ -88,7 +88,7 @@ export default function ParaVoce() {
             >
                 {/* Tendências */}
                 <View style={[styles.containerTredings, { 
-                    backgroundColor: tema.fundo,
+                    backgroundColor: tema.modalFundo,
                     shadowColor: tema.nome === 'escuro' ? tema.texto : '#000',
                 }]}>
                     <View style={styles.containerTitle}>
@@ -96,7 +96,7 @@ export default function ParaVoce() {
                     </View>
 
                     {hashtags?.map(item => (
-                        <View style={[styles.trendigItem, { backgroundColor: tema.Modalfundo }]} key={item.id}>
+                        <View style={[styles.trendigItem, { backgroundColor: tema.modalFundo }]} key={item.id}>
                             <Text style={[styles.subTitle, { color: tema.descricao }]}>Para você</Text>
                             <Pressable onPress={() => navigation.navigate('Pesquisar', { termoPesquisado: item.nomeHashtag })}>
                                 <View style={styles.trendigRow}>
@@ -105,7 +105,7 @@ export default function ParaVoce() {
                                         height: 20, 
                                         alignItems: 'center', 
                                         justifyContent: 'center', 
-                                        backgroundColor: tema.fundo 
+                                        backgroundColor: tema.modalFundo 
                                     }}>
                                         <Configuracoes cor={tema.icone} />
                                     </View>
@@ -117,7 +117,7 @@ export default function ParaVoce() {
 
                 {/* Sugestão de usuários */}
                 <View style={[styles.sugestao, { 
-                    backgroundColor: tema.fundo,
+                    backgroundColor: tema.modalFundo,
                     shadowColor: tema.nome === 'escuro' ? tema.texto : '#000',
                 }]}>
                     <View style={styles.containerTitle}>
