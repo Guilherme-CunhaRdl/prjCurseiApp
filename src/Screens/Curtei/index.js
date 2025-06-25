@@ -22,6 +22,7 @@ import axios from 'axios';
 import host from '../../global';
 import ComentarioCurtei from '../../Components/ComentarioCurtei';
 import ModalOpcoesCurtei from '../../Components/ModalOpcoesCurtei';
+import CompartilharCurtei from '../../Components/CompartilharCurtei';
 
 const { height, width } = Dimensions.get('window');
 const ITEM_HEIGHT = height;
@@ -47,8 +48,8 @@ export default function Curtei() {
   const [selectedCurteiId, setSelectedCurteiId] = useState(null);
   const [showOpcoesModal, setShowOpcoesModal] = useState(false);
   const [curteiSelecionado, setCurteiSelecionado] = useState(null);
-  
-
+  const [modalComp, setModalComp] = useState(false);
+  const [chats, setChats] = useState([]);
   // Carregar dados do usuário e curteis
   useEffect(() => {
     const loadData = async () => {
@@ -63,7 +64,29 @@ export default function Curtei() {
     };
     
     loadData();
+    trazerChats(userId);
   }, [isFocused]);
+
+
+  
+     const trazerChats = async (userId) => {
+      id = await AsyncStorage.getItem('idUser')
+  try {
+    console.log(userId)
+        const resposta = await axios.get(
+          `http://${host}:8000/api/cursei/chat/recebidor/${id}/compartilhar/0`
+        )
+        console.log(resposta)
+        setChats(resposta.data.conversas)
+        return resposta.data.conversas;
+  
+      } catch (error) {
+        console.error("Erro ao buscar mensagens:", error);
+        return "deu erro";
+      } 
+  
+      
+    }
 
   // Função para curtir/descurtir vídeos
   const handleCurtir = async (curteiId, isLiked) => {
@@ -221,7 +244,11 @@ export default function Curtei() {
             <Text style={styles.buttonText}>{item.comments}</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={() => {
+            setModalComp(true)
+            setCurteiSelecionado(item)
+          }
+          }>
             <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
           </TouchableOpacity>
           
@@ -316,7 +343,6 @@ export default function Curtei() {
       />
 
             {/* Modal de Opçoes */}
-
             <ModalOpcoesCurtei
   visible={showOpcoesModal}
   onClose={() => setShowOpcoesModal(false)}
@@ -336,6 +362,15 @@ export default function Curtei() {
     }
   }}
 />
+
+        <CompartilharCurtei 
+        chats={chats} 
+        visibilidade={modalComp} 
+        curtei={curteiSelecionado} 
+        idCurtei={curteiSelecionado.id}
+        onClose={() => setModalComp(false)} 
+         />
+
 
     </SafeAreaView>
 

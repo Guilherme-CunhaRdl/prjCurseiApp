@@ -20,7 +20,7 @@ import axios from 'axios';
 import host from '../global';
 import ComentarioCurtei from './ComentarioCurtei';
 import ModalOpcoesCurtei from './ModalOpcoesCurtei';
-
+import CompartilharCurtei from './CompartilharCurtei';
 const { height, width } = Dimensions.get('window');
 
 // Cálculos responsivos
@@ -40,9 +40,32 @@ export default function PlayerCurtel() {
   const [showOpcoesModal, setShowOpcoesModal] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
-  
+  const [modalComp, setModalComp] = useState(false);
+  const [curteiSelecionado, setCurteiSelecionado] = useState([]);
+  const [chats, setChats] = useState([])
   // Obter dados do vídeo da rota
+
+
   const { videoUrl, thumbnailUrl, videoId, userId: videoUserId } = route.params;
+
+ const trazerChats = async (userId) => {
+      id = await AsyncStorage.getItem('idUser')
+  try {
+    console.log(userId)
+        const resposta = await axios.get(
+          `http://${host}:8000/api/cursei/chat/recebidor/${id}/compartilhar/0`
+        )
+        console.log(resposta)
+        setChats(resposta.data.conversas)
+        return resposta.data.conversas;
+  
+      } catch (error) {
+        console.error("Erro ao buscar mensagens:", error);
+        return "deu erro";
+      } 
+  
+      
+    }
 
   // Carregar dados do usuário e vídeo
   useEffect(() => {
@@ -58,6 +81,7 @@ export default function PlayerCurtel() {
     };
     
     loadData();
+    trazerChats(userId);
   }, []);
 
   // Buscar dados específicos do vídeo
@@ -166,6 +190,9 @@ export default function PlayerCurtel() {
     );
   }
 
+   
+
+
   return (
     <SafeAreaView style={styles.container}>
       <Video
@@ -227,7 +254,9 @@ export default function PlayerCurtel() {
         <Text style={styles.buttonText}>{videoData.comments}</Text>
       </TouchableOpacity>
           
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={() => {
+            setModalComp(true)
+          }}>
             <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
           </TouchableOpacity>
           
@@ -251,6 +280,14 @@ export default function PlayerCurtel() {
           fetchVideoData();
         }}
       />
+
+      <CompartilharCurtei 
+              chats={chats} 
+              visibilidade={modalComp} 
+              idCurtei={videoId} 
+              curtei={videoData}
+              onClose={() => setModalComp(false)} 
+               />
 
       {/* Modal de Opções */}
       <ModalOpcoesCurtei

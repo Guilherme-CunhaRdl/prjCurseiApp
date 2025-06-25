@@ -22,6 +22,8 @@ import host from "../../../../../global";
 import EnviarPostPv from '../../../../EnviarPostNv';  
 import { useTema } from "../../../../../context/themeContext";
 import useStyles from "./styles";
+import Ionicons from "react-native-vector-icons/Ionicons";
+
 export default function Conversa({ route }) {
   const {tema } = useTema();
   const styles = useStyles()
@@ -33,7 +35,7 @@ export default function Conversa({ route }) {
     arrobaEnviador,
     idChat,
     isCanal,
-    idMembro
+    idMembro,
   } = route.params;
 
   const [campoMensagem, setCampoMensagem] = useState("");
@@ -436,7 +438,41 @@ export default function Conversa({ route }) {
                 </View>
                 )}
                 </>
-              ) : item.id_post ? (
+              ) : item.id_curtei ? (
+                 <>
+                <Pressable  onPress={() => navigation.navigate('PostUnico', {
+                    idPost: item.id_post,
+                    titulo: item.arroba_user_postou
+                  })}>
+                <View style={styles.headerPost}>
+                  <Image
+                  source={{
+                    uri: `http://${host}:8000/img/user/fotoPerfil/${item.img_user_curtei}`,
+                  }}
+                  style={styles.imgPerfil}
+                  resizeMode="cover"
+                />
+                  <Text style={{color: tema.nome === 'escuro' ? tema.texto : '#fff' }}>{item.nome_user_curtei}</Text>
+                </View>
+
+                <Image
+                  source={{
+                    uri: `http://${host}:8000/${item.thumb_curtei}`,
+                  }}
+                  style={styles.imgMensagem}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity style={styles.viewPlayer} onPress={() => navigation.navigate('PlayerCurtel', {videoUrl: item.url_curtei, videoId:item.id_curtei,userId:idUserLogado, thumbUrl: item.thumb_curtei, idCurtei: item.id_curtei, })}>
+                  <Ionicons name="play" size={20} color={tema.fundo}/>
+                </TouchableOpacity>
+                <View style={styles.footerPost}>
+                  <Text style={{color: colors.branco, }}>{item.desc_curtei}</Text>
+                </View>
+                
+                </Pressable>
+
+                </>
+              ) : item.id_post  ? (
                 <>
                 <Pressable  onPress={() => navigation.navigate('PostUnico', {
                     idPost: item.id_post,

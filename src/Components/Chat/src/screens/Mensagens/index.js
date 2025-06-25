@@ -303,7 +303,7 @@ export default function Mensagens({ route }) {
                     arrobaEnviador: item.arroba,
                     idChat: item.id_conversa,
                     isCanal: item.tipo === "canal",
-                    idMembro: item.id_membro
+                    idMembro: item.id_membro,
                   };
                   navigation.navigate("Conversa", navData);
                 }}

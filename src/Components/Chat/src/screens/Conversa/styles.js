@@ -239,7 +239,19 @@ const {tema } = useTema()
     borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center'
-  }
-}
+  },
+viewPlayer:{
+  height: 50,
+  width: 50,
+  borderRadius: 100,
+  backgroundColor: '#000',
+  justifyContent: 'center',
+  alignItems: 'center',
+  position: 'absolute',
+  left: 90,
+  top: 180
+},
+},
+
     )};
 export default useStyles;
