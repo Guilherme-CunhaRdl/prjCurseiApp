@@ -120,7 +120,7 @@ export default function DoisFatores({route}) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Verificação em duas Etapas</Text>
+      <Text style={styles.title}>Verificação em duas etapas</Text>
       <Text style={styles.subtitle}>
         Enviamos um código de 6 dígitos para {email}
       </Text>
@@ -128,7 +128,7 @@ export default function DoisFatores({route}) {
       <TextInput
         style={styles.input}
         placeholder="Código de verificação"
-        keyboardType="number-pad"
+        keyboardType="default"
         maxLength={6}
         value={code}
         onChangeText={setCode}
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 16,
     marginBottom: 20,
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     backgroundColor: '#fff',
   },

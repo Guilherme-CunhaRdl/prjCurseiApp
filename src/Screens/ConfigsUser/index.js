@@ -61,32 +61,6 @@ export default function ConfigsUser() {
           <Text style={styles.textoDescricao}>Gerencie a segurança de sua conta.</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={{ gap: 2 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Feather name="shield" style={{ color: tema.azul, fontSize: 25, marginRight: 8 }} />
-            <Text style={styles.textoTitulo}>Privacidade</Text>
-          </View>
-          <Text style={styles.textoDescricao}>Gerencie as informações que vê e compartilha.</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={{ gap: 2 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Feather name="bell" style={{ color: tema.azul, fontSize: 25, marginRight: 8 }} />
-            <Text style={styles.textoTitulo}>Notificações</Text>
-          </View>
-          <Text style={styles.textoDescricao}>Configure as notificações que recebe.</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={{ gap: 2 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <FontAwesome6 name="hand" style={{ color: tema.azul, fontSize: 25, marginRight: 8 }} />
-            <Text style={styles.textoTitulo}>Acessibilidade e idiomas</Text>
-          </View>
-          <Text style={styles.textoDescricao}>
-            Configure a forma de como o conteúdo será apresentado pra você.
-          </Text>
-        </TouchableOpacity>
-
         <TouchableOpacity style={{ gap: 2 }} onPress={() => navigation.navigate("Conta Institucional")}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <FontAwesome6 name="school-flag" style={{ color: tema.laranja, fontSize: 25, marginRight: 8 }} />

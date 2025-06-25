@@ -160,7 +160,7 @@ export default function StackRoutes() {
         />
 
       <Stack.Screen
-        name="DoisFatores"
+        name="Dois fatores"
         component={DoisFatores}
 
       />

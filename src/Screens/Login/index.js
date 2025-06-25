@@ -88,7 +88,7 @@ export default function Login() {
         const doisFatores = usuario.dois_fatores_user;
         if(doisFatores === 1) {
           await AsyncStorage.setItem('idUser', String(usuario.id));
-          navigation.navigate('DoisFatores', { email: usuario.email_user });
+          navigation.navigate('Dois fatores', { email: usuario.email_user });
 
         }
         else {
