@@ -20,7 +20,6 @@ import { useTema } from "../../context/themeContext";
 export default function AlterarUser() {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [modalSenha, setModalSenha] = useState(false);
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
@@ -34,11 +33,29 @@ export default function AlterarUser() {
     senha_user: '',
   });
   const [erroSenha, setErroSenha] = useState('');
-
   const [arrobaValue, setArrobaValue] = useState('');
   const [emailValue, setEmailValue] = useState('');
-
   const { tema } = useTema();
+
+  const verificarEmailExistente = async (email) => {
+    try {
+      const resposta = await axios.get(`http://${host}:8000/api/verificar-email?email=${email}`);
+      return resposta.data.existe;
+    } catch (erro) {
+      console.error('Erro ao verificar email:', erro);
+      return false;
+    }
+  };
+
+  const verificarUsuarioExistente = async (usuario) => {
+    try {
+      const resposta = await axios.get(`http://${host}:8000/api/verificar-usuario?usuario=${usuario}`);
+      return resposta.data.existe;
+    } catch (erro) {
+      console.error('Erro ao verificar usuário:', erro);
+      return false;
+    }
+  };
 
   useEffect(() => {
     const carregarUsuario = async () => {
@@ -47,8 +64,6 @@ export default function AlterarUser() {
       try {
         const response = await axios.post(`http://${host}:8000/api/cursei/user/selecionarUser/${id}`);
         setUsuario(response.data.User);
-        console.log(usuario);
-        console.log(senhaAtual);
         setLoading(false);
       } catch (erro) {
         console.error('Erro ao carregar usuário:', erro);
@@ -57,46 +72,58 @@ export default function AlterarUser() {
 
     carregarUsuario();
   }, []);
-  console.log(usuario)
+
   const handleSave = async (field, value, setModal) => {
     try {
-      const data = {};
-      if (field === 'arroba') {
-        data['arroba_user'] = value;
-      } else if (field === 'email') {
-        data['email_user'] = value;
+      if (value === usuario[`${field}_user`]) {
+        setModal(false);
+        return;
       }
-  
+
+      let existe = false;
+      if (field === 'arroba') {
+        existe = await verificarUsuarioExistente(value);
+      } else if (field === 'email') {
+        existe = await verificarEmailExistente(value);
+      }
+
+      if (existe) {
+        alert(`Este ${field === 'arroba' ? '@' : 'email'} já está em uso. Por favor, escolha outro.`);
+        return;
+      }
+
+      // Atualizar dados
+      const data = {};
+      data[`${field}_user`] = value;
+
       await axios.post(`http://${host}:8000/api/cursei/user/atualizar/${userId}`, data);
-  
-      setUsuario(prev => ({ ...prev, [field + '_user']: value }));
+
+      setUsuario(prev => ({ ...prev, [`${field}_user`]: value }));
       setModal(false);
     } catch (error) {
-      console.error('Erro ao salvar:', error);
       alert('Erro ao atualizar. Verifique os dados e tente novamente.');
     }
   };
-  
 
   const handleSenhaUpdate = async () => {
     setErroSenha('');
-  
+
     if (!senhaAtual || !novaSenha || !confirmarSenha) {
       setErroSenha('Preencha todos os campos.');
       return;
     }
-  
+
     if (novaSenha !== confirmarSenha) {
       setErroSenha('As senhas novas não coincidem.');
       return;
     }
-  
+
     try {
       const response = await axios.post(`http://${host}:8000/api/cursei/user/alterarSenha/${userId}`, {
         senha_atual: senhaAtual,
         nova_senha: novaSenha,
       });
-  
+
       if (response.data.success) {
         alert('Senha alterada com sucesso!');
         setModalSenha(false);
@@ -111,8 +138,6 @@ export default function AlterarUser() {
       setErroSenha('Erro na requisição.');
     }
   };
-  
-  
 
   if (loading) {
     return (
@@ -130,7 +155,7 @@ export default function AlterarUser() {
     <ScrollView style={[styles.container, { backgroundColor: tema.fundo }]}>
       <TouchableOpacity
         style={styles.item}
-        onPress={() => { setArrobaValue(usuario.arroba); setModalArroba(true); }}>
+        onPress={() => { setArrobaValue(usuario.arroba_user); setModalArroba(true); }}>
         <View>
           <Text style={[styles.label, { color: tema.texto }]}>@</Text>
           <Text style={[styles.value, { color: tema.descricao }]}>@{usuario.arroba_user}</Text>
@@ -140,7 +165,7 @@ export default function AlterarUser() {
 
       <TouchableOpacity
         style={styles.item}
-        onPress={() => { setEmailValue(usuario.email); setModalEmail(true); }}>
+        onPress={() => { setEmailValue(usuario.email_user); setModalEmail(true); }}>
         <View>
           <Text style={[styles.label, { color: tema.texto }]}>Email</Text>
           <Text style={[styles.value, { color: tema.descricao }]}>{usuario.email_user}</Text>
@@ -162,6 +187,7 @@ export default function AlterarUser() {
       <UserModal
         visible={modalArroba}
         title="Edite seu @"
+        subtitle="Altere seu @ para um que ainda não está em uso"
         value={arrobaValue}
         onChange={setArrobaValue}
         onCancel={() => setModalArroba(false)}
@@ -173,6 +199,7 @@ export default function AlterarUser() {
       <UserModal
         visible={modalEmail}
         title="Alterar email"
+        subtitle="Altere o email vinculado a sua conta"
         value={emailValue}
         onChange={setEmailValue}
         onCancel={() => setModalEmail(false)}
@@ -186,6 +213,7 @@ export default function AlterarUser() {
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, { backgroundColor: tema.modalFundo, height: '50%' }]}>
             <Text style={[styles.modalTitle, { color: tema.texto }]}>Alterar senha</Text>
+            <Text style={[styles.modalSubTitle, { color: tema.descricao }]}>Confirme a senha atual e a altere para uma nova</Text>
 
             <TextInput
               style={[styles.input, { backgroundColor: tema.fundo, color: tema.texto }]}
@@ -240,7 +268,8 @@ export default function AlterarUser() {
 
 function UserModal({ 
   visible, 
-  title, 
+  title,
+  subtitle, 
   value, 
   onChange, 
   onCancel, 
@@ -254,6 +283,7 @@ function UserModal({
       <View style={styles.modalContainer}>
         <View style={[styles.modalContent, { backgroundColor: tema.modalFundo }]}>
           <Text style={[styles.modalTitle, { color: tema.texto }]}>{title}</Text>
+          <Text style={[styles.modalSubTitle, { color: tema.descricao }]}>{subtitle}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: tema.fundo, color: tema.texto }]}
             value={value}
@@ -320,9 +350,15 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 30,
+    marginBottom: 10,
     textAlign: 'center',
   },
+    modalSubTitle: {
+    fontSize: 14,
+    marginBottom: 10,
+    textAlign: 'center'
+  },
+  
   input: {
     height: 50,
     fontSize: 16,
