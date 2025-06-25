@@ -96,7 +96,7 @@ export default function ParaVoce() {
                     </View>
 
                     {hashtags?.map(item => (
-                        <View style={[styles.trendigItem, { backgroundColor: tema.fundo }]} key={item.id}>
+                        <View style={[styles.trendigItem, { backgroundColor: tema.Modalfundo }]} key={item.id}>
                             <Text style={[styles.subTitle, { color: tema.descricao }]}>Para você</Text>
                             <Pressable onPress={() => navigation.navigate('Pesquisar', { termoPesquisado: item.nomeHashtag })}>
                                 <View style={styles.trendigRow}>

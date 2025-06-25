@@ -25,67 +25,59 @@ export default function Assuntos() {
     fetchAssuntos();
   }, []);
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: tema.fundo }]}>
-      <ScrollView
-        style={styles.ScrollCont}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.containerTradings}>
-          <View style={styles.containerTitle}>
-            <Text style={[styles.title, { color: tema.texto }]}>
-              O que está acontecendo
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.separator,
-              { backgroundColor: tema.barra || "#ccc" },
-            ]}
-          />
+ return (
+  <SafeAreaView style={[styles.container, { backgroundColor: tema.fundo }]}>
+    <ScrollView
+      style={styles.ScrollCont}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={[styles.containerTradings, { backgroundColor: tema.modalFundo }]}>
+        <View style={styles.containerTitle}>
+          <Text style={[styles.title, { color: tema.texto }]}>
+            O que está acontecendo
+          </Text>
+        </View>
+        <View style={[styles.separator, { backgroundColor: tema.barra }]} />
 
-          {interesses?.map((item, index) => (
-            <Pressable
-              onPress={() =>
-                navigation.navigate("Pesquisar", { termoPesquisado: item.hashtag })
-              }
-              key={index}
-            >
-              <View style={styles.trendig}>
-                <View style={styles.trendigHeader}>
-                  <Text style={[styles.subTitle, { color: tema.descricao }]}>
-                    Tendência no Cursei
-                  </Text>
-                  <View
-                    style={{
-                      height: 20,
-                      alignItems: "center",
-                      justifyContent: "flex-start",
-                    }}
-                  >
-                    <Configuracoes />
-                  </View>
+        {interesses?.map((item, index) => (
+          <Pressable
+            key={index}
+            onPress={() =>
+              navigation.navigate("Pesquisar", {
+                termoPesquisado: item.hashtag,
+              })
+            }
+          >
+            <View style={styles.trendig}>
+              <View style={styles.trendigHeader}>
+                <Text style={[styles.subTitle, { color: tema.descricao }]}>
+                  Tendência no Cursei
+                </Text>
+                <View
+                  style={{
+                    height: 20,
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                  }}
+                >
+                  <Configuracoes />
                 </View>
-
-                <Text style={[styles.trendigName, { color: tema.texto }]}>
-                  {item.hashtag}
-                </Text>
-                <Text style={[styles.trendigNum, { color: tema.descricao }]}>
-                  {item.usos} Posts
-                </Text>
               </View>
 
-              <View
-                style={[
-                  styles.separator,
-                  { backgroundColor: tema.barra || "#ccc" },
-                ]}
-              />
-            </Pressable>
-          ))}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
+              <Text style={[styles.trendigName, { color: tema.texto }]}>
+                {item.hashtag}
+              </Text>
+              <Text style={[styles.trendigNum, { color: tema.descricao }]}>
+                {item.usos} Posts
+              </Text>
+            </View>
+
+            <View style={[styles.separator, { backgroundColor: tema.barra }]} />
+          </Pressable>
+        ))}
+      </View>
+    </ScrollView>
+  </SafeAreaView>
+);
+} 

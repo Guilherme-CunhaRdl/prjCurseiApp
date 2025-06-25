@@ -29,7 +29,7 @@ export default function Explorar() {
             </View>
     
             {/* Barra de Pesquisa */}
-            <View style={[styles.barraContainer]}>
+            <View style={[styles.barraContainer, {backgroundColor: tema.fundo}]}>
               <View style={[styles.barraPesquisa, { backgroundColor: tema.cinza }]}>
                 <Ionicons
                   style={[styles.inputIcon, { color: tema.icone }]}
