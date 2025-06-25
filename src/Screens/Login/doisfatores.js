@@ -30,24 +30,16 @@ export default function DoisFatores({route}) {
 
   const send2FACode = async () => {
     try {
-      console.log('[DEBUG] Iniciando envio de código 2FA');
-      console.log('Email:', email);
-      console.log('Host:', host);
-      
       setLoading(true);
       
       const apiUrl = `http://${host}:8000/api/2fa/enviarCodigo`;
-      console.log('URL da API:', apiUrl);
       
       const response = await axios.post(apiUrl, { email });
-      console.log('Resposta da API:', response.data);
       
       if (response.data && response.data.success) {
-        console.log('[DEBUG] Código enviado com sucesso');
         Alert.alert('Sucesso', 'Código enviado para seu e-mail');
         setCountdown(60);
       } else {
-        console.warn('[DEBUG] Resposta inesperada:', response.data);
         Alert.alert('Aviso', 'Resposta inesperada do servidor');
       }
     } catch (error) {
@@ -73,7 +65,6 @@ export default function DoisFatores({route}) {
       
       Alert.alert('Erro', errorMessage);
     } finally {
-      console.log('[DEBUG] Finalizando processo de envio');
       setLoading(false);
     }
   };
@@ -95,7 +86,6 @@ export default function DoisFatores({route}) {
         const id = await AsyncStorage.getItem('idUser');
         const response = await axios.post(`http://${host}:8000/api/cursei/user/selecionarUser/${id}`);
         const usuario = response.data.User;
-        console.log(usuario);
         await AsyncStorage.setItem('idUser', String(usuario.id));
         await AsyncStorage.setItem('logado', '1');
         await AsyncStorage.setItem('idInstituicao', response.data.id_instituicao);

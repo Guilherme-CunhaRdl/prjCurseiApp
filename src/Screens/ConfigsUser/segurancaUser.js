@@ -24,7 +24,6 @@ export default function SegurancaUser() {
         setUserId(id);
 
         const response = await axios.post(`http://${host}:8000/api/cursei/user/selecionarUser/${id}`);
-        console.log(response.data.User);
         const usuario = response.data.User;
         const valorDoisFatores = usuario.dois_fatores_user;
 
@@ -33,7 +32,6 @@ export default function SegurancaUser() {
         setDoisFatoresAtivo(doisFatoresBoolean);
 
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
         Alert.alert('Erro', 'Não foi possível carregar as configurações de segurança');
       } finally {
         setLoading(false);
@@ -55,14 +53,11 @@ export default function SegurancaUser() {
 
       if (response.data.success) {
         setDoisFatoresAtivo(novoValor);
-        Alert.alert('Sucesso', response.data.message || 'Configuração atualizada');
       } else {
         throw new Error(response.data.message || 'Erro na resposta da API');
       }
     } catch (error) {
-      console.error('Erro completo:', error.response || error);
       setDoisFatoresAtivo(!novoValor);
-      Alert.alert('Erro', error.response?.data?.message || error.message || 'Falha na comunicação');
     } finally {
       setUpdating(false);
     }
@@ -100,23 +95,6 @@ export default function SegurancaUser() {
               color={tema.botao}
             />
           )}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: tema.texto }]}>
-          Proteção de senha
-        </Text>
-        <View style={styles.row}>
-          <Text style={[styles.sectionDescricao, { color: tema.descricao }]}>
-            Para melhorar sua proteção, você precisará confirmar seu número de celular ou endereço de e-mail para redefinir a senha.
-          </Text>
-          <Switch
-            value={protecaoSenha}
-            onValueChange={() => setProtecaoSenha(!protecaoSenha)}
-            disabled={updating}
-            color={tema.botao}
-          />
         </View>
       </View>
     </SafeAreaView>

@@ -184,7 +184,7 @@ export default function AlterarUser() {
 
       <Modal visible={modalSenha} animationType="slide" transparent onRequestClose={() => setModalSenha(false)}>
         <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { backgroundColor: tema.modalFundo }]}>
+          <View style={[styles.modalContent, { backgroundColor: tema.modalFundo, height: '50%' }]}>
             <Text style={[styles.modalTitle, { color: tema.texto }]}>Alterar senha</Text>
 
             <TextInput
@@ -310,40 +310,48 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    width: '80%',
-    padding: 20,
-    borderRadius: 10,
+    width: '90%',
+    height: '30%',
+    padding: 30,
+    borderRadius: 15,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 30,
     textAlign: 'center',
   },
   input: {
-    height: 40,
+    height: 50,
+    fontSize: 16,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 20,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    marginBottom: 25,
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   botao: {
-    padding: 10,
-    borderRadius: 5,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     minWidth: '45%',
     alignItems: 'center',
+    backgroundColor: '#eee',
   },
   buttonText: {
+    fontSize: 16,
     fontWeight: 'bold',
   },
   erroText: {
     color: 'red',
     marginBottom: 10,
     textAlign: 'center',
+    fontSize: 14,
   },
 });
