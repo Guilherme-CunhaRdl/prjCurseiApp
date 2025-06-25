@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, ScrollView, KeyboardAvoidingView, Platform, Image, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
@@ -8,11 +8,10 @@ import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 import dayjs from 'dayjs';
 import host from '../global';
-import {useTema} from '../context/themeContext';
-
+import { useTema } from '../context/themeContext';
 
 export default function ComentarioCurtei({ idCurtei, isVisible, onClose }) {
-  const {tema} = useTema();
+  const { tema } = useTema();
   const navigation = useNavigation();
   const [modalVisivel, setModalVisivel] = useState(false);
   const [comentario, setComentario] = useState('');
@@ -21,15 +20,15 @@ export default function ComentarioCurtei({ idCurtei, isVisible, onClose }) {
   const [curtidasEmProcesso, setCurtidasEmProcesso] = useState([]);
   const [comentarios, setComentarios] = useState([]);
 
-  // Carrega os comentários quando o modal é aberto
   useEffect(() => {
-    console.log('Modal visível:', isVisible);
     if (isVisible) {
+      setModalVisivel(true);
       carregarComentariosHandler();
     }
   }, [isVisible]);
 
-  // Busca os comentários da API
+  if (!isVisible) return null;
+
   async function buscarComentarios(idCurtei) {
     try {
       const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -38,19 +37,16 @@ export default function ComentarioCurtei({ idCurtei, isVisible, onClose }) {
         id_curtei: idCurtei,
         id_user: idUserSalvo
       });
-      
-      // Verifique se a resposta tem a estrutura esperada
       if (response.data && Array.isArray(response.data.comentarios)) {
         return response.data.comentarios;
       }
-      return []; // Retorna array vazio se a estrutura não for a esperada
+      return [];
     } catch (error) {
       console.error('Erro ao buscar comentários:', error);
-      return []; // Retorna array vazio em caso de erro
+      return [];
     }
   }
 
-  // Handler para carregar os comentários
   const carregarComentariosHandler = async () => {
     try {
       setLoading(true);
@@ -62,7 +58,6 @@ export default function ComentarioCurtei({ idCurtei, isVisible, onClose }) {
     }
   };
 
-  // Processa e formata os comentários recebidos da API
   function carregarComentarios(comentariosAPI) {
     const listaComentarios = comentariosAPI.map(comentario => {
       const usuario = comentario.usuario || {};
@@ -84,25 +79,16 @@ export default function ComentarioCurtei({ idCurtei, isVisible, onClose }) {
     setLoading(false);
   }
 
-  // Formata a data para exibição (ex: "há 2 minutos")
   const formatarTempoInsercao = (dateString) => {
     return dayjs(dateString).fromNow();
   };
 
-  // Abre o modal e carrega os comentários
-  const abrirModal = async () => {
-    setModalVisivel(true);
-  };
-
-  // Fecha o modal com animação
   const fecharModal = () => {
     refConteudoModal.current.slideOutDown(300).then(() => {
-      onClose(); 
+      onClose();
     });
   };
 
-
-  // Curtir/descurtir um comentário
   const curtirComentario = async (id) => {
     if (curtidasEmProcesso.includes(id)) return;
 
@@ -135,19 +121,17 @@ export default function ComentarioCurtei({ idCurtei, isVisible, onClose }) {
     }
   };
 
-  // Adiciona um novo comentário
   const adicionarComentario = async () => {
     if (!comentario.trim()) return;
-  
+
     const tempId = `temp-${Date.now()}`;
     const idUser = await AsyncStorage.getItem('idUser');
-    
+
     if (!idUser) {
       navigation.navigate('Login');
       return;
     }
-  
-    // Cria comentário temporário
+
     const novoComentario = {
       id: tempId,
       idUserComent: idUser,
@@ -159,22 +143,21 @@ export default function ComentarioCurtei({ idCurtei, isVisible, onClose }) {
       foto: 'https://via.placeholder.com/150',
       isTemp: true
     };
-  
+
     setComentarios(prev => [novoComentario, ...prev]);
     setComentario('');
-  
+
     try {
       const response = await axios.post(`http://${host}:8000/api/curtei/comentarios/adicionar`, {
         id_curtei: idCurtei,
         id_user: idUser,
         comentario: comentario.trim()
       });
-  
-      // Verifica se a resposta tem a estrutura esperada
+
       if (!response.data || !response.data.data) {
         throw new Error('Resposta da API inválida');
       }
-  
+
       const comentarioReal = {
         id: response.data.data.id.toString(),
         idUserComent: idUser,
@@ -188,155 +171,119 @@ export default function ComentarioCurtei({ idCurtei, isVisible, onClose }) {
           : 'https://via.placeholder.com/150',
         isTemp: false
       };
-  
-      setComentarios(prev => 
+
+      setComentarios(prev =>
         prev.map(com => com.id === tempId ? comentarioReal : com)
       );
-  
     } catch (error) {
       console.error('Erro ao adicionar comentário:', error);
       setComentarios(prev => prev.filter(com => com.id !== tempId));
       setComentario(comentario);
-      
-      Alert.alert(
-        'Erro', 
-        error.response?.data?.message || error.message || 'Falha ao enviar comentário'
-      );
+
+      Alert.alert('Erro', error.response?.data?.message || error.message || 'Falha ao enviar comentário');
     }
   };
 
-  // Componente de item de comentário (optimizado com React.memo)
-  const ItemComentario = React.memo(({ usuario, tempoCriacao, texto, curtidas, curtido, foto, id, idUserComent, isTemp }) => {
-    return (
-      <View style={styles.itemComentario}>
-        <Pressable style={styles.cabecalhoComentario}>
-          <Image 
-            source={{ uri: foto }} 
-            style={styles.fotoUsuario} 
-          />
-          <View style={styles.infoUsuario}>
-            <Text style={styles.nomeUsuario}>@{usuario}</Text>
-            {!isTemp && <Text style={styles.tempo}> • {tempoCriacao}</Text>}
-            {isTemp && <ActivityIndicator size="small" color="#999" style={{ marginLeft: 5 }} />}
-          </View>
-        </Pressable>
-        
-        <Text style={styles.textoComentario}>{texto}</Text>
-        
-        {!isTemp && (
-          <View style={styles.acoesComentario}>
-            <Pressable
-              style={styles.botaoCurtir}
-              onPress={() => curtirComentario(id)}
-              disabled={curtidasEmProcesso.includes(id)}
-            >
-              {curtidasEmProcesso.includes(id) ? (
-                <ActivityIndicator size="small" color="#ff0000" />
-              ) : (
-                <>
-                  <Ionicons
-                    name={curtido ? "heart" : "heart-outline"}
-                    size={14}
-                    color={curtido ? "#ff0000" : "#666"}
-                  />
-                  <Text style={[styles.contadorCurtidas, curtido && styles.curtido]}>
-                    {curtidas}
-                  </Text>
-                </>
-              )}
-            </Pressable>
-          </View>
-        )}
-      </View>
-    );
-  });
+  const ItemComentario = React.memo(({ usuario, tempoCriacao, texto, curtidas, curtido, foto, id, isTemp }) => (
+    <View style={styles.itemComentario}>
+      <Pressable style={styles.cabecalhoComentario}>
+        <Image source={{ uri: foto }} style={styles.fotoUsuario} />
+        <View style={styles.infoUsuario}>
+          <Text style={styles.nomeUsuario}>@{usuario}</Text>
+          {!isTemp && <Text style={styles.tempo}> • {tempoCriacao}</Text>}
+          {isTemp && <ActivityIndicator size="small" color="#999" style={{ marginLeft: 5 }} />}
+        </View>
+      </Pressable>
+
+      <Text style={styles.textoComentario}>{texto}</Text>
+
+      {!isTemp && (
+        <View style={styles.acoesComentario}>
+          <Pressable
+            style={styles.botaoCurtir}
+            onPress={() => curtirComentario(id)}
+            disabled={curtidasEmProcesso.includes(id)}
+          >
+            {curtidasEmProcesso.includes(id) ? (
+              <ActivityIndicator size="small" color="#ff0000" />
+            ) : (
+              <>
+                <Ionicons
+                  name={curtido ? "heart" : "heart-outline"}
+                  size={14}
+                  color={curtido ? "#ff0000" : "#666"}
+                />
+                <Text style={[styles.contadorCurtidas, curtido && styles.curtido]}>
+                  {curtidas}
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </View>
+      )}
+    </View>
+  ));
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={{flexGrow: 1, width: 20}}
-        onPress={abrirModal}
-      >
-        <Icon name="message-circle" size={20} color="#666" />
-      </TouchableOpacity>
-
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={isVisible}
-        onRequestClose={fecharModal}
-      >
-        <View style={styles.fundoModal}>
-          <KeyboardAvoidingView
-            style={styles.containerTeclado}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={isVisible}
+      onRequestClose={fecharModal}
+    >
+      <View style={styles.fundoModal}>
+        <KeyboardAvoidingView
+          style={styles.containerTeclado}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <Animatable.View
+            ref={refConteudoModal}
+            animation={modalVisivel ? "slideInUp" : undefined}
+            duration={300}
+            style={[styles.conteudoModal, { backgroundColor: tema.modalFundo }]}
           >
-            <Animatable.View
-              ref={refConteudoModal}
-              animation={modalVisivel ? "slideInUp" : undefined}
-              duration={300}
-              style={[styles.conteudoModal, {backgroundColor: tema.modalFundo}]}
-            >
-              <View style={styles.cabecalhoModal}>
-                <TouchableOpacity
-                  style={styles.botaoFechar}
-                  onPress={fecharModal}
-                >
-                  <Ionicons name="close" size={24} color="#666" />
-                </TouchableOpacity>
-                <Text style={[styles.tituloModal, {color: tema.iconeInativo}]}>Comentários</Text>
-                <View style={styles.espacadorCabecalho} />
-              </View>
+            <View style={styles.cabecalhoModal}>
+              <TouchableOpacity style={styles.botaoFechar} onPress={fecharModal}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+              <Text style={[styles.tituloModal, { color: tema.iconeInativo }]}>Comentários</Text>
+              <View style={styles.espacadorCabecalho} />
+            </View>
 
-              {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#3498db" />
-                </View>
-              ) : !loading && comentarios?.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>Ainda não há comentários</Text>
-                </View>
-              ) : (
-                <ScrollView style={styles.listaComentarios}>
-                    {comentarios.map((comentario) => (
-                      <ItemComentario
-                        key={comentario.id}
-                        id={comentario.id}
-                        usuario={comentario.usuario}
-                        tempoCriacao={comentario.tempoCriacao}
-                        texto={comentario.texto}
-                        curtidas={comentario.curtidas}
-                        curtido={comentario.curtido}
-                        foto={comentario.foto}
-                        idUserComent={comentario.idUserComent}
-                        isTemp={comentario.isTemp} // Passa a flag de temporário
-                      />
-                    ))}
-                </ScrollView>
-              )}
-
-              <View style={[styles.containerInput, {backgroundColor: tema.modalFundo, borderTopColor: tema.linha}]}>
-                <TextInput
-                  style={[styles.inputComentario, {backgroundColor: tema.modalFundo}]}
-                  placeholder="Escreva seu comentário..."
-                  placeholderTextColor="#999"
-                  value={comentario}
-                  onChangeText={setComentario}
-                  onSubmitEditing={adicionarComentario}
-                  keyboardType='text'
-                />
-                <TouchableOpacity
-                  style={styles.botaoEnviar}
-                  onPress={adicionarComentario}
-                >
-                  <Ionicons name="send" size={20} color="#4a69bd" />
-                </TouchableOpacity>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#3498db" />
               </View>
-            </Animatable.View>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
-    </View>
+            ) : comentarios.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>Ainda não há comentários</Text>
+              </View>
+            ) : (
+              <ScrollView style={styles.listaComentarios}>
+                {comentarios.map((comentario) => (
+                  <ItemComentario key={comentario.id} {...comentario} />
+                ))}
+              </ScrollView>
+            )}
+
+            <View style={[styles.containerInput, { backgroundColor: tema.modalFundo, borderTopColor: tema.linha }]}>
+              <TextInput
+                style={[styles.inputComentario, { backgroundColor: tema.modalFundo }]}
+                placeholder="Escreva seu comentário..."
+                placeholderTextColor="#999"
+                value={comentario}
+                onChangeText={setComentario}
+                onSubmitEditing={adicionarComentario}
+                keyboardType='text'
+              />
+              <TouchableOpacity style={styles.botaoEnviar} onPress={adicionarComentario}>
+                <Ionicons name="send" size={20} color="#4a69bd" />
+              </TouchableOpacity>
+            </View>
+          </Animatable.View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
   );
 }
 

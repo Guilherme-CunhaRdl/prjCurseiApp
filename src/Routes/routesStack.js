@@ -30,6 +30,7 @@ import CriarDestaques from '../Screens/Destaque/CriarDestaques.js';
 import Evento from '../Screens/evento';
 import SelecionarCapa from '../Screens/Destaque/SelecionarCapa.js';
 import videoDestaque from '../Screens/Destaque/index.js';
+import PlayerCurtel from '../Components/PlayerCurtei.js';
 
 const Stack = createNativeStackNavigator();
 
@@ -72,6 +73,13 @@ export default function StackRoutes() {
           headerShown: false,
         }}
       />
+
+      <Stack.Screen 
+        name="PlayerCurtel" 
+        component={PlayerCurtel} 
+        options={{ headerShown: false }} 
+      />
+
       <Stack.Screen
         name="Home"
         component={TabNav}

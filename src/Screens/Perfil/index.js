@@ -18,6 +18,7 @@ import host from '../../global';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Destaques from '../../Components/perfilDestaques/destaques';
 import adicionarLogo from "../../../assets/adicionarLogo.png";
+import CurteisLista from '../../Components/CurteisLista';
 
 import {
     Appbar,
@@ -54,6 +55,7 @@ export default function Perfil() {
     const alterarFoco = (icone) => {
         setFocoIcone(icone)
     }
+    const [curteis, setCurteis] = useState([]); 
 
     async function carregarPerfil() {
         const idUserSalvo = await AsyncStorage.getItem('idUser');
@@ -190,6 +192,32 @@ export default function Perfil() {
 
 
     }, []);
+
+    useEffect(() => {
+        if (focoIcone === 'curteis') {
+            const carregarCurteis = async () => {
+                try {
+                    const response = await axios.get(`http://${host}:8000/api/curteis/${idUser}`);
+                    
+                    if (response.data.success) {
+                        setCurteis(response.data.data);
+                    } else {
+                        console.warn('Erro na resposta:', response.data.message);
+                        setCurteis([]);
+                    }
+                } catch (error) {
+                    console.error('Erro na requisição:', {
+                        message: error.message,
+                        url: error.config?.url,
+                        response: error.response?.data
+                    });
+                    setCurteis([]);
+                }
+            };
+            carregarCurteis();
+        }
+    }, [focoIcone, idUser]);
+
     if (loading) {
         return (
             <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: tema.fundo }}>
@@ -378,6 +406,7 @@ export default function Perfil() {
                 )}
     
                 {perfilBloqueado !== 1 && (
+                    
                     focoIcone === 'reposts' ? (
                         <View style={styles.postContainer}>
                             <Post key="post-1" idUser={idUser} tipo="reposts" />
@@ -390,10 +419,11 @@ export default function Perfil() {
                         <View style={styles.postContainer}>
                             <Post key="post-3" idUser={idUser} />
                         </View>
-                    ) : focoIcone === 'curteis' ? (
-                        <View style={styles.postContainer}>
-                            <Post key="post-4" idUser={idUser} tipo="curteis" />
-                        </View>
+                    ) :focoIcone === 'curteis' ? (
+                        <CurteisLista 
+                            data={curteis} 
+                            navigation={navigation} 
+                        />
                     ) : null
                 )}
             </ScrollView>
