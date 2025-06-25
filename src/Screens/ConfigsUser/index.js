@@ -27,61 +27,64 @@ export default function ConfigsUser() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.configs}>
+  <SafeAreaView style={styles.container}>
+    <View style={styles.configs}>
 
-        {/* Switch de Tema */}
-        <View style={styles.linhaConfig}>
-          <View style={styles.grupoIconeTexto}>
-            <Feather name="moon" style={[styles.icone, { color: tema.icone }]} />
-            <Text style={styles.textoTitulo}>Tema escuro</Text>
-          </View>
-          <Switch
-            value={modoEscuro}
-            onValueChange={alternarTema}
-            trackColor={{ false: tema.switchTrack, true: tema.switchTrack }}
-            thumbColor={modoEscuro ? tema.switchThumbEscuro : tema.switchThumbClaro}
-          />
+      {/* Switch de Tema */}
+      <View style={styles.linhaConfig}>
+        <View style={styles.grupoIconeTexto}>
+          <Feather name="moon" style={styles.icone} />
+          <Text style={styles.textoTitulo}>Tema escuro (beta)</Text>
         </View>
-
-        {/* Opções */}
-        <TouchableOpacity style={{ gap: 2 }} onPress={() => navigation.navigate('Informações da conta')}>
-          <View style={styles.grupoIconeTexto}>
-            <AntDesign name="user" style={[styles.icone, { color: tema.azul }]} />
-            <Text style={[styles.textoTitulo, { color: tema.azul, marginLeft: 8 }]}>Sua conta</Text>
-          </View>
-          <Text style={styles.textoDescricao}>Veja e altere as informações da sua conta.</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={{ gap: 2 }} onPress={() => navigation.navigate('Segurança')}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Feather name="lock" style={{ color: tema.azul, fontSize: 25, marginRight: 8 }} />
-            <Text style={styles.textoTitulo}>Segurança</Text>
-          </View>
-          <Text style={styles.textoDescricao}>Gerencie a segurança de sua conta.</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={{ gap: 2 }} onPress={() => navigation.navigate("Conta Institucional")}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <FontAwesome6 name="school-flag" style={{ color: tema.laranja, fontSize: 25, marginRight: 8 }} />
-            <Text style={styles.textoTituloInstitucional}>Conta institucional</Text>
-          </View>
-          <Text style={styles.textoDescricao}>
-            Torne-se uma Instituição em nosso aplicativo.
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={{ gap: 2 }} onPress={fazerLogoff}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <FontAwesome6 name="door-open" style={{ color: tema.vermelho, fontSize: 25, marginRight: 8 }} />
-            <Text style={styles.textoTituloLogoff}>Logoff</Text>
-          </View>
-          <Text style={styles.textoDescricao}>
-            Você sairá da sua conta.
-          </Text>
-        </TouchableOpacity>
-
+        <Switch
+          value={modoEscuro}
+          onValueChange={alternarTema}
+          trackColor={{ false: tema.switchTrack, true: tema.switchTrack }}
+          thumbColor={modoEscuro ? tema.switchThumbEscuro : tema.switchThumbClaro}
+        />
       </View>
-    </SafeAreaView>
-  );
+
+      {/* Conta */}
+      <TouchableOpacity style={{ gap: 2 }} onPress={() => navigation.navigate('Informações da conta')}>
+        <View style={styles.grupoIconeTexto}>
+          <AntDesign name="user" style={[styles.icone, { color: tema.azul }]} />
+          <Text style={[styles.textoTitulo, { color: tema.azul }]}>Sua conta</Text>
+        </View>
+        <Text style={styles.textoDescricao}>Veja e altere as informações da sua conta.</Text>
+      </TouchableOpacity>
+
+      {/* Segurança */}
+      <TouchableOpacity style={{ gap: 2 }} onPress={() => navigation.navigate('Segurança')}>
+        <View style={styles.grupoIconeTexto}>
+          <Feather name="lock" style={[styles.icone, { color: tema.azul }]} />
+          <Text style={styles.textoTitulo}>Segurança</Text>
+        </View>
+        <Text style={styles.textoDescricao}>Gerencie a segurança de sua conta.</Text>
+      </TouchableOpacity>
+
+      {/* Conta institucional */}
+      <TouchableOpacity style={{ gap: 2 }} onPress={() => navigation.navigate("Conta Institucional")}>
+        <View style={styles.grupoIconeTexto}>
+          <FontAwesome6 name="school-flag" style={[styles.icone, { color: tema.laranja }]} />
+          <Text style={styles.textoTituloInstitucional}>Conta institucional</Text>
+        </View>
+        <Text style={styles.textoDescricao}>
+          Torne-se uma Instituição em nosso aplicativo.
+        </Text>
+      </TouchableOpacity>
+
+      {/* Logoff */}
+      <TouchableOpacity style={{ gap: 2 }} onPress={fazerLogoff}>
+        <View style={styles.grupoIconeTexto}>
+          <FontAwesome6 name="door-open" style={[styles.icone, { color: tema.vermelho }]} />
+          <Text style={styles.textoTituloLogoff}>Logoff</Text>
+        </View>
+        <Text style={styles.textoDescricao}>
+          Você sairá da sua conta.
+        </Text>
+      </TouchableOpacity>
+
+    </View>
+  </SafeAreaView>
+);
 }

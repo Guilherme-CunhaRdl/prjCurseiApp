@@ -119,98 +119,95 @@ const Configuracoes = ({ arroba, idPost, userPost, segueUsuario, tipo,evento }) 
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <TouchableOpacity ref={buttonRef} onPress={openMenu} style={styles.button}>
-        <AntDesign name="ellipsis1" size={25} color={tema.texto} />
-      </TouchableOpacity>
+ return (
+  <View style={styles.container}>
+    <TouchableOpacity ref={buttonRef} onPress={openMenu} style={styles.button}>
+      <AntDesign name="ellipsis1" size={25} color={tema.texto} />
+    </TouchableOpacity>
 
-      {/* Menu */}
-      <Modal
-        transparent
-        visible={menuVisible}
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
+    {/* Menu */}
+    <Modal
+      transparent
+      visible={menuVisible}
+      animationType="fade"
+      onRequestClose={() => setMenuVisible(false)}
+    >
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPressOut={() => setMenuVisible(false)}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPressOut={() => setMenuVisible(false)}
+        <View
+          style={[
+            styles.menuContainer,
+            {
+              top: buttonPosition.y + 5,
+              right: 0,
+              backgroundColor: tema.modalFundo,
+              shadowColor: tema.nome === 'escuro' ? '#FFF' : '#000',
+            },
+          ]}
         >
-          <View
-            style={[
-              styles.menuContainer,
-              { top: buttonPosition.y + 5, right: 0 }, // Alinha o menu à direita
-            ]}
-          >
-            {data.map((item) => (
-              <TouchableOpacity
-                key={item.value}
-                style={styles.menuItem}
-                onPress={() => handleItemSelected(item)}
-              >
-                  <Ionicons name={item.icon} size={20} color={item.cor} style={styles.itemIcon} />
-    
-                <Text style={[styles.itemText, { color: item.cor }]}>{item.label}</Text>
+          {data.map((item) => (
+            <TouchableOpacity
+              key={item.value}
+              style={styles.menuItem}
+              onPress={() => handleItemSelected(item)}
+            >
+              <Ionicons name={item.icon} size={20} color={item.cor} style={styles.itemIcon} />
+              <Text style={[styles.itemText, { color: item.cor }]}>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </TouchableOpacity>
+    </Modal>
 
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+    {/* Modais */}
+    <NaoInteressado
+      visible={modalNaoInteressadoVisible}
+      onClose={() => setModalNaoInteressadoVisible(false)}
+      arroba={arroba}
+      idPost={idPost}
+    />
+    <Seguindo
+      visible={modalSeguindoVisible}
+      onClose={() => setModalSeguindoVisible(false)}
+      arroba={arroba}
+      userPost={userPost}
+    />
+    <ModalBloquear
+      visible={modalBloquearVisible}
+      onClose={() => setModalBloquearVisible(false)}
+      arroba={arroba}
+      userPost={userPost}
+    />
+    <ModalReportar
+      visible={modalReportarVisible}
+      onClose={() => setModalReportarVisible(false)}
+      arroba={arroba}
+      idPost={idPost}
+      userPost={userPost}
+    />
+    <ModalExcluir
+      visible={modalExcluirVisible}
+      onClose={() => setModalExcluirVisible(false)}
+      arroba={arroba}
+      idPost={idPost}
+    />
+    <ModalImpulsionar
+      visible={modalImpulsionarVisible}
+      onClose={() => setModalImpulsionarVisible(false)}
+      arroba={arroba}
+      idPost={idPost}
+    />
+    {evento ? (
+      <ModalPostagem ref={modalRef} tipo="editaEvento" idPost={evento} />
+    ) : (
+      <ModalPostagem ref={modalRef} tipo="editar" idPost={idPost} />
+    )}
+  </View>
+);
 
-      {/* Modais */}
-      <NaoInteressado
-        visible={modalNaoInteressadoVisible}
-        onClose={() => setModalNaoInteressadoVisible(false)}
-        arroba={arroba}
-        idPost={idPost}
-      />
-      <Seguindo
-        visible={modalSeguindoVisible}
-        onClose={() => setModalSeguindoVisible(false)}
-        arroba={arroba}
-        userPost={userPost}
-      />
-      <ModalBloquear
-        visible={modalBloquearVisible}
-        onClose={() => setModalBloquearVisible(false)}
-        arroba={arroba}
-        userPost={userPost}
-      />
-      <ModalReportar
-        visible={modalReportarVisible}
-        onClose={() => setModalReportarVisible(false)}
-        arroba={arroba}
-        idPost={idPost}
-        userPost={userPost}
-
-      />
-          <ModalExcluir
-        visible={modalExcluirVisible}
-        onClose={() => setModalExcluirVisible(false)}
-        arroba={arroba}
-        idPost={idPost}
-        
-
-      />
-           <ModalImpulsionar
-        visible={modalImpulsionarVisible}
-        onClose={() => setModalImpulsionarVisible(false)}
-        arroba={arroba}
-        idPost={idPost}
-        
-
-      />
-      {evento ?(
-      <ModalPostagem ref={modalRef} tipo='editaEvento' idPost={evento}/>
-      ):
-      <ModalPostagem ref={modalRef} tipo='editar' idPost={idPost}/>
-      }
-      
-
-    </View>
-  );
 };
 
 export default Configuracoes;
