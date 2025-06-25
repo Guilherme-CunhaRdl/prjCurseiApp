@@ -304,6 +304,7 @@ export default function Mensagens({ route }) {
                     arrobaEnviador: item.arroba,
                     idChat: item.id_conversa,
                     isCanal: item.tipo === "canal",
+                    idMembro: item.id_membro
                   };
                   navigation.navigate("Conversa", navData);
                 }}
@@ -321,7 +322,7 @@ export default function Mensagens({ route }) {
                   <View style={styles.mensagemTexto}>
                     <View style={{ flexDirection: 'row' }}>
                       <Text style={[styles.nome, { color: tema.texto, paddingRight: 10 }]} numberOfLines={1}>
-                        {item.nome} {item.id_post}
+                        {item.nome} 
                         
                       </Text>
                       {item.tipo === 'instituicao' && (

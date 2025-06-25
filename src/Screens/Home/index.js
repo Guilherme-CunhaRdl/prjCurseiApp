@@ -188,7 +188,7 @@ export default function Home() {
   try {
     console.log(userId)
         const resposta = await axios.get(
-          `http://${host}:8000/api/cursei/chat/recebidor/${id}/todas/0`
+          `http://${host}:8000/api/cursei/chat/recebidor/${id}/compartilhar/0`
         )
         console.log(resposta)
         setChats(resposta.data.conversas)

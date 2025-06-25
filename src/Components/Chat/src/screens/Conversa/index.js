@@ -32,7 +32,8 @@ export default function Conversa({ route }) {
     nomeEnviador,
     arrobaEnviador,
     idChat,
-    isCanal
+    isCanal,
+    idMembro
   } = route.params;
 
   const [campoMensagem, setCampoMensagem] = useState("");
@@ -43,6 +44,7 @@ export default function Conversa({ route }) {
   const [modalFoto, setModalFoto] = useState(false);
   const [imagemMensagem, setImagemMensagem] = useState();
   const [postPv, setPostPv] = useState(false);
+  const [estaInscrito, setEstaInscrito] = useState(idMembro === idUserLogado);
 
   const abrirConversaInicio = async () => {
     try {
@@ -301,6 +303,40 @@ export default function Conversa({ route }) {
 
 
 
+  const seguirDeseguirCanal = async (idCanal) => {
+      
+
+    try{
+      if(estaInscrito){
+
+      const url = `http://${host}:8000/api/cursei/chat/deixarSeguir/${idUserLogado}/${idCanal}`;
+      const resposta = await axios.delete(url);
+      console.log(resposta);
+      
+      
+     
+      }else{
+
+        const url = `http://${host}:8000/api/cursei/chat/seguirCanal`;
+        
+        const data = {
+          idUsuario: idUserLogado,
+          idCanal: idCanal
+        };
+        
+        
+        
+        const resposta = await axios.post(url, data);
+        const dadosApi = resposta.data;
+        console.log(resposta);
+
+      }
+          setEstaInscrito(!estaInscrito);
+       }catch (error){
+        console.log(error)
+      }
+    }
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -337,9 +373,9 @@ export default function Conversa({ route }) {
               />
               <View style={styles.viewCabecalho}>
                 <View style={{width: '100%'}}>
-                <Text style={styles.nome}>{nomeEnviador}</Text>
+                <Text style={styles.nome}>{nomeEnviador} {idMembro}</Text>
                 
-                <Text style={styles.usuario}>@{arrobaEnviador}</Text>
+                <Text style={styles.usuario}>@{arrobaEnviador} </Text>
                 </View>
                 </View>
                 </TouchableOpacity>
@@ -347,9 +383,13 @@ export default function Conversa({ route }) {
                 {isCanal && idEnviador != idUserLogado && (
                   
                 <View style={styles.viewBotaoSeguir}>
-                  <TouchableOpacity style={styles.botaoSeguir}>
+                  <TouchableOpacity style={[
+                    styles.botaoSeguir,
+                    estaInscrito && { backgroundColor: 'gray' }, // Ex: muda cor se já inscrito
+                  ]}
+                  onPress={() => seguirDeseguirCanal(idChat)}>
                   <Text style={styles.textSeguir}>
-                    Seguir
+                    {estaInscrito ? 'Inscrito' : 'Seguir'}
                   </Text>
                 </TouchableOpacity>
                 </View>

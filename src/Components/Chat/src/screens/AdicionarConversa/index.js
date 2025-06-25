@@ -285,7 +285,7 @@ export default function AddConversa({ route }) {
     
     if(!seguidos.includes(idCanal)){
       return 'não pode0';
-    }    const url = `http://${host}:8000/api/cursei/chat/deixarSeguir/${idUserLogado}`;
+    }    const url = `http://${host}:8000/api/cursei/chat/deixarSeguir/${idUserLogado}/${idCanal}`;
     const resposta = await axios.delete(url);
     const dadosApi = resposta.data;
     console.log(resposta);
