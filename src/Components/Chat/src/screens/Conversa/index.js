@@ -71,6 +71,8 @@ export default function Conversa({ route }) {
     }
   };
 
+ 
+
   useEffect(() => {
     const pusher = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
       cluster: "mt1",
@@ -248,7 +250,7 @@ export default function Conversa({ route }) {
     })();
   }, []);
 
-  
+  console.log(mensagens)
   const tirarFotoParaEnvio = async () => {
         const permissao = await ImagePicker.requestCameraPermissionsAsync();
         if (!permissao.granted) {
@@ -559,7 +561,7 @@ export default function Conversa({ route }) {
             )
         :  
               (
-                <EnviarPostPv />
+                <EnviarPostPv idUserLogado={idUserLogado} idChat={idChat} />
               )
     }
     </View>
@@ -611,7 +613,7 @@ export default function Conversa({ route }) {
             )
         :  
               (
-                <EnviarPostPv />
+                <EnviarPostPv idUserLogado={idUserLogado} idChat={idChat} />
               )
     }
     </View>

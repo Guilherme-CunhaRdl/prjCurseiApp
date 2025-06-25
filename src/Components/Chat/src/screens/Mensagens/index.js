@@ -93,7 +93,6 @@ export default function Mensagens({ route }) {
 
   const conectarCanal = async (novosChats) => {
     try{
-      Pusher.logToConsole = true;
       window.pusherInstance = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
         cluster: "mt1",
         wsHost: `${host}`,

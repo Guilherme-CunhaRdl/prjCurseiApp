@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TouchableOpacity, Share, Alert, Modal, StyleSheet, Text, View, FlatList, Image, Pressable } from 'react-native';
+import { TouchableOpacity, Share, Alert, Modal, StyleSheet, Text, View, FlatList, Image, Pressable, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
 import host from '../global';
@@ -9,57 +9,15 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTema } from '../context/themeContext';
 //conteudo seria o post
-export default function EnviarPostPv() {
+export default function EnviarPostPv({idUserLogado, idChat}) {
   const modalRef = useRef(null);
   const [visivel, setVisivel] = React.useState(false);
-  const [chatsSelecionados, setChatsSelecionados] = useState([]);
+  const [postsSelecionados, setPostsSelecionados] = useState([]);
   const [campoMsg, setCampoMsg] = useState('');
+  const [posts, setPosts] = useState([]);
   const {tema} = useTema();
-  const opcoes = [
-
-    {
-      nome: 'WhatsApp',
-      icone: 'logo-whatsapp',
-      cor: '#25D366',
-      descricao: 'Enviar para contatos'
-    },
-    {
-      nome: 'Copiar link',
-      icone: 'link-outline',
-      cor: '#8E8E93',
-      descricao: 'Link para este post'
-    },
-    {
-      nome: 'Outros apps',
-      icone: 'ellipsis-horizontal',
-      cor: '#8E8E93',
-      descricao: 'Mais opções'
-    },
-  ];
-
  
-
-  const compartilhar = async (opcao) => {
-    try {
-      const config = {
-        message: `""\n\nVeja este post que vi no CURSEI!!!!`,
-        title: 'Compartilhar post'
-      };
-
-      if (opcao === 'Copiar link') {
-        Alert.alert('Link copiado!');
-        return;
-      }
-
-
-      await Share.share(config);
-
-    } catch (erro) {
-      Alert.alert('Erro', 'Não foi possível compartilhar');
-    } finally {
-      fecharModal();
-    }
-  };
+  
 
   const abrirModal = () => setVisivel(true);
 
@@ -68,33 +26,41 @@ export default function EnviarPostPv() {
   };
 
   const selecionarCompartilhamento = (item) => {
-    if(chatsSelecionados.includes(item)){
-      setChatsSelecionados(chatsSelecionados.filter(i => i !== item))
+    if(postsSelecionados.includes(item)){
+      setPostsSelecionados(postsSelecionados.filter(i => i !== item))
     }else{
-      setChatsSelecionados([...chatsSelecionados, item])
+      setPostsSelecionados([...postsSelecionados, item])
     }
   }
+      console.log(postsSelecionados)
 
  const enviarPost = async () => {
-  const mensagem = campoMsg.trim();
   const id = await AsyncStorage.getItem('idUser');
-console.log('idLogado', id)
-  if (chatsSelecionados.length === 0) return;
+  console.log('idLogado', id)
+  if (postsSelecionados.length === 0) return;
+  
 
   try {
-    await Promise.all(
-      chatsSelecionados.map(async (idChat) => {
+    const dados = await Promise.all(
+      postsSelecionados.map(async (post) => {
+        console.log({
+  idChat,
+  conteudoMensagem: null,
+  idEnviador: id,
+  idPost: post
+});
         await axios.post(`http://${host}:8000/api/cursei/chat/enviarMensagem/semImagem`, {
           idChat: idChat,
-          conteudoMensagem: mensagem,
+          conteudoMensagem: null,
           idEnviador: id,
-          idPost: idPost
+          idPost: post
         });
       })
     );
+    console.log(dados)
 
     setCampoMsg('');
-    setChatsSelecionados([]);
+    setPostsSelecionados([]);
     fecharModal();
 
     Alert.alert('Sucesso', 'Post enviado com sucesso!');
@@ -105,15 +71,18 @@ console.log('idLogado', id)
   }
 };
 
-// useEffect(() => {
-//   const pegarPosts = async () => {
-//     const id = await AsyncStorage.getItem('idUser');
+ const carregarPosts = async () => {
+    const url = `http://${host}:8000/api/posts/6/${idUserLogado}/100/0/${idUserLogado}`;
 
-//   const resposta = await axios.get(`http://${host}:8000/api/cursei/chat/getChats/${id}`);
-//   console.log(resposta.data);
-// }
+    const resposta = await axios.get(url);
+    setPosts(resposta.data.data)
+    console.log(resposta)
 
-// }, []);
+  }
+
+  useEffect(()=> {
+    carregarPosts()
+  },[]);
 
 return (
   <>
@@ -147,8 +116,34 @@ return (
           </View>
 
           
-            <View style={styles.containerChat}>
-              </View>
+            <ScrollView contentContainerStyle={styles.containerChat}>
+  {posts.map((item, index) => (
+    <View key={item.id_post} style={styles.boxPost}>
+      <TouchableOpacity style={[styles.botaoPost, postsSelecionados.includes(item.id_post) && {backgroundColor: tema.azul}]} onPress={() => selecionarCompartilhamento(item.id_post)}>
+        {postsSelecionados.includes(item.id_post) && (
+          <Ionicons name='checkmark' size={20} color="#fff" />
+        )}
+        
+      </TouchableOpacity>
+      <View style={styles.containerImgPost}>
+        <Image
+          style={styles.imagemPost}
+          source={{ uri: `http://${host}:8000/img/user/imgPosts/${item.conteudo_post}` }}
+        />
+      </View>
+      <Text>{item.id_post}</Text>
+    </View>
+  ))}
+
+</ScrollView>
+  {postsSelecionados.length > 0 && (
+    <>
+    <Pressable onPress={() => enviarPost()}>
+      <Text>Enviar</Text>
+    </Pressable>
+    </>
+  )}
+
               </Animatable.View>
               </View>
     </Modal>
@@ -220,19 +215,14 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     marginTop: 2,
   },
-  containerChat:{
-    height: 150,
-    width: '100%',
-    padding: 10,
-    // borderBottomWidth: 1,
-    // borderBottomColor: '000'
-  },
-  boxChat:{
-    width : 100,
-    height: '100%',
-   marginInline: 3,
-   padding: 10
-  },
+containerChat: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+  padding: 10,
+},
+
+
   boxSelecionado:{
     width : 100,
     height: '100%',
@@ -303,6 +293,36 @@ const styles = StyleSheet.create({
   iconSmall:{
     width: 20,
     height: 20
-  }
+  },
+ boxPost: {
+  width: '48%',         
+  aspectRatio: 1,        
+  marginBottom: 15,
+  backgroundColor: '#eee',
+  borderRadius: 8,
+  overflow: 'hidden',
+  position: 'relative',
+},
+botaoPost: {
+  width: 24,
+  height: 24,
+  justifyContent: 'center',
+  alignItems: 'center',
+  position: 'absolute',
+  top: 8,
+  right: 8,
+  backgroundColor: 'red',
+  borderRadius: 12,
+  zIndex: 1,
+},
+containerImgPost: {
+  flex: 1,
+},
+imagemPost: {
+  width: '100%',
+  height: '100%',
+  resizeMode: 'cover',
+},
+
 
 });
