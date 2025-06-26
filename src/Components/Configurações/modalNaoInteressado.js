@@ -38,13 +38,13 @@ const NaoInteressado = ({ visible, onClose,arroba,idPost }) => {
       animationOutTiming={500}
       style={{ margin: 0, justifyContent: 'flex-end' }}
     >
-      <View style={[styles.modal, { backgroundColor: tema.modalFundo }]}>
+      <View style={[styles.modal, { backgroundColor: tema.azul }]}>
         <View style={styles.modalTexto}>
-          <Text style={[styles.texto, { color: tema.texto }]}>
+          <Text style={[styles.texto, { color: "#fff" }]}>
             @{arroba} não será mais recomendado.
           </Text>
           <Pressable onPress={onClose}>
-            <Text style={[styles.textoDestacado, { color: tema.azul }]}>
+            <Text style={[styles.textoDestacado, { color: "#fff" }]}>
               Desfazer
             </Text>
           </Pressable>

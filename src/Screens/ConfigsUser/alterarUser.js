@@ -211,7 +211,7 @@ export default function AlterarUser() {
 
       <Modal visible={modalSenha} animationType="slide" transparent onRequestClose={() => setModalSenha(false)}>
         <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { backgroundColor: tema.modalFundo, height: '50%' }]}>
+          <View style={[styles.modalContent, { backgroundColor: tema.modalFundo, height: 400 }]}>
             <Text style={[styles.modalTitle, { color: tema.texto }]}>Alterar senha</Text>
             <Text style={[styles.modalSubTitle, { color: tema.descricao }]}>Confirme a senha atual e a altere para uma nova</Text>
 
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '90%',
-    height: '30%',
+    height: 250,
     padding: 30,
     borderRadius: 15,
     backgroundColor: '#fff',

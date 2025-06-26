@@ -83,8 +83,9 @@ const ModalPostagem = forwardRef(
 
       const resultado = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
+        allowsEditing: false,
         quality: 1,
+        aspect: [5, 4],
       });
 
       if (!resultado.canceled) {
@@ -101,8 +102,9 @@ const ModalPostagem = forwardRef(
       }
 
       const resultado = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
+        allowsEditing: false,
         quality: 1,
+          aspect: [5, 4],
       });
 
       if (!resultado.canceled) {

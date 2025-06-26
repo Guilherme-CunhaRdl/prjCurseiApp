@@ -39,13 +39,13 @@ const Seguindo = ({ visible, onClose,arroba,userPost}) => {
       animationOutTiming={500}
       style={{ margin: 0, justifyContent: 'flex-end' }}
     >
-      <View style={[styles.modal, { backgroundColor: tema.modalFundo }]}>
+      <View style={[styles.modal, { backgroundColor: tema.azul }]}>
         <View style={styles.modalTexto}>
-          <Text style={[styles.texto, { color: tema.texto }]}>
+          <Text style={[styles.texto, { color: '#fff' }]}>
             Agora você está seguindo @{arroba}
           </Text>
           <Pressable onPress={onClose}>
-            <Text style={[styles.texto, { color: tema.azul }]}>Desfazer</Text>
+            <Text style={[styles.texto, { color: '#fff' }]}>Desfazer</Text>
           </Pressable>
         </View>
       </View>

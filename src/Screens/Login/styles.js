@@ -4,6 +4,8 @@ export default StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#ffffff',
+        justifyContent:'center',
+        
       },
       logoContainer: {
         display: 'flex',

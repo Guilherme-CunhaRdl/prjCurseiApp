@@ -119,6 +119,7 @@ return (
         fontWeight: '600',
         color: tema.texto,
         textTransform: 'none',
+       
       },
     }}
   >
@@ -234,7 +235,7 @@ return (
                   style={styles.userImgContainer}
                   onPress={() =>
                     navigation.navigate('Perfil', {
-                      idUserPerfil: item.id,
+                      idUserPerfil: item.id_user,
                       titulo: item.arroba_user,
                     })
                   }
