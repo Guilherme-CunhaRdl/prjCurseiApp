@@ -70,35 +70,42 @@ export default function DoisFatores({route}) {
   };
 
   const verifyCode = async () => {
-    if (!code || code.length !== 6) {
-      Alert.alert('Erro', 'Por favor, insira um código válido de 6 dígitos');
-      return;
-    }
+  const cleanCode = code.trim().toLowerCase();
 
-    try {
-      setLoading(true);
-      const response = await axios.post(`http://${host}:8000/api/2fa/verificarCodigo`, { 
-        email, 
-        code 
-      });
+  if (!cleanCode || cleanCode.length !== 6) {
+    Alert.alert('Erro', 'Por favor, insira um código válido de 6 caracteres');
+    return;
+  }
 
-      if (response.data.success) {
-        const id = await AsyncStorage.getItem('idUser');
-        const response = await axios.post(`http://${host}:8000/api/cursei/user/selecionarUser/${id}`);
-        const usuario = response.data.User;
-        await AsyncStorage.setItem('idUser', String(usuario.id));
-        await AsyncStorage.setItem('logado', '1');
-        await AsyncStorage.setItem('idInstituicao', response.data.id_instituicao);
-        await AsyncStorage.setItem('imgUser', usuario.img_user);
-        await AsyncStorage.setItem('arrobaUser', usuario.arroba_user);
-        navigation.navigate('Home');
-      }
-    } catch (error) {
-      Alert.alert('Erro', error.response?.data?.message || 'Código inválido');
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+
+    const verifyResponse = await axios.post(`http://${host}:8000/api/2fa/verificarCodigo`, { 
+      email: email.trim(),
+      code: cleanCode
+    });
+
+    if (verifyResponse.data.success) {
+      const id = await AsyncStorage.getItem('idUser');
+      const userResponse = await axios.post(`http://${host}:8000/api/cursei/user/selecionarUser/${id}`);
+      const usuario = userResponse.data.User;
+
+      await AsyncStorage.setItem('idUser', String(usuario.id));
+      await AsyncStorage.setItem('logado', '1');
+      await AsyncStorage.setItem('idInstituicao', userResponse.data.id_instituicao);
+      await AsyncStorage.setItem('imgUser', usuario.img_user);
+      await AsyncStorage.setItem('arrobaUser', usuario.arroba_user);
+
+      navigation.navigate('Home');
+    } else {
+      Alert.alert('Erro', 'Código inválido ou expirado.');
     }
-  };
+  } catch (error) {
+    Alert.alert('Erro', error.response?.data?.message || 'Código inválido');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const resendCode = async () => {
     if (countdown > 0) return;
