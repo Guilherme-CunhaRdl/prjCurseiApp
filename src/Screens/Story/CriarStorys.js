@@ -43,12 +43,7 @@ const CriarStory = () => {
 
 
 
-  useEffect(() => {
-    fetch(`http://${host}:8000/api/ping`)
-      .then((res) => res.json())
-      .then((data) => console.log('Conexão OK:', data))
-      .catch((err) => console.error('Erro de conexão:', err));
-  }, []);
+
 
 
   useEffect(() => {

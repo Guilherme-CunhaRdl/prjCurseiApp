@@ -33,10 +33,128 @@ const responsiveFontSize = (percentage) => Math.round((width * percentage) / 100
 const responsiveWidth = (percentage) => width * (percentage / 100);
 const responsiveHeight = (percentage) => height * (percentage / 100);
 
+// Componente de Item de Vídeo separado
+const VideoItem = React.memo(({
+  item,
+  index,
+  currentIndex,
+  isFocused,
+  userId,
+  handleCurtir,
+  setSelectedCurteiId,
+  setShowComments,
+  setModalComp,
+  setCurteiSelecionado,
+  setShowOpcoesModal,
+  navigation
+}) => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (!isFocused || index !== currentIndex) {
+      videoRef.current?.pauseAsync();
+    } else {
+      videoRef.current?.playAsync().catch(error => {
+        console.warn("Error playing video:", error);
+      });
+    }
+  }, [isFocused, currentIndex, index]);
+
+  return (
+    <View style={styles.videoContainer}>
+      <Video
+        ref={videoRef}
+        source={{ uri: item.videoUrl }}
+        style={styles.video}
+        resizeMode="cover"
+        isLooping
+        isMuted={false}
+        useNativeControls={false}
+        shouldPlay={false} // Controlamos manualmente a reprodução
+      />
+      
+      <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.7)']} style={styles.overlay}>
+        {/* Cabeçalho */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={responsiveFontSize(7)} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Curtei</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('CriarCurteis')}>
+            <Ionicons name="camera-outline" size={responsiveFontSize(7)} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Informações do usuário */}
+        <View style={styles.contentContainer}>
+          <View style={styles.profileSection}>
+            <Image
+              style={styles.profileImage}
+              source={item.userImage 
+                ? { uri: item.userImage } 
+                : require('../../../assets/userDeslogado.png')
+              }
+            />
+            <Text style={styles.institutionName}>{item.institutionName}</Text>
+          </View>
+
+          {item.description && (
+            <Text style={styles.description} numberOfLines={1} ellipsizeMode="tail">
+              {item.description}
+            </Text>
+          )}
+        </View>
+
+        {/* Botões de ação */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={styles.button} onPress={() => handleCurtir(item.id, item.liked)}>
+            <Ionicons 
+              name={item.liked ? "heart" : "heart-outline"}  
+              size={responsiveFontSize(6)}  
+              color={item.liked ? "#FF0000" : "white"}  
+            />
+            <Text style={[styles.buttonText, item.liked && styles.likedText]}>{item.likes}</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={() => {
+              setSelectedCurteiId(item.id);
+              setShowComments(true);
+            }}
+          >
+            <Ionicons name="chatbubble-outline" size={responsiveFontSize(6)} color="white" />
+            <Text style={styles.buttonText}>{item.comments}</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.button} onPress={() => {
+            setModalComp(true);
+            setCurteiSelecionado(item);
+            setSelectedCurteiId(item.id);
+          }}>
+            <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
+          </TouchableOpacity>
+          
+          {item.idUser?.toString() === userId && (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                setCurteiSelecionado(item);
+                setShowOpcoesModal(true);
+              }}
+            >
+              <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </LinearGradient>
+    </View>
+  );
+});
+
 export default function Curtei() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const videoRefs = useRef([]);
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [stories, setStories] = useState([]);
@@ -50,6 +168,7 @@ export default function Curtei() {
   const [curteiSelecionado, setCurteiSelecionado] = useState(null);
   const [modalComp, setModalComp] = useState(false);
   const [chats, setChats] = useState([]);
+
   // Carregar dados do usuário e curteis
   useEffect(() => {
     const loadData = async () => {
@@ -64,29 +183,20 @@ export default function Curtei() {
     };
     
     loadData();
-    trazerChats(userId);
+    trazerChats();
   }, [isFocused]);
 
-
-  
-     const trazerChats = async (userId) => {
-      id = await AsyncStorage.getItem('idUser')
-  try {
-    console.log(userId)
-        const resposta = await axios.get(
-          `http://${host}:8000/api/cursei/chat/recebidor/${id}/compartilhar/0`
-        )
-        console.log(resposta)
-        setChats(resposta.data.conversas)
-        return resposta.data.conversas;
-  
-      } catch (error) {
-        console.error("Erro ao buscar mensagens:", error);
-        return "deu erro";
-      } 
-  
-      
+  const trazerChats = async () => {
+    const id = await AsyncStorage.getItem('idUser');
+    try {
+      const resposta = await axios.get(
+        `http://${host}:8000/api/cursei/chat/recebidor/${id}/compartilhar/0`
+      );
+      setChats(resposta.data.conversas);
+    } catch (error) {
+      console.error("Erro ao buscar mensagens:", error);
     }
+  }
 
   // Função para curtir/descurtir vídeos
   const handleCurtir = async (curteiId, isLiked) => {
@@ -160,115 +270,25 @@ export default function Curtei() {
   const handleScrollEnd = (e) => {
     const offsetY = e.nativeEvent.contentOffset.y;
     const index = Math.round(Math.min(Math.max(offsetY, 0), (stories.length - 1) * ITEM_HEIGHT) / ITEM_HEIGHT);
-
-    if (currentIndex !== index) {
-      videoRefs.current.forEach((ref, i) => ref?.setStatusAsync({ shouldPlay: i === index }));
-      setCurrentIndex(index);
-    }
+    setCurrentIndex(index);
   };
-
-  // Pausar vídeos quando a tela perde foco
-  useEffect(() => {
-    if (!isFocused) {
-      videoRefs.current.forEach(ref => ref?.pauseAsync());
-    } else {
-      videoRefs.current[currentIndex]?.playAsync();
-    }
-  }, [isFocused]);
 
   // Renderização do item do FlatList
   const renderItem = ({ item, index }) => (
-    <View style={styles.videoContainer}>
-      <Video
-        ref={(ref) => (videoRefs.current[index] = ref)}
-        source={{ uri: item.videoUrl }}
-        style={styles.video}
-        resizeMode="cover"
-        isLooping
-        isMuted={false}
-        useNativeControls={false}
-        shouldPlay={index === currentIndex}
-      />
-      
-      <LinearGradient colors={['transparent', 'rgba(0, 0, 0, 0.7)']} style={styles.overlay}>
-        {/* Cabeçalho */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={responsiveFontSize(7)} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.title}>Curtei</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('CriarCurteis')}>
-            <Ionicons name="camera-outline" size={responsiveFontSize(7)} color="white" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Informações do usuário */}
-        <View style={styles.contentContainer}>
-          <View style={styles.profileSection}>
-            <Image
-              style={styles.profileImage}
-              source={item.userImage 
-                ? { uri: item.userImage } 
-                : require('../../../assets/userDeslogado.png')
-              }
-            />
-            <Text style={styles.institutionName}>{item.institutionName}</Text>
-          </View>
-
-          {item.description && (
-            <Text style={styles.description} numberOfLines={1} ellipsizeMode="tail">
-              {item.description}
-            </Text>
-          )}
-        </View>
-
-        {/* Botões de ação */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.button} onPress={() => handleCurtir(item.id, item.liked)}>
-            <Ionicons 
-              name={item.liked ? "heart" : "heart-outline"}  
-              size={responsiveFontSize(6)}  
-              color={item.liked ? "#FF0000" : "white"}  
-            />
-            <Text style={[styles.buttonText, item.liked && styles.likedText]}>{item.likes}</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.button} 
-            onPress={() => {
-              setSelectedCurteiId(item.id);
-              setShowComments(true);
-            }}
-          >
-            <Ionicons name="chatbubble-outline" size={responsiveFontSize(6)} color="white" />
-            <Text style={styles.buttonText}>{item.comments}</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.button} onPress={() => {
-            setModalComp(true)
-            setCurteiSelecionado(item)
-            setSelectedCurteiId(item.id);
-          }
-          }>
-            <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
-          </TouchableOpacity>
-          
-          {item.idUser?.toString() === userId && (
-
-  <TouchableOpacity
-    style={styles.button}
-    onPress={() => {
-      setCurteiSelecionado(item);
-      setShowOpcoesModal(true);
-    }}
-  >
-    <Ionicons name="ellipsis-vertical" size={responsiveFontSize(6)} color="white" />
-  </TouchableOpacity>
-)}
-
-        </View>
-      </LinearGradient>
-    </View>
+    <VideoItem
+      item={item}
+      index={index}
+      currentIndex={currentIndex}
+      isFocused={isFocused}
+      userId={userId}
+      handleCurtir={handleCurtir}
+      setSelectedCurteiId={setSelectedCurteiId}
+      setShowComments={setShowComments}
+      setModalComp={setModalComp}
+      setCurteiSelecionado={setCurteiSelecionado}
+      setShowOpcoesModal={setShowOpcoesModal}
+      navigation={navigation}
+    />
   );
 
   // Estados de carregamento e erro
@@ -331,6 +351,10 @@ export default function Curtei() {
           />
         }
         overScrollMode="never"
+        windowSize={5}
+        initialNumToRender={1}
+        maxToRenderPerBatch={3}
+        updateCellsBatchingPeriod={100}
       />
 
       {/* Modal de Comentários */}
@@ -343,48 +367,37 @@ export default function Curtei() {
         }}
       />
 
-            {/* Modal de Opçoes */}
-            <ModalOpcoesCurtei
-  visible={showOpcoesModal}
-  onClose={() => setShowOpcoesModal(false)}
-  onEditar={() => {
-    setShowOpcoesModal(false);
-    navigation.navigate('CriarCurteis', { curtei: curteiSelecionado });
-  }}
-  onExcluir={async () => {
-    setShowOpcoesModal(false);
-    try {
-      await axios.delete(`http://${host}:8000/api/curtei/deletar/${curteiSelecionado.id}`);
-      fetchCurteis();
-      Alert.alert('Sucesso', 'Curtei excluído com sucesso!');
-    } catch (err) {
-      console.error('Erro ao excluir:', err);
-      Alert.alert('Erro', 'Não foi possível excluir');
-    }
-  }}
-/>
+      {/* Modal de Opções */}
+      <ModalOpcoesCurtei
+        visible={showOpcoesModal}
+        onClose={() => setShowOpcoesModal(false)}
+        onEditar={() => {
+          setShowOpcoesModal(false);
+          navigation.navigate('CriarCurteis', { curtei: curteiSelecionado });
+        }}
+        onExcluir={async () => {
+          setShowOpcoesModal(false);
+          try {
+            await axios.delete(`http://${host}:8000/api/curtei/deletar/${curteiSelecionado.id}`);
+            fetchCurteis();
+            Alert.alert('Sucesso', 'Curtei excluído com sucesso!');
+          } catch (err) {
+            console.error('Erro ao excluir:', err);
+            Alert.alert('Erro', 'Não foi possível excluir');
+          }
+        }}
+      />
 
-        <CompartilharCurtei 
+      <CompartilharCurtei 
         chats={chats} 
         visibilidade={modalComp} 
         curtei={curteiSelecionado} 
         idCurtei={selectedCurteiId}
         onClose={() => setModalComp(false)} 
-         />
-
-
+      />
     </SafeAreaView>
-
-
-
   );
-
-  
 }
-
-
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -394,9 +407,26 @@ const styles = StyleSheet.create({
     height: ITEM_HEIGHT,
     width,
     backgroundColor: 'black',
+    position: 'relative',
   },
   video: {
     flex: 1,
+  },
+  videoErrorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+  },
+  videoErrorText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

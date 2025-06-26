@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, StatusBar, Pressable, ActivityIndicator, RefreshControl, LogBox } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -26,6 +26,10 @@ import {
     Provider as PaperProvider,
     SegmentedButtons,
 } from "react-native-paper";
+
+LogBox.ignoreLogs([
+    'VirtualizedLists should never be nested',
+  ]);
 
 export default function Perfil() {
     const route = useRoute();
