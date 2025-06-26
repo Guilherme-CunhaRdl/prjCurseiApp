@@ -15,7 +15,8 @@ import {useTema} from '../../../context/themeContext';
 const Top = createMaterialTopTabNavigator();
 
 const TopTabs = ({ termoPesquisado }) => {
-    
+        const navigation = useNavigation();
+
     const [loading, setLoading] = useState(false);
     const [usuarios, setUsuarios] = useState();
     const [instituicoes, setInstituicoes] = useState();
@@ -207,7 +208,7 @@ return (
                       style={
                         item.seguido
                           ? [styles.titleButtonActive, { color: tema.textoBotao }]
-                          : [styles.titleButton, { color: tema.azul }]
+                          : [styles.titleButton, { color:"#FFF" }]
                       }
                     >
                       {item.seguido ? 'Seguido' : 'Seguir'}

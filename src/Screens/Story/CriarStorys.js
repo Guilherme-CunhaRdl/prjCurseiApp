@@ -182,9 +182,7 @@ const CriarStory = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Novo Story</Text>
-      </View>
+   
       
       <View style={styles.pageIndicatorContainer}>
         {[0, 1].map((index) => {

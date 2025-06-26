@@ -186,6 +186,7 @@ export default function StackRoutes() {
         name="CriarStorys"
         component={CriarStorys}
         options={{
+          
           headerTitle: () => (
             <Text style={{
               fontSize: 18,
