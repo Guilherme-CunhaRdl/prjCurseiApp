@@ -92,89 +92,120 @@ export default function Mensagens({ route }) {
 
 
   const conectarCanal = async (novosChats) => {
-    try{
+    try {
       window.pusherInstance = new Pusher("yls40qRApouvChytA220SnHKQViSXBCs", {
         cluster: "mt1",
         wsHost: `${host}`,
         wsPort: 6001,
         forceTLS: false,
         enabledTransports: ["ws"],
-       
+
       });
-    
 
-    const ordenarConversas = (conversas) => {
-      return [...conversas].sort((a, b) =>
-        new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
-      );
-    };
 
-    const transformarMensagem = (msg) => ({
-      id_conversa: msg.id_chat,
-      id_remetente: msg.id_enviador,
-      ultima_mensagem: msg.ultima_mensagem,
-      img_mensagem: msg.img_mensagem,
-      status_mensagem: msg.status_mensagem,
-      id_post: msg.id_post,
+      const ordenarConversas = (conversas) => {
+        return [...conversas].sort((a, b) =>
+          new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+        );
+      };
 
-      updated_at: msg.created_at || new Date().toISOString()
-    });
-    
-    novosChats.forEach((chat) => {
-      let tipoChat = chat.tipo; 
-      const isCanal = tipoChat === 'canal';
-      const isInstituicao = tipoChat === 'instituicao';
-      const tipoEsperado = isCanal ? 'canal' : isInstituicao ? 'instituicao' : 'privado';
-      console.log('tipo esperado', tipoEsperado)
-      let eventoCanal = isCanal ? 'receber_mensagens_canais' : 'chats';
-      let channelName = isCanal ? `view_canais.${chat.id_conversa}` : `trazer_chats.${chat.id_conversa}`;
+      const transformarMensagem = (msg) => ({
+        id_conversa: msg.id_chat,
+        id_remetente: msg.id_enviador,
+        ultima_mensagem: msg.ultima_mensagem,
+        img_mensagem: msg.img_mensagem,
+        status_mensagem: msg.status_mensagem,
+        id_post: msg.id_post,
 
-      console.log('evento canal', eventoCanal)
-      if (!window.pusherInstance.channels[channelName]) {
-        const canal = window.pusherInstance.subscribe(channelName);
+        updated_at: msg.created_at || new Date().toISOString()
+      });
 
-        canal.bind(eventoCanal, (data) => {
-          console.log('data recebida do evento', data);
-          if (!data?.msgs?.length) return;
+      novosChats.forEach((chat) => {
+        let tipoChat = chat.tipo;
+        const isCanal = tipoChat === 'canal';
+        const isInstituicao = tipoChat === 'instituicao';
+        const tipoEsperado = isCanal ? 'canal' : isInstituicao ? 'instituicao' : 'privado';
+        console.log('tipo esperado', tipoEsperado)
+        let eventoCanal = isCanal ? 'receber_mensagens_canais' : 'chats';
+        let channelName = isCanal ? `view_canais.${chat.id_conversa}` : `trazer_chats.${chat.id_conversa}`;
 
-          data.msgs.forEach((msg) => {
-            const mensagemFormatada = transformarMensagem(msg);
+        console.log('evento canal', eventoCanal)
+        if (!window.pusherInstance.channels[channelName]) {
+          const canal = window.pusherInstance.subscribe(channelName);
 
-           setConversas(prev => {
-      const chatIndex = prev.findIndex(c =>
-        c.id_conversa === mensagemFormatada.id_conversa &&
-        (
-          tipoEsperado !== 'privado'
-            ? c.tipo === tipoEsperado
-            : true 
-        )
-      );
+          canal.bind(eventoCanal, (data) => {
+            console.log('data recebida do evento', data);
+            if (!data?.msgs?.length) return;
 
-      if (chatIndex !== -1) {
-        const updated = [...prev];
-        updated[chatIndex] = {
-          ...updated[chatIndex],
-          ...mensagemFormatada,
-          updated_at: mensagemFormatada.updated_at
-        };
-        return ordenarConversas(updated);
-      }
+            data.msgs.forEach((msg) => {
+              const mensagemFormatada = transformarMensagem(msg);
 
-      return prev;
-    });
-            
-            
+              setConversas(prev => {
+                const chatIndex = prev.findIndex(c =>
+                  c.id_conversa === mensagemFormatada.id_conversa &&
+                  (
+                    tipoEsperado !== 'privado'
+                      ? c.tipo === tipoEsperado
+                      : true
+                  )
+                );
+
+                if (chatIndex !== -1) {
+                  const updated = [...prev];
+                  updated[chatIndex] = {
+                    ...updated[chatIndex],
+                    ...mensagemFormatada,
+                    updated_at: mensagemFormatada.updated_at
+                  };
+                  return ordenarConversas(updated);
+                }
+
+                return prev;
+              });
+
+
+            });
           });
-        });
-        
-      }
-    });
-  }catch(error){
-    console.log('erro ao conectar canal', error)
-  }
+
+        }
+      });
+    } catch (error) {
+      console.log('erro ao conectar canal', error)
+    }
   };
 
-
+const renderUltimaMensagem = (item) => {
+  if (item.img_mensagem && item.img_mensagem.trim() !== "") {
+    return (
+      <View style={styles.ultimaMensagemImg}>
+        <View style={[styles.circuloImagem, { backgroundColor: tema.azul }]}>
+          <Ionicons
+            style={styles.imagemIcon}
+            name="image-outline"
+            color={tema.textoBotao}
+          />
+        </View>
+        <Text style={[styles.ultimaMensagem, { color: tema.descricao }]}>Imagem</Text>
+      </View>
+    );
+  } else if (item.id_curtei && !item.ultima_mensagem) {
+    return <Text style={[styles.ultimaMensagem, { color: tema.descricao }]}>Curtiu</Text>;
+  } else if (item.id_post && !item.ultima_mensagem) {
+    return <Text style={[styles.ultimaMensagem, { color: tema.descricao }]}>Post</Text>;
+  } else if (item.tipo === "canal" && !item.ultima_mensagem) {
+    return (
+      <Text style={[styles.ultimaMensagem, { color: tema.descricao }]}>
+        Não existe mensagens para este canal
+      </Text>
+    );
+  } else {
+    return (
+      <Text style={[styles.ultimaMensagem, { color: tema.descricao }]}>
+        {item.ultima_mensagem}
+      </Text>
+    );
+  }
+};
   const filtrarChats = (chats) => {
     const termo = query.toLowerCase();
 
@@ -286,7 +317,7 @@ export default function Mensagens({ route }) {
                 );
               })}
             </ScrollView>
-            
+
           </View>
 
           <FlatList
@@ -321,8 +352,8 @@ export default function Mensagens({ route }) {
                   <View style={styles.mensagemTexto}>
                     <View style={{ flexDirection: 'row' }}>
                       <Text style={[styles.nome, { color: tema.texto, paddingRight: 10 }]} numberOfLines={1}>
-                        {item.nome} 
-                        
+                        {item.nome}
+
                       </Text>
                       {item.tipo === 'instituicao' && (
                         <Ionicons name="school-outline"
@@ -339,59 +370,8 @@ export default function Mensagens({ route }) {
                         />
                       )}
                     </View>
-                    {item.img_mensagem ? (
-                      <View style={styles.ultimaMensagemImg}>
-                        <View
-                          style={[
-                            styles.circuloImagem,
-                            { backgroundColor: tema.azul },
-                          ]}
-                        >
-                          <Ionicons
-                            style={styles.imagemIcon}
-                            name="image-outline"
-                            color={tema.textoBotao}
-                          />
-                        </View>
-                        <Text style={[styles.ultimaMensagem, { color: tema.descricao }]}>
-                          Imagem
-                        </Text>
-                      </View>
-                    ) : !item.ultima_mensagem && item.id_post ?  (
-                      <>
-                        
-                          <Text
-                            style={[styles.ultimaMensagem, { color: tema.descricao }]}
-                            numberOfLines={1}
-                          >
-                            Post
-                          </Text>
-                        
+                    {renderUltimaMensagem(item)}
 
-                      </>
-                    ) :
-                    (
-                      <>
-                        {item.tipo === 'canal' && !item.ultima_mensagem ? (
-                          <>
-                            <Text
-                              style={[styles.ultimaMensagem, { color: tema.descricao }]}
-                              numberOfLines={1}
-                            >
-                              Não existe mesagens para ete canal
-                            </Text>
-                          </>
-                        ) : (
-                          <Text
-                            style={[styles.ultimaMensagem, { color: tema.descricao }]}
-                            numberOfLines={1}
-                          >
-                            {item.ultima_mensagem}
-                          </Text>
-                        )}
-
-                      </>
-                    ) }
                   </View>
                 </View>
               </TouchableOpacity>

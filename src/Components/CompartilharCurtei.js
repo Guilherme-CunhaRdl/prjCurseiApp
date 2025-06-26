@@ -219,7 +219,8 @@ return (
                 <Pressable style={[
                   styles.botaoEnviar,
                   { backgroundColor: tema.azul }
-                ]} onPress={!carregamento && enviarPost}>
+                ]} 
+                 onPress={!carregamento ? enviarPost : null}>
                   {carregamento ?(
                     <ActivityIndicator 
                       size={20}

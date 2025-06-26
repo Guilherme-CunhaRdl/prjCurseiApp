@@ -9,7 +9,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTema } from '../context/themeContext';
 //conteudo seria o post
-export default function EnviarPostPv({idUserLogado, idChat}) {
+export default function EnviarPostPv({idUserLogado, idChat, isCanal}) {
+  console.log(isCanal)
   const modalRef = useRef(null);
   const [visivel, setVisivel] = React.useState(false);
   const [postsSelecionados, setPostsSelecionados] = useState([]);
@@ -41,15 +42,17 @@ export default function EnviarPostPv({idUserLogado, idChat}) {
   
 
   try {
+    const url = isCanal ? `http://${host}:8000/api/cursei/chat/enviarMensagem/canal/semImagem` 
+    : `http://${host}:8000/api/cursei/chat/enviarMensagem/semImagem`;
     const dados = await Promise.all(
       postsSelecionados.map(async (post) => {
         console.log({
-  idChat,
-  conteudoMensagem: null,
-  idEnviador: id,
-  idPost: post
-});
-        await axios.post(`http://${host}:8000/api/cursei/chat/enviarMensagem/semImagem`, {
+        idChat,
+        conteudoMensagem: null,
+        idEnviador: id,
+        idPost: post
+      });
+        await axios.post(url, {
           idChat: idChat,
           conteudoMensagem: null,
           idEnviador: id,
@@ -112,37 +115,36 @@ return (
             <TouchableOpacity onPress={fecharModal} style={styles.botaoFechar}>
               <Ionicons name="close" size={24} color={tema.iconeInativo} />
             </TouchableOpacity>
-            <Text style={[styles.titulo, { color: tema.texto }]}>Compartilhar post</Text>
+            <Text style={[styles.titulo, { color: tema.texto }]}>Compartilhar post {isCanal}</Text>
           </View>
 
           
             <ScrollView contentContainerStyle={styles.containerChat}>
-  {posts.map((item, index) => (
-    <View key={item.id_post} style={styles.boxPost}>
-      <TouchableOpacity style={[styles.botaoPost, postsSelecionados.includes(item.id_post) && {backgroundColor: tema.azul}]} onPress={() => selecionarCompartilhamento(item.id_post)}>
-        {postsSelecionados.includes(item.id_post) && (
-          <Ionicons name='checkmark' size={20} color="#fff" />
-        )}
-        
-      </TouchableOpacity>
-      <View style={styles.containerImgPost}>
-        <Image
-          style={styles.imagemPost}
-          source={{ uri: `http://${host}:8000/img/user/imgPosts/${item.conteudo_post}` }}
-        />
-      </View>
-      <Text>{item.id_post}</Text>
-    </View>
-  ))}
+            {posts.map((item, index) => (
+              <Pressable key={item.id_post} style={styles.boxPost} onPress={() => selecionarCompartilhamento(item.id_post)}>
+                <TouchableOpacity style={[styles.botaoPost, postsSelecionados.includes(item.id_post) && {backgroundColor: tema.azul}]} onPress={() => selecionarCompartilhamento(item.id_post)}>
+                  {postsSelecionados.includes(item.id_post) && (
+                    <Ionicons name='checkmark' size={20} color="#fff" />
+                  )}
+                  
+                </TouchableOpacity>
+                <View style={styles.containerImgPost}>
+                  <Image
+                    style={styles.imagemPost}
+                    source={{ uri: `http://${host}:8000/img/user/imgPosts/${item.conteudo_post}` }}
+                  />
+                </View>
+              </Pressable>
+            ))}
 
-</ScrollView>
-  {postsSelecionados.length > 0 && (
-    <>
-    <Pressable onPress={() => enviarPost()}>
-      <Text>Enviar</Text>
-    </Pressable>
-    </>
-  )}
+        </ScrollView>
+          {postsSelecionados.length > 0 && (
+            <>
+            <Pressable style={styles.botaoEnviar} onPress={() => enviarPost()}>
+              <Text style={{color: tema.nome === 'escuro' ? tema.texto : '#fff'}}>Enviar</Text>
+            </Pressable>
+            </>
+          )}
 
               </Animatable.View>
               </View>
@@ -311,7 +313,7 @@ botaoPost: {
   position: 'absolute',
   top: 8,
   right: 8,
-  backgroundColor: 'red',
+  backgroundColor: 'rgba(0, 0, 0, 0.4)',
   borderRadius: 12,
   zIndex: 1,
 },

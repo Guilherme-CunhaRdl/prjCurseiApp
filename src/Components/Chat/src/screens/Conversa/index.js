@@ -25,6 +25,7 @@ import useStyles from "./styles";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 export default function Conversa({ route }) {
+  
   const {tema } = useTema();
   const styles = useStyles()
   const {
@@ -36,6 +37,7 @@ export default function Conversa({ route }) {
     idChat,
     isCanal,
     idMembro,
+    isSeguindo
   } = route.params;
 
   const [campoMensagem, setCampoMensagem] = useState("");
@@ -377,7 +379,7 @@ export default function Conversa({ route }) {
               />
               <View style={styles.viewCabecalho}>
                 <View style={{width: '100%'}}>
-                <Text style={styles.nome}>{nomeEnviador} {idMembro}</Text>
+                <Text style={styles.nome}>{nomeEnviador}</Text>
                 
                 <Text style={styles.usuario}>@{arrobaEnviador} </Text>
                 </View>
@@ -393,7 +395,7 @@ export default function Conversa({ route }) {
                   ]}
                   onPress={() => seguirDeseguirCanal(idChat)}>
                   <Text style={styles.textSeguir}>
-                    {estaInscrito ? 'Inscrito' : 'Seguir'}
+                    { isSeguindo || estaInscrito ? 'Inscrito' : 'Seguir'}
                   </Text>
                 </TouchableOpacity>
                 </View>
@@ -452,7 +454,7 @@ export default function Conversa({ route }) {
                   style={styles.imgPerfil}
                   resizeMode="cover"
                 />
-                  <Text style={{color: tema.nome === 'escuro' ? tema.texto : '#fff' }}>{item.nome_user_curtei}</Text>
+                  <Text style={{color: item.id_enviador != idUserLogado ? colors.texto : colors.branco, }}>{item.nome_user_curtei}</Text>
                 </View>
 
                 <Image
@@ -462,11 +464,17 @@ export default function Conversa({ route }) {
                   style={styles.imgMensagem}
                   resizeMode="cover"
                 />
-                <TouchableOpacity style={styles.viewPlayer} onPress={() => navigation.navigate('PlayerCurtel', {videoUrl: item.url_curtei, videoId:item.id_curtei,userId:idUserLogado, thumbUrl: item.thumb_curtei, idCurtei: item.id_curtei, })}>
+                <TouchableOpacity style={styles.viewPlayer} onPress={() => navigation.navigate('PlayerCurtel', 
+                  {videoUrl: item.url_curtei,
+                   videoId:item.id_curtei,
+                   userId:idUserLogado, 
+                   thumbUrl: item.thumb_curtei, 
+                   idCurtei: item.id_curtei, 
+                   })}>
                   <Ionicons name="play" size={20} color={tema.fundo}/>
                 </TouchableOpacity>
                 <View style={styles.footerPost}>
-                  <Text style={{color: colors.branco, }}>{item.desc_curtei}</Text>
+                  <Text style={{color: item.id_enviador != idUserLogado ? colors.texto : colors.branco, }}>{item.desc_curtei}</Text>
                 </View>
                 
                 </Pressable>
@@ -486,7 +494,7 @@ export default function Conversa({ route }) {
                   style={styles.imgPerfil}
                   resizeMode="cover"
                 />
-                  <Text style={{color: tema.nome === 'escuro' ? tema.texto : '#fff' }}>{item.nome_user_postou}</Text>
+                  <Text style={{color: item.id_enviador != idUserLogado ? colors.texto : colors.branco, }}>{item.nome_user_postou}</Text>
                 </View>
 
                 <Image
@@ -498,7 +506,7 @@ export default function Conversa({ route }) {
                 />
                 
                 <View style={styles.footerPost}>
-                  <Text style={{color: colors.branco, }}>{item.desc_post}</Text>
+                  <Text style={{color: item.id_enviador != idUserLogado ? colors.texto : colors.branco, }}>{item.desc_post}</Text>
                 </View>
                 
                 </Pressable>
@@ -597,7 +605,7 @@ export default function Conversa({ route }) {
             )
         :  
               (
-                <EnviarPostPv idUserLogado={idUserLogado} idChat={idChat} />
+                <EnviarPostPv idUserLogado={idUserLogado} idChat={idChat} isCanal={isCanal}/>
               )
     }
     </View>
@@ -649,7 +657,7 @@ export default function Conversa({ route }) {
             )
         :  
               (
-                <EnviarPostPv idUserLogado={idUserLogado} idChat={idChat} />
+                <EnviarPostPv idUserLogado={idUserLogado} idChat={idChat} isCanal={isCanal}/>
               )
     }
     </View>

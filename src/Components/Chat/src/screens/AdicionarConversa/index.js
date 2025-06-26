@@ -37,7 +37,8 @@ import { useTema } from '../../../../../context/themeContext'
 
 export default function AddConversa({ route }) {
   const navigation = useNavigation();
-  const { idUserLogado } = route.params;
+  const { idUserLogado, isSeguindo } = route.params;
+  console.log(isSeguindo)
   const [seguidores, setSeguidores] = useState([]);
   const [loading, setLoading] = useState(true);
   const { tema } = useTema();
@@ -598,6 +599,7 @@ export default function AddConversa({ route }) {
                                   arrobaEnviador: item.arroba_remetente,
                                   idChat: item.canal_id,
                                   isCanal: true,
+                                  isSeguindo: seguidos.includes(item.canal_id)
                                 };
                                 navigation.navigate("Conversa", navData);
                               }}>
@@ -620,7 +622,7 @@ export default function AddConversa({ route }) {
                                         <TouchableOpacity
                                           style={[
                                             styles.botaoSeguir,
-                                            seguidos.includes(item.canal_id) &&  styles.botaoSeguido
+                                             isSeguindo || seguidos.includes(item.canal_id) &&  styles.botaoSeguido
                                           ]}
                                           onPress={() => seguidos.includes(item.canal_id) ? deixarSeguir(item.canal_id) : seguirCanal(item.canal_id)}
                                         >

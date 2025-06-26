@@ -247,6 +247,7 @@ export default function Curtei() {
           <TouchableOpacity style={styles.button} onPress={() => {
             setModalComp(true)
             setCurteiSelecionado(item)
+            setSelectedCurteiId(item.id);
           }
           }>
             <Ionicons name="paper-plane-outline" size={responsiveFontSize(6)} color="white" />
@@ -367,7 +368,7 @@ export default function Curtei() {
         chats={chats} 
         visibilidade={modalComp} 
         curtei={curteiSelecionado} 
-        idCurtei={curteiSelecionado.id}
+        idCurtei={selectedCurteiId}
         onClose={() => setModalComp(false)} 
          />
 
