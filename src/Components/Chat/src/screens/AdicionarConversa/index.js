@@ -299,9 +299,7 @@ export default function AddConversa({ route }) {
     }catch (error){
       console.log(error)
     }
-    // if (dadosApi.sucesso) {
-    //   setSeguidos((prev) => [...prev, idCanal])
-    // }
+    
   }
 
   return (
@@ -321,26 +319,7 @@ export default function AddConversa({ route }) {
             />
           </Appbar.Header>
 
-          <View style={[styles.customSearchbar, { backgroundColor: tema.cinza }]}>
-            <Image
-              source={require("../../img/search.png")}
-              style={styles.searchIcon}
-            />
-            <TextInput
-              placeholder="Buscar Usuario..."
-              placeholderTextColor={tema.descricao}
-              onFocus={() => alterarFoco("buscar")}
-              underlineColorAndroid="transparent"
-              style={[
-                styles.customSearchInput,
-                { color: tema.texto },
-                focoInput === "buscar" && {
-                  borderWidth: 0,
-                  borderColor: "transparent",
-                },
-              ]}
-            />
-          </View>
+          
 
           {loading ? (
             <View style={{ flex: 1, paddingTop: 50, justifyContent: 'flex-start', alignItems: 'center', backgroundColor: tema.fundo, zIndex: 99, width: '100%', height: '100%' }}>
@@ -366,7 +345,6 @@ export default function AddConversa({ route }) {
                         </Text>
                         <Text style={{ fontSize: 12, color: tema.descricao, paddingRight: 30 }}>
                           Adicione uma nova conversa ao seu Bate Papo!
-                          {isInstituicao}
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -449,7 +427,7 @@ export default function AddConversa({ route }) {
                           </TouchableOpacity>
                         </View>
                       )}
-                                                  scrollEnabled={false}
+                      scrollEnabled={false}
 
                       ListEmptyComponent={
                         <View style={{ padding: 20, alignItems: 'center' }}>

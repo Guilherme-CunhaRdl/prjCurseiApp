@@ -381,7 +381,7 @@ export default function Conversa({ route }) {
                 <View style={{width: '100%'}}>
                 <Text style={styles.nome}>{nomeEnviador}</Text>
                 
-                <Text style={styles.usuario}>@{arrobaEnviador} </Text>
+                <Text style={styles.usuario}>@{arrobaEnviador}</Text>
                 </View>
                 </View>
                 </TouchableOpacity>
@@ -465,11 +465,13 @@ export default function Conversa({ route }) {
                   resizeMode="cover"
                 />
                 <TouchableOpacity style={styles.viewPlayer} onPress={() => navigation.navigate('PlayerCurtel', 
-                  {videoUrl: item.url_curtei,
-                   videoId:item.id_curtei,
-                   userId:idUserLogado, 
-                   thumbUrl: item.thumb_curtei, 
-                   idCurtei: item.id_curtei, 
+                  {
+                    videoUrl: item.url_curtei,
+                    videoId:item.id_curtei,
+                    userId:idUserLogado, 
+                    thumbUrl: item.thumb_curtei, 
+                    idCurtei: item.id_curtei, 
+                    userImage: item.img_user_curtei
                    })}>
                   <Ionicons name="play" size={20} color={tema.fundo}/>
                 </TouchableOpacity>
