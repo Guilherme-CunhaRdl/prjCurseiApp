@@ -55,7 +55,6 @@ const {tema } = useTema()
         backgroundColor: colors.azul,
         flexDirection: 'row',
         borderWidth: 1,
-        borderColor: colors.azul
       },
       botaoSeguido:{
         padding: 7,

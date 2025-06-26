@@ -404,7 +404,10 @@ export default function Post({ idUser = null, idPostUnico, tipo, pesquisa, pesqu
                     </View>
                   </View>
                   <Text style={[styles.postTextRepost]}>
-                    {renderHashtagText(item.repost_descricao, handleHashtagPress)}
+                    {item.repost_descricao?(
+                                          renderHashtagText(item.repost_descricao, handleHashtagPress)
+
+                    ):null}
                   </Text>
                   {item.repost_conteudo && (
                     <View style={styles.postContentRepost}>

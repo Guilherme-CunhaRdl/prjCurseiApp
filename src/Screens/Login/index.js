@@ -118,7 +118,7 @@ export default function Login() {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       
       <ScrollView 
-        contentContainerStyle={{flexGrow: 1, paddingBottom: 40}}
+        contentContainerStyle={{flexGrow: 1, paddingBottom: 40,justifyContent:'center'}}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoContainer}>
@@ -197,6 +197,7 @@ export default function Login() {
                 name={mostrarSenha ? "eye-off" : "eye"} 
               />
             </TouchableOpacity>
+            
           </View>
           {erroSenha ? (
             <Text style={{
@@ -224,20 +225,7 @@ export default function Login() {
             <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
           </TouchableOpacity>
 
-          <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>ou continue com</Text>
-            <View style={styles.divider} />
-          </View>
-
-          <View style={styles.socialButtonsContainer}>
-            <TouchableOpacity style={styles.socialButton}>
-              <Text style={styles.socialIconG}>G</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <Text style={styles.socialIconF}>f</Text>
-            </TouchableOpacity>
-          </View>
+          
 
           <View style={styles.signupContainer}>
             <Text style={styles.signupText}>Não tem uma conta? </Text>

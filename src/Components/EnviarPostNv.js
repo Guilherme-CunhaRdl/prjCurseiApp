@@ -66,8 +66,6 @@ export default function EnviarPostPv({idUserLogado, idChat, isCanal}) {
     setPostsSelecionados([]);
     fecharModal();
 
-    Alert.alert('Sucesso', 'Post enviado com sucesso!');
-
   } catch (error) {
     console.error("Erro ao enviar mensagens:", error);
     Alert.alert('Erro', 'Falha ao enviar o post');

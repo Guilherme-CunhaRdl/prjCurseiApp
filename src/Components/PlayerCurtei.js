@@ -46,7 +46,7 @@ export default function PlayerCurtel() {
   // Obter dados do vídeo da rota
 
 
-  const { videoUrl, thumbnailUrl, videoId, userId: videoUserId } = route.params;
+  const { videoUrl, thumbnailUrl, videoId, userId: videoUserId, userImage } = route.params;
 
  const trazerChats = async (userId) => {
       id = await AsyncStorage.getItem('idUser')
@@ -221,7 +221,7 @@ export default function PlayerCurtel() {
             <Image
               style={styles.profileImage}
               source={videoData.userImage 
-                ? { uri: `http://${host}:8000/img/user/fotoPerfil/${videoData.userImage}` } 
+                ? { uri: `http://${host}:8000/img/user/fotoPerfil/${ userImage || videoData.userImage}` } 
                 : require('../../assets/etecLogo.jpg')
               }
             />

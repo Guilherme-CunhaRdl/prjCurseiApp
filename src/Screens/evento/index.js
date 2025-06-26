@@ -9,7 +9,8 @@ import { Linking } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import dayjs from 'dayjs';
+import 'dayjs/locale/pt-br';
 import axios from 'axios';
 
 export default function evento() {
@@ -42,6 +43,8 @@ export default function evento() {
   const [ano, mes, dia] = dataISO.split('-');
   return `${dia}/${mes}/${ano}`;
 }
+dayjs.locale('pt-br');
+
   async function carregarEvento() {
     const idEvento = rotavalores.eventoId;
     
@@ -51,8 +54,8 @@ export default function evento() {
     setImgPerfil(response.data[0].img_user);
     setNome(response.data[0].nome_user);
     setArroba(response.data[0].arroba_user);
-    setDataInicio(converterParaDataBR(response.data[0].data_inicio_evento));
-    setDataFim(converterParaDataBR(response.data[0].data_fim_evento));
+    setDataInicio(dayjs(response.data[0].data_inicio_evento).format('DD/MM/YYYY HH:mm'));
+    setDataFim(dayjs(response.data[0].data_fim_evento).format('DD/MM/YYYY HH:mm'));
     setLink(response.data[0].link_evento);
     setDescricao(response.data[0].desc_evento);
     setIdUser(response.data[0].id_user);
